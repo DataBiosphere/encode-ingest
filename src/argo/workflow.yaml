@@ -1,0 +1,147 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: encode-ingest-
+spec:
+  entrypoint: transfer-encode-file
+  podGC:
+    strategy: OnWorkflowSuccess
+  volumes:
+    - name: gcs-writer-key
+      secret:
+        secretName: "{{workflow.parameters.gcs}}"
+    - name: aws-secret
+      secret:
+        secretName: "{{workflow.parameters.aws}}"
+  volumeClaimTemplates:
+    - metadata:
+        name: state-dir
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            # NOTE this needs to be programmatically inserted, not hard coded; we are unable to do so at time of writing
+            # follow here: https://github.com/argoproj/argo/issues/1932
+            storage: 100Gi
+  templates:
+    ## "Main" function for the extraction workflow.
+    - name: transfer-encode-file
+      steps:
+        - - name: download-file
+            template: download-s3-file
+            arguments:
+              parameters:
+                - name: s3-bucket
+                  value: "{{workflow.parameters.input-s3-bucket}}"
+                - name: s3-path
+                  value: "{{workflow.parameters.input-s3-path}}"
+                - name: aws-secret-volume
+                  value: aws-secret
+                - name: aws-id-key
+                  value: "{{workflow.parameters.aws-id-key}}"
+                - name: aws-secret-key
+                  value: "{{workflow.parameters.aws-secret-key}}"
+                - name: local-path
+                  value: "{{workflow.parameters.local-path}}"
+        - - name: upload-file
+            template: upload-to-gcs
+            arguments:
+              parameters:
+                - name: gcs-bucket
+                  value: '{{workflow.parameters.output-gcs-bucket}}'
+                - name: gcs-path
+                  value: '{{workflow.parameters.output-gcs-path}}'
+                - name: key-secret-volume
+                  value: gcs-writer-key
+                - name: key-secret-file
+                  value: "{{workflow.parameters.gcs-key-name}}"
+                - name: local-path
+                  value: "{{workflow.parameters.local-path}}"
+
+    ## Downloads a file from an S3 bucket onto a k8s volume.
+    - name: download-s3-file
+      inputs:
+        parameters:
+          - name: s3-bucket
+          - name: s3-path
+          - name: aws-secret-volume
+          - name: aws-id-key
+          - name: aws-secret-key
+          - name: local-path
+      container:
+        image: us.gcr.io/broad-dsp-gcr-public/s3cmd-lite:latest
+        command: [s3cmd, sync]
+        args:
+          - s3://{{inputs.parameters.s3-bucket}}/{{inputs.parameters.s3-path}}
+          # NOTE that having slashes at the end of these is apparently consequential for a directory or file download
+          # Look at item number 9 in the README here: https://github.com/s3tools/s3cmd/blob/master/README.md
+          - /state/{{inputs.parameters.local-path}}/
+        env:
+          - name: AWS_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{workflow.parameters.aws}}"
+                key: "{{inputs.parameters.aws-id-key}}"
+          - name: AWS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{workflow.parameters.aws}}"
+                key: "{{inputs.parameters.aws-secret-key}}"
+        volumeMounts:
+          - name: state-dir
+            mountPath: /state
+          - name: "{{inputs.parameters.aws-secret-volume}}"
+            mountPath: /secrets
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 1000m
+          limits:
+            memory: 1Gi
+            cpu: 2000m
+      retryStrategy:
+        limit: 32
+
+    ## Uploads local files to a GCS bucket.
+    - name: upload-to-gcs
+      inputs:
+        parameters:
+          - name: gcs-bucket
+          - name: gcs-path
+          - name: key-secret-volume
+          - name: key-secret-file
+          - name: local-path
+      container:
+        image: google/cloud-sdk:slim
+        command: [gsutil]
+        args:
+          - -m
+          # Move the state dir to the persistent volume so we don't
+          # lose track of progress across restarts.
+          - -o
+          - "GSUtil:state_dir=/state/.gsutil"
+          # Point at the mounted SA credentials for auth.
+          - -o
+          - "Credentials:gs_service_key_file=/secrets/{{inputs.parameters.key-secret-file}}"
+          - rsync
+          - -r
+          - /state/{{inputs.parameters.local-path}}
+          - gs://{{inputs.parameters.gcs-bucket}}/{{inputs.parameters.gcs-path}}
+        volumeMounts:
+          - name: state-dir
+            mountPath: /state
+          - name: "{{inputs.parameters.key-secret-volume}}"
+            mountPath: /secrets
+        env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /secrets/{{inputs.parameters.key-secret-file}}
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 1000m
+          limits:
+            memory: 2Gi
+            cpu: 2000m
+      retryStrategy:
+        limit: 32

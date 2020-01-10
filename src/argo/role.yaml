@@ -1,0 +1,39 @@
+# Permissions needed by a k8s SA to run the extraction workflow.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clinvar-extraction-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
+- apiGroups:
+  - "batch"
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
+- apiGroups:
+  - "argoproj.io"
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
