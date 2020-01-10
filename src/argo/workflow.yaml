@@ -21,7 +21,8 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: "{{workflow.parameters.file-size}}"
+            # NOTE this needs to be programmatically inserted, not hard coded; we are unable to do so at time of writing
+            storage: 100Gi
   templates:
     ## "Main" function for the extraction workflow.
     - name: transfer-encode-file
@@ -95,8 +96,8 @@ spec:
             memory: 512Mi
             cpu: 1000m
           limits:
-            memory: 512Mi
-            cpu: 1000m
+            memory: 1Gi
+            cpu: 2000m
       retryStrategy:
         limit: 32
 
