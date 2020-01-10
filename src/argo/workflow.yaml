@@ -22,6 +22,7 @@ spec:
         resources:
           requests:
             # NOTE this needs to be programmatically inserted, not hard coded; we are unable to do so at time of writing
+            # follow here: https://github.com/argoproj/argo/issues/1932
             storage: 100Gi
   templates:
     ## "Main" function for the extraction workflow.
@@ -74,6 +75,7 @@ spec:
         args:
           - s3://{{inputs.parameters.s3-bucket}}/{{inputs.parameters.s3-path}}
           # NOTE that having slashes at the end of these is apparently consequential for a directory or file download
+          # Look at item number 9 in the README here: https://github.com/s3tools/s3cmd/blob/master/README.md
           - /state/{{inputs.parameters.local-path}}/
         env:
           - name: AWS_ACCESS_KEY
