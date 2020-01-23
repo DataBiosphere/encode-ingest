@@ -1,14 +1,20 @@
 package org.broadinstitute.monster.etl.encode
 
-import java.io.IOException
+import java.io.{IOException, InputStream, OutputStream}
+import java.nio.ByteBuffer
 
+import com.google.common.io.ByteStreams
 import com.spotify.scio.coders.Coder
 import com.spotify.scio.transforms._
 import com.spotify.scio.values.SCollection
 import com.squareup.okhttp.{Callback, OkHttpClient, Request, Response}
 import io.circe.JsonObject
+import io.circe.jawn.JawnParser
+import io.circe.syntax._
+import org.apache.beam.sdk.coders.{Coder => BeamCoder}
 import org.apache.beam.sdk.coders.{KvCoder, StringUtf8Coder}
-import org.apache.beam.sdk.transforms.{ParDo, GroupIntoBatches}
+import org.apache.beam.sdk.transforms.{GroupIntoBatches, ParDo}
+import org.apache.beam.sdk.util.VarInt
 import org.apache.beam.sdk.values.KV
 //import org.broadinstitute.monster.etl.encode._
 
@@ -17,7 +23,33 @@ import scala.concurrent.{Future, Promise}
 
 /** Ingest step responsible for pulling raw metadata for a specific entity type from the ENCODE API. */
 object EncodeExtractions {
-  implicit val jsonCoder: Coder[JsonObject] = Coder.kryo[JsonObject]
+
+  // TODO when updating to upack and msg, will need to change this coder as well
+  implicit val jsonCoder: Coder[JsonObject] = Coder.beam {
+    new BeamCoder[JsonObject] {
+      val parser = new JawnParser()
+
+      override def encode(value: JsonObject, outStream: OutputStream): Unit =
+        Option(value).foreach { jsonObj =>
+          val bytes = jsonObj.asJson.noSpaces.getBytes
+          VarInt.encode(bytes.length, outStream)
+          outStream.write(bytes)
+        }
+      override def decode(inStream: InputStream): JsonObject = {
+        val numBytes = VarInt.decodeInt(inStream)
+        val bytes = new Array[Byte](numBytes)
+        ByteStreams.readFully(inStream, bytes)
+        parser.decodeByteBuffer[JsonObject](ByteBuffer.wrap(bytes)).right.get
+      }
+      override def getCoderArguments: java.util.List[_ <: BeamCoder[_]] =
+        java.util.Collections.emptyList()
+      override def verifyDeterministic(): Unit =
+        throw new BeamCoder.NonDeterministicException(
+          this,
+          "Equal Msgs don't necessarily encode to the same bytes"
+        )
+    }
+  }
 
   /** HTTP client to use for querying ENCODE APIs. */
   val client = new OkHttpClient()
@@ -109,6 +141,7 @@ object EncodeExtractions {
           throw _,
           value => {
             val decoded = for {
+              // TODO change to upack and msg instead of circe and json, dear future monster
               json <- io.circe.parser.parse(value)
               cursor = json.hcursor
               objects <- cursor.downField("@graph").as[Vector[JsonObject]]
