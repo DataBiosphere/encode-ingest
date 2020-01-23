@@ -4,8 +4,6 @@ import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
 import com.spotify.scio.ContextAndArgs
 import com.spotify.scio.extra.json._
 import org.broadinstitute.monster.EncodeIngestBuildInfo
-//import org.broadinstitute.monster.etl.encode.ExtractionPipeline.Args
-//import org.broadinstitute.monster.EncodeBuildInfo
 
 /**
   * ETL workflow for scraping the latest entity metadata from ENCODE.

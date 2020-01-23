@@ -16,7 +16,6 @@ import org.apache.beam.sdk.coders.{KvCoder, StringUtf8Coder}
 import org.apache.beam.sdk.transforms.{GroupIntoBatches, ParDo}
 import org.apache.beam.sdk.util.VarInt
 import org.apache.beam.sdk.values.KV
-//import org.broadinstitute.monster.etl.encode._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
@@ -193,6 +192,7 @@ object EncodeExtractions {
     * downloaded from ENCODE.
     *
     * @param encodeEntity the type of ENCODE entity the input IDs correspond to
+   *  @param fieldName the field name to get the entity by, is "@id" by default
     */
   def getEntitiesByField(
     encodeEntity: EncodeEntity,
