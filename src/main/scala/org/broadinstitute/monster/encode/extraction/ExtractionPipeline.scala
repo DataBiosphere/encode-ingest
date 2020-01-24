@@ -23,7 +23,11 @@ object ExtractionPipeline {
     @HelpMessage(
       "Path to directory where the extracted raw ENCODE metadata should be written"
     )
-    outputDir: String
+    outputDir: String,
+    @HelpMessage(
+      "Batch size that defines the number of elements in a batch when making certain API calls"
+    )
+    batchSize: Int
   )
 
   /**
@@ -47,24 +51,48 @@ object ExtractionPipeline {
         manyReferences = false
       )(biosamples)
 
-      EncodeExtractions.getEntitiesByField(EncodeEntity.Donor)(idParams)
+      EncodeExtractions.getEntitiesByField(EncodeEntity.Donor, parsedArgs.batchSize)(idParams)
     }
 
     val libraries = {
-      val biosampleIdParams = EncodeExtractions.getIds(
+      val biosampleAccessionParams = EncodeExtractions.getIds(
         EncodeEntity.Biosample.entryName,
         referenceField = "accession",
         manyReferences = false
       )(biosamples)
 
-      EncodeExtractions.getEntitiesByField(EncodeEntity.Library, "biosample.accession")(
-        biosampleIdParams
+      EncodeExtractions.getEntitiesByField(EncodeEntity.Library, parsedArgs.batchSize,"biosample.accession")(
+        biosampleAccessionParams
       )
+    }
+
+    val replicates = {
+      val libraryAccessionParams = EncodeExtractions.getIds(
+        EncodeEntity.Library.entryName,
+        referenceField = "accession",
+        manyReferences = false
+      )(libraries)
+
+      EncodeExtractions.getEntitiesByField(EncodeEntity.Replicate, parsedArgs.batchSize,"library.accession")(
+        libraryAccessionParams
+      )
+    }
+
+    val experiments = {
+      val experimentIdParams = EncodeExtractions.getIds(
+        EncodeEntity.Experiment.entryName,
+        referenceField = "@id",
+        manyReferences = false
+      )(replicates)
+
+      EncodeExtractions.getEntitiesByField(EncodeEntity.Experiment, parsedArgs.batchSize)(experimentIdParams)
     }
 
     biosamples.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}")
     donors.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Donor.entryName}")
     libraries.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Library.entryName}")
+    replicates.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Replicate.entryName}")
+    experiments.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Experiment.entryName}")
 
     pipelineContext.run()
     ()

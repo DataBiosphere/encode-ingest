@@ -189,17 +189,19 @@ object EncodeExtractions {
     * downloaded from ENCODE.
     *
     * @param encodeEntity the type of ENCODE entity the input IDs correspond to
-    *  @param fieldName the field name to get the entity by, is "@id" by default
+    * @param batchSize the number of elements in a batch stream
+    * @param fieldName the field name to get the entity by, is "@id" by default
     */
   def getEntitiesByField(
     encodeEntity: EncodeEntity,
+    batchSize: Int,
     fieldName: String = "@id"
-  ): SCollection[String] => SCollection[JsonObject] = { idStream =>
+  ) : SCollection[String] => SCollection[JsonObject] = { idStream =>
     val paramsBatchStream =
       idStream.transform(s"Build ${encodeEntity.entryName} ID Queries") {
         _.map(KV.of("key", _))
           .setCoder(KvCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of()))
-          .applyKvTransform(GroupIntoBatches.ofSize(100))
+          .applyKvTransform(GroupIntoBatches.ofSize(batchSize))
           .map(_.getValue)
           .map { ids =>
             ids.asScala.foldLeft(List.empty[(String, String)]) { (acc, ref) =>
