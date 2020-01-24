@@ -1,4 +1,4 @@
-package org.broadinstitute.monster.etl.encode
+package org.broadinstitute.monster.encode.extraction
 
 import java.io.{IOException, InputStream, OutputStream}
 import java.nio.ByteBuffer
@@ -38,7 +38,7 @@ object EncodeExtractions {
         val numBytes = VarInt.decodeInt(inStream)
         val bytes = new Array[Byte](numBytes)
         ByteStreams.readFully(inStream, bytes)
-        parser.decodeByteBuffer[JsonObject](ByteBuffer.wrap(bytes)).right.get
+        parser.decodeByteBuffer[JsonObject](ByteBuffer.wrap(bytes)).fold(throw _, identity)
       }
       override def getCoderArguments: java.util.List[_ <: BeamCoder[_]] =
         java.util.Collections.emptyList()
@@ -75,10 +75,7 @@ object EncodeExtractions {
       }
       val allParams = s"type=${encodeEntity.encodeApiName}" :: baseParams ::: paramStrings
 
-      get(
-        client,
-        allParams
-      )
+      get(client, allParams)
     }
 
     /**
@@ -192,7 +189,7 @@ object EncodeExtractions {
     * downloaded from ENCODE.
     *
     * @param encodeEntity the type of ENCODE entity the input IDs correspond to
-   *  @param fieldName the field name to get the entity by, is "@id" by default
+    *  @param fieldName the field name to get the entity by, is "@id" by default
     */
   def getEntitiesByField(
     encodeEntity: EncodeEntity,

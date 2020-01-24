@@ -1,4 +1,4 @@
-package org.broadinstitute.monster.etl.encode
+package org.broadinstitute.monster.encode.extraction
 
 import enumeratum.{Enum, EnumEntry}
 

@@ -1,4 +1,4 @@
-package org.broadinstitute.monster.etl.encode
+package org.broadinstitute.monster.encode.extraction
 
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
 import com.spotify.scio.ContextAndArgs
@@ -62,9 +62,9 @@ object ExtractionPipeline {
       )
     }
 
-    biosamples.saveAsJsonFile(s"${parsedArgs.outputDir}/biosamples")
-    donors.saveAsJsonFile(s"${parsedArgs.outputDir}/donors")
-    libraries.saveAsJsonFile(s"${parsedArgs.outputDir}/libraries")
+    biosamples.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}")
+    donors.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Donor.entryName}")
+    libraries.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Library.entryName}")
 
     pipelineContext.run()
     ()
