@@ -40,67 +40,68 @@ object ExtractionPipeline {
     val (pipelineContext, parsedArgs) = ContextAndArgs.typed[Args](rawArgs)
 
     /**
-     * Generic helper method for extracting linked entities and saving them.
-     *
-     * @param encodeEntity the entity from which to extract a field
-     * @param idEntity the entity whose IDs to use as input to the getEntitiesByField
-     * @param idReferenceField the field name to use as an identifier in getIds
-     * @param prevData the data to base the ID extraction off of
-     * @param entityFieldName the field name to extract if it isn't @id
-     * @return the extracted linked entities
-     */
-    def extractLinkedEntity(
+      * Generic helper method for extracting linked entities and saving them.
+      *
+      * @param encodeEntity the entity from which to extract a field
+      * @param referenceField the field name to use as an identifier in getIds
+      * @param prevData the data to base the ID extraction off of
+      * @param entityFieldName the field name to extract if it isn't @id
+      * @return the extracted linked entities
+      */
+    def extractLinkedEntities(
       encodeEntity: EncodeEntity,
-      idEntity: EncodeEntity,
-      idReferenceField: String,
+      referenceField: String,
       prevData: SCollection[JsonObject],
-      entityFieldName: String = "@id"
+      entityFieldName: String = "@id",
+      manyReferences: Boolean = false
     ): SCollection[JsonObject] = {
-      val out = EncodeExtractions.getEntitiesByField(
-        encodeEntity,
-        parsedArgs.batchSize,
-        entityFieldName
-      ) {
-        EncodeExtractions.getIds(
-          idEntity.entryName,
-          idReferenceField,
-          false
-        )(prevData)
+      prevData.transform(s"Extract ${encodeEntity.entryName} data") { prevData =>
+        val out = EncodeExtractions.getEntitiesByField(
+          encodeEntity,
+          parsedArgs.batchSize,
+          entityFieldName
+        ) {
+          EncodeExtractions.getIds(
+            referenceField,
+            manyReferences
+          )(prevData)
+        }
+        out.saveAsJsonFile(s"${parsedArgs.outputDir}/${encodeEntity.entryName}")
+        out
       }
-      out.saveAsJsonFile(s"${parsedArgs.outputDir}/${encodeEntity.entryName}")
-      out
     }
 
     // biosamples are the first one and follow a different pattern, so we don't use the generic method
-    val biosamples = EncodeExtractions.getEntities(EncodeEntity.Biosample) {
-      pipelineContext.parallelize(List(List("organism.name" -> "human")))
-    }
-    biosamples.saveAsJsonFile(
-      s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}"
-    )
+    val biosamples = pipelineContext
+      .parallelize(List(List("organism.name" -> "human")))
+      .transform(s"Extract ${EncodeEntity.Biosample} data") { rawData =>
+        val biosamples = EncodeExtractions.getEntities(EncodeEntity.Biosample)(rawData)
+        biosamples.saveAsJsonFile(
+          s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}"
+        )
+        biosamples
+      }
 
     // don't need to use donors apart from storing them, so we don't assign an output here
-    extractLinkedEntity(EncodeEntity.Donor, EncodeEntity.Donor, "donor", biosamples)
+    extractLinkedEntities(EncodeEntity.Donor, "donor", biosamples)
 
-    val libraries = extractLinkedEntity(
+    val libraries = extractLinkedEntities(
       EncodeEntity.Library,
-      EncodeEntity.Biosample,
       "accession",
       biosamples,
       "biosample.accession"
     )
 
-    val replicates = extractLinkedEntity(
+    val replicates = extractLinkedEntities(
       EncodeEntity.Replicate,
-      EncodeEntity.Library,
       "accession",
       libraries,
       "library.accession"
     )
 
-    // don't need to use experiments apart from storing them, so we don't assign an output here
-    extractLinkedEntity(
-      EncodeEntity.Experiment,
+    // don't need to use experiments RIGHT NOW apart from storing them, so we don't assign an output here
+    // TODO output experiments for future use of experiments to get files
+    extractLinkedEntities(
       EncodeEntity.Experiment,
       "experiment",
       replicates

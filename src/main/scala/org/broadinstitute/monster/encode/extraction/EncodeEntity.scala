@@ -25,5 +25,5 @@ object EncodeEntity extends Enum[EncodeEntity] {
 
   case object Audit extends EncodeEntity
 
-  override def values: immutable.IndexedSeq[EncodeEntity] = ???
+  override def values: immutable.IndexedSeq[EncodeEntity] = findValues
 }

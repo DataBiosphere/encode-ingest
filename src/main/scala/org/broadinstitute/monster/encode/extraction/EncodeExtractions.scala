@@ -133,41 +133,36 @@ object EncodeExtractions {
   def getEntities(
     encodeEntity: EncodeEntity
   ): SCollection[List[(String, String)]] => SCollection[JsonObject] =
-    _.transform(s"Download ${encodeEntity.entryName} Entities") {
-      _.applyKvTransform(ParDo.of(new EncodeLookup(encodeEntity))).flatMap { kv =>
-        kv.getValue.fold(
-          throw _,
-          value => {
-            val decoded = for {
-              // TODO change to upack and msg instead of circe and json, dear future monster
-              json <- io.circe.parser.parse(value)
-              cursor = json.hcursor
-              objects <- cursor.downField("@graph").as[Vector[JsonObject]]
-            } yield {
-              objects
-            }
-            decoded.fold(throw _, identity)
+    _.applyKvTransform(ParDo.of(new EncodeLookup(encodeEntity))).flatMap { kv =>
+      kv.getValue.fold(
+        throw _,
+        value => {
+          val decoded = for {
+            // TODO change to upack and msg instead of circe and json, dear future monster
+            json <- io.circe.parser.parse(value)
+            cursor = json.hcursor
+            objects <- cursor.downField("@graph").as[Vector[JsonObject]]
+          } yield {
+            objects
           }
-        )
-      }
+          decoded.fold(throw _, identity)
+        }
+      )
     }
 
   /**
     * Pipeline stage which extracts IDs from downloaded JSON entities for
     * use in subsequent queries.
     *
-    * @param entryName display name for the type of entity whose IDs will
-    *                  be extracted in this stage
     * @param referenceField field in the input JSONs containing the IDs
     *                       to extract
     * @param manyReferences whether or not `referenceField` is an array
     */
   def getIds(
-    entryName: String,
     referenceField: String,
     manyReferences: Boolean
   ): SCollection[JsonObject] => SCollection[String] =
-    _.transform(s"Get $entryName IDs") { collection =>
+    collection =>
       collection.flatMap { jsonObj =>
         jsonObj(referenceField).toIterable.flatMap { referenceJson =>
           val references = for {
@@ -184,7 +179,6 @@ object EncodeExtractions {
           references.toOption
         }.flatten
       }.distinct
-    }
 
   /**
     * Pipeline stage which maps entity IDs into corresponding JSON entities
@@ -200,17 +194,16 @@ object EncodeExtractions {
     fieldName: String = "@id"
   ): SCollection[String] => SCollection[JsonObject] = { idStream =>
     val paramsBatchStream =
-      idStream.transform(s"Build ${encodeEntity.entryName} ID Queries") {
-        _.map(KV.of("key", _))
-          .setCoder(KvCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of()))
-          .applyKvTransform(GroupIntoBatches.ofSize(batchSize))
-          .map(_.getValue)
-          .map { ids =>
-            ids.asScala.foldLeft(List.empty[(String, String)]) { (acc, ref) =>
-              (fieldName -> ref) :: acc
-            }
+      idStream
+        .map(KV.of("key", _))
+        .setCoder(KvCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of()))
+        .applyKvTransform(GroupIntoBatches.ofSize(batchSize))
+        .map(_.getValue)
+        .map { ids =>
+          ids.asScala.foldLeft(List.empty[(String, String)]) { (acc, ref) =>
+            (fieldName -> ref) :: acc
           }
-      }
+        }
 
     getEntities(encodeEntity)(paramsBatchStream)
   }
