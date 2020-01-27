@@ -21,21 +21,21 @@ pipeline {
                 sh 'sbt Compile/compile Test/compile IntegrationTest/compile'
             }
         }
-        /*stage('Test') {
-            steps {
-                sh 'sbt test'
-            }
-        }
-        stage('Integration test') {
-            steps {
-                sh 'sbt IntegrationTest/test'
-            }
-        }*/
+        //stage('Test') {
+        //    steps {
+        //        sh 'sbt test'
+        //    }
+        //}
+        //stage('Integration test') {
+        //    steps {
+        //        sh 'sbt IntegrationTest/test'
+        //    }
+        //}
     }
     post {
-        /*always {
-            junit '**/target/test-reports/*'
-        }*/
+        //always {
+        //    junit '**/target/test-reports/*'
+        //}
         cleanup {
             cleanWs()
         }
