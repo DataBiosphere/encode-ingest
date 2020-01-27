@@ -65,7 +65,7 @@ object EncodeExtractions {
       extends ScalaAsyncLookupDoFn[List[(String, String)], String, OkHttpClient] {
 
     private val baseParams =
-      List("frame=object", "status=released", "limit=100", "format=json")
+      List("frame=object", "status=released", "limit=all", "format=json")
 
     override def asyncLookup(
       client: OkHttpClient,
