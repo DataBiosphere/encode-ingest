@@ -3,6 +3,8 @@ package org.broadinstitute.monster.encode.extraction
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
 import com.spotify.scio.ContextAndArgs
 import com.spotify.scio.extra.json._
+import com.spotify.scio.values.SCollection
+import io.circe.JsonObject
 import org.broadinstitute.monster.EncodeIngestBuildInfo
 
 /**
@@ -27,7 +29,7 @@ object ExtractionPipeline {
     @HelpMessage(
       "Batch size that defines the number of elements in a batch when making certain API calls"
     )
-    batchSize: Int
+    batchSize: Long
   )
 
   /**
@@ -37,62 +39,72 @@ object ExtractionPipeline {
   def main(rawArgs: Array[String]): Unit = {
     val (pipelineContext, parsedArgs) = ContextAndArgs.typed[Args](rawArgs)
 
-    val biosamples = {
-      val additionalParams =
-        pipelineContext.parallelize(List(List("organism.name" -> "human")))
-
-      EncodeExtractions.getEntities(EncodeEntity.Biosample)(additionalParams)
+    /**
+     * Generic helper method for extracting linked entities and saving them.
+     *
+     * @param encodeEntity the entity from which to extract a field
+     * @param idEntity the entity whose IDs to use as input to the getEntitiesByField
+     * @param idReferenceField the field name to use as an identifier in getIds
+     * @param prevData the data to base the ID extraction off of
+     * @param entityFieldName the field name to extract if it isn't @id
+     * @return the extracted linked entities
+     */
+    def extractLinkedEntity(
+      encodeEntity: EncodeEntity,
+      idEntity: EncodeEntity,
+      idReferenceField: String,
+      prevData: SCollection[JsonObject],
+      entityFieldName: String = "@id"
+    ): SCollection[JsonObject] = {
+      val out = EncodeExtractions.getEntitiesByField(
+        encodeEntity,
+        parsedArgs.batchSize,
+        entityFieldName
+      ) {
+        EncodeExtractions.getIds(
+          idEntity.entryName,
+          idReferenceField,
+          false
+        )(prevData)
+      }
+      out.saveAsJsonFile(s"${parsedArgs.outputDir}/${encodeEntity.entryName}")
+      out
     }
 
-    val donors = {
-      val idParams = EncodeExtractions.getIds(
-        EncodeEntity.Donor.entryName,
-        referenceField = "donor",
-        manyReferences = false
-      )(biosamples)
-
-      EncodeExtractions.getEntitiesByField(EncodeEntity.Donor, parsedArgs.batchSize)(idParams)
+    // biosamples are the first one and follow a different pattern, so we don't use the generic method
+    val biosamples = EncodeExtractions.getEntities(EncodeEntity.Biosample) {
+      pipelineContext.parallelize(List(List("organism.name" -> "human")))
     }
+    biosamples.saveAsJsonFile(
+      s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}"
+    )
 
-    val libraries = {
-      val biosampleAccessionParams = EncodeExtractions.getIds(
-        EncodeEntity.Biosample.entryName,
-        referenceField = "accession",
-        manyReferences = false
-      )(biosamples)
+    // don't need to use donors apart from storing them, so we don't assign an output here
+    extractLinkedEntity(EncodeEntity.Donor, EncodeEntity.Donor, "donor", biosamples)
 
-      EncodeExtractions.getEntitiesByField(EncodeEntity.Library, parsedArgs.batchSize,"biosample.accession")(
-        biosampleAccessionParams
-      )
-    }
+    val libraries = extractLinkedEntity(
+      EncodeEntity.Library,
+      EncodeEntity.Biosample,
+      "accession",
+      biosamples,
+      "biosample.accession"
+    )
 
-    val replicates = {
-      val libraryAccessionParams = EncodeExtractions.getIds(
-        EncodeEntity.Library.entryName,
-        referenceField = "accession",
-        manyReferences = false
-      )(libraries)
+    val replicates = extractLinkedEntity(
+      EncodeEntity.Replicate,
+      EncodeEntity.Library,
+      "accession",
+      libraries,
+      "library.accession"
+    )
 
-      EncodeExtractions.getEntitiesByField(EncodeEntity.Replicate, parsedArgs.batchSize,"library.accession")(
-        libraryAccessionParams
-      )
-    }
-
-    val experiments = {
-      val experimentIdParams = EncodeExtractions.getIds(
-        EncodeEntity.Experiment.entryName,
-        referenceField = "@id",
-        manyReferences = false
-      )(replicates)
-
-      EncodeExtractions.getEntitiesByField(EncodeEntity.Experiment, parsedArgs.batchSize)(experimentIdParams)
-    }
-
-    biosamples.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}")
-    donors.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Donor.entryName}")
-    libraries.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Library.entryName}")
-    replicates.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Replicate.entryName}")
-    experiments.saveAsJsonFile(s"${parsedArgs.outputDir}/${EncodeEntity.Experiment.entryName}")
+    // don't need to use experiments apart from storing them, so we don't assign an output here
+    extractLinkedEntity(
+      EncodeEntity.Experiment,
+      EncodeEntity.Experiment,
+      "experiment",
+      replicates
+    )
 
     pipelineContext.run()
     ()

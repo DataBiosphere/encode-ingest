@@ -38,7 +38,9 @@ object EncodeExtractions {
         val numBytes = VarInt.decodeInt(inStream)
         val bytes = new Array[Byte](numBytes)
         ByteStreams.readFully(inStream, bytes)
-        parser.decodeByteBuffer[JsonObject](ByteBuffer.wrap(bytes)).fold(throw _, identity)
+        parser
+          .decodeByteBuffer[JsonObject](ByteBuffer.wrap(bytes))
+          .fold(throw _, identity)
       }
       override def getCoderArguments: java.util.List[_ <: BeamCoder[_]] =
         java.util.Collections.emptyList()
@@ -63,7 +65,7 @@ object EncodeExtractions {
       extends ScalaAsyncLookupDoFn[List[(String, String)], String, OkHttpClient] {
 
     private val baseParams =
-      List("frame=object", "status=released", "limit=all", "format=json")
+      List("frame=object", "status=released", "limit=100", "format=json")
 
     override def asyncLookup(
       client: OkHttpClient,
@@ -73,7 +75,7 @@ object EncodeExtractions {
         case (key, value) =>
           s"$key=$value"
       }
-      val allParams = s"type=${encodeEntity.encodeApiName}" :: baseParams ::: paramStrings
+      val allParams = s"type=${encodeEntity.entryName}" :: baseParams ::: paramStrings
 
       get(client, allParams)
     }
@@ -194,9 +196,9 @@ object EncodeExtractions {
     */
   def getEntitiesByField(
     encodeEntity: EncodeEntity,
-    batchSize: Int,
+    batchSize: Long,
     fieldName: String = "@id"
-  ) : SCollection[String] => SCollection[JsonObject] = { idStream =>
+  ): SCollection[String] => SCollection[JsonObject] = { idStream =>
     val paramsBatchStream =
       idStream.transform(s"Build ${encodeEntity.entryName} ID Queries") {
         _.map(KV.of("key", _))
