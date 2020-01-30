@@ -44,8 +44,8 @@ object ExtractionPipeline {
       *
       * @param encodeEntity the entity which should be extracted
       * @param referenceField the field name to use as an identifier for the encodeEntity (in getIds)
-      * @param prevData the parent entity which references the encodeEntity (from which ID extraction will be based)
-      * @param entityFieldName the field name which references the parent entity (default is @id)
+      * @param prevData the parent entity (which references a set of encodeEntities) from which ID extraction will be based
+      * @param entityFieldName the encodeEntity field name which references the parent (default is @id)
       * @return the extracted linked entities
       */
     def extractLinkedEntities(
