@@ -86,31 +86,31 @@ object ExtractionPipeline {
     extractLinkedEntities(EncodeEntity.Donor, "donor", biosamples)
 
     val libraries = extractLinkedEntities(
-      EncodeEntity.Library,
-      "accession",
-      biosamples,
-      "biosample.accession"
+      encodeEntity = EncodeEntity.Library,
+      referenceField = "accession",
+      prevData = biosamples,
+      entityFieldName = "biosample.accession"
     )
 
     val replicates = extractLinkedEntities(
-      EncodeEntity.Replicate,
-      "accession",
-      libraries,
-      "library.accession"
+      encodeEntity = EncodeEntity.Replicate,
+      referenceField = "accession",
+      prevData = libraries,
+      entityFieldName = "library.accession"
     )
 
     val experiments = extractLinkedEntities(
-      EncodeEntity.Experiment,
-      "experiment",
-      replicates
+      encodeEntity = EncodeEntity.Experiment,
+      referenceField = "experiment",
+      prevData = replicates
     )
 
     // don't need to use files apart from storing them, so we don't assign an output here
     extractLinkedEntities(
-      EncodeEntity.File,
-      "@id",
-      experiments,
-      "dataset"
+      encodeEntity = EncodeEntity.File,
+      referenceField = "@id",
+      prevData = experiments,
+      entityFieldName = "dataset"
     )
 
     pipelineContext.run()
