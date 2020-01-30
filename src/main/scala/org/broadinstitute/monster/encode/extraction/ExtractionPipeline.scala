@@ -57,19 +57,20 @@ object ExtractionPipeline {
       linkedField: String = "@id",
       manyReferences: Boolean = false
     ): SCollection[JsonObject] = {
-      linkingEntities.transform(s"Extract ${entityToExtract.entryName} data") { linkingEntities =>
-        val out = EncodeExtractions.getEntitiesByField(
-          entityToExtract,
-          parsedArgs.batchSize,
-          linkedField
-        ) {
-          EncodeExtractions.getIds(
-            matchingField,
-            manyReferences
-          )(linkingEntities)
-        }
-        out.saveAsJsonFile(s"${parsedArgs.outputDir}/${entityToExtract.entryName}")
-        out
+      linkingEntities.transform(s"Extract ${entityToExtract.entryName} data") {
+        linkingEntities =>
+          val out = EncodeExtractions.getEntitiesByField(
+            entityToExtract,
+            parsedArgs.batchSize,
+            linkedField
+          ) {
+            EncodeExtractions.getIds(
+              matchingField,
+              manyReferences
+            )(linkingEntities)
+          }
+          out.saveAsJsonFile(s"${parsedArgs.outputDir}/${entityToExtract.entryName}")
+          out
       }
     }
 
