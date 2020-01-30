@@ -42,10 +42,10 @@ object ExtractionPipeline {
     /**
       * Generic helper method for extracting linked entities and saving them.
       *
-      * @param encodeEntity the entity from which to extract a field
-      * @param referenceField the field name to use as an identifier in getIds
-      * @param prevData the data to base the ID extraction off of
-      * @param entityFieldName the field name to extract if it isn't @id
+      * @param encodeEntity the entity which should be extracted
+      * @param referenceField the field name to use as an identifier for the encodeEntity (in getIds)
+      * @param prevData the parent entity which references the encodeEntity (from which ID extraction will be based)
+      * @param entityFieldName the field name which references the parent entity (default is @id)
       * @return the extracted linked entities
       */
     def extractLinkedEntities(
@@ -99,12 +99,18 @@ object ExtractionPipeline {
       "library.accession"
     )
 
-    // don't need to use experiments RIGHT NOW apart from storing them, so we don't assign an output here
-    // TODO output experiments for future use of experiments to get files
-    extractLinkedEntities(
+    val experiments = extractLinkedEntities(
       EncodeEntity.Experiment,
       "experiment",
       replicates
+    )
+
+    // don't need to use files apart from storing them, so we don't assign an output here
+    extractLinkedEntities(
+      EncodeEntity.File,
+      "@id",
+      experiments,
+      "dataset"
     )
 
     pipelineContext.run()
