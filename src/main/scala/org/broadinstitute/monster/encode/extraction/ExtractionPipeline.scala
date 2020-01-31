@@ -42,32 +42,35 @@ object ExtractionPipeline {
     /**
       * Generic helper method for extracting linked entities and saving them.
       *
-      * @param encodeEntity the entity from which to extract a field
-      * @param referenceField the field name to use as an identifier in getIds
-      * @param prevData the data to base the ID extraction off of
-      * @param entityFieldName the field name to extract if it isn't @id
+      * @param entityToExtract the entity which should be extracted
+      * @param matchingField name of the field to use as an identifier for the entityToExtract
+      *                      (should match the id that's used in the linkedField)
+      * @param linkingEntities the parent entity (which references a set of encodeEntities)
+      *                        from which ID extraction will be based
+      * @param linkedField name of the entityToExtract field which references the linkingEntities (default is @id)
       * @return the extracted linked entities
       */
     def extractLinkedEntities(
-      encodeEntity: EncodeEntity,
-      referenceField: String,
-      prevData: SCollection[JsonObject],
-      entityFieldName: String = "@id",
+      entityToExtract: EncodeEntity,
+      matchingField: String,
+      linkingEntities: SCollection[JsonObject],
+      linkedField: String = "@id",
       manyReferences: Boolean = false
     ): SCollection[JsonObject] = {
-      prevData.transform(s"Extract ${encodeEntity.entryName} data") { prevData =>
-        val out = EncodeExtractions.getEntitiesByField(
-          encodeEntity,
-          parsedArgs.batchSize,
-          entityFieldName
-        ) {
-          EncodeExtractions.getIds(
-            referenceField,
-            manyReferences
-          )(prevData)
-        }
-        out.saveAsJsonFile(s"${parsedArgs.outputDir}/${encodeEntity.entryName}")
-        out
+      linkingEntities.transform(s"Extract ${entityToExtract.entryName} data") {
+        linkingEntities =>
+          val out = EncodeExtractions.getEntitiesByField(
+            entityToExtract,
+            parsedArgs.batchSize,
+            linkedField
+          ) {
+            EncodeExtractions.getIds(
+              matchingField,
+              manyReferences
+            )(linkingEntities)
+          }
+          out.saveAsJsonFile(s"${parsedArgs.outputDir}/${entityToExtract.entryName}")
+          out
       }
     }
 
@@ -86,25 +89,31 @@ object ExtractionPipeline {
     extractLinkedEntities(EncodeEntity.Donor, "donor", biosamples)
 
     val libraries = extractLinkedEntities(
-      EncodeEntity.Library,
-      "accession",
-      biosamples,
-      "biosample.accession"
+      entityToExtract = EncodeEntity.Library,
+      matchingField = "accession",
+      linkingEntities = biosamples,
+      linkedField = "biosample.accession"
     )
 
     val replicates = extractLinkedEntities(
-      EncodeEntity.Replicate,
-      "accession",
-      libraries,
-      "library.accession"
+      entityToExtract = EncodeEntity.Replicate,
+      matchingField = "accession",
+      linkingEntities = libraries,
+      linkedField = "library.accession"
     )
 
-    // don't need to use experiments RIGHT NOW apart from storing them, so we don't assign an output here
-    // TODO output experiments for future use of experiments to get files
+    val experiments = extractLinkedEntities(
+      entityToExtract = EncodeEntity.Experiment,
+      matchingField = "experiment",
+      linkingEntities = replicates
+    )
+
+    // don't need to use files apart from storing them, so we don't assign an output here
     extractLinkedEntities(
-      EncodeEntity.Experiment,
-      "experiment",
-      replicates
+      entityToExtract = EncodeEntity.File,
+      matchingField = "@id",
+      linkingEntities = experiments,
+      linkedField = "dataset"
     )
 
     pipelineContext.run()
