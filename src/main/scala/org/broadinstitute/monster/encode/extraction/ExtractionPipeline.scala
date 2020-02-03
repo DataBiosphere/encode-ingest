@@ -108,7 +108,7 @@ object ExtractionPipeline {
       linkingEntities = replicates
     )
 
-    val fc_experiments = extractLinkedEntities(
+    val fcExperiments = extractLinkedEntities(
       entityToExtract = EncodeEntity.FunctionalCharacterizationExperiment,
       matchingField = "experiment",
       linkingEntities = replicates
@@ -118,15 +118,7 @@ object ExtractionPipeline {
     extractLinkedEntities(
       entityToExtract = EncodeEntity.File,
       matchingField = "@id",
-      linkingEntities = experiments,
-      linkedField = "dataset"
-    )
-
-    // don't need to use files apart from storing them, so we don't assign an output here
-    extractLinkedEntities(
-      entityToExtract = EncodeEntity.File,
-      matchingField = "@id",
-      linkingEntities = fc_experiments,
+      linkingEntities = SCollection.unionAll(experiments, fcExperiments),
       linkedField = "dataset"
     )
 
