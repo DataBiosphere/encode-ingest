@@ -118,7 +118,7 @@ object ExtractionPipeline {
     extractLinkedEntities(
       entityToExtract = EncodeEntity.File,
       matchingField = "@id",
-      linkingEntities = SCollection.unionAll([experiments, fcExperiments]),
+      linkingEntities = SCollection.unionAll(List(experiments, fcExperiments)),
       linkedField = "dataset"
     )
 
