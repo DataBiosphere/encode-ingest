@@ -102,16 +102,22 @@ object ExtractionPipeline {
       linkedField = "library.accession"
     )
 
+    //[partition] that stream to separate [type=experiment]
+    // from [type=functional-characterization-experiment]
+    val (expReplicate, fcReplicate) = replicates.partition {
+      replicate => replicate("experiment").exists(experimentString => experimentString.equals("Experiment"))
+    }
+
     val experiments = extractLinkedEntities(
       entityToExtract = EncodeEntity.Experiment,
       matchingField = "experiment",
-      linkingEntities = replicates
+      linkingEntities = expReplicate
     )
 
     val fcExperiments = extractLinkedEntities(
       entityToExtract = EncodeEntity.FunctionalCharacterizationExperiment,
       matchingField = "experiment",
-      linkingEntities = replicates
+      linkingEntities = fcReplicate
     )
 
     // don't need to use files apart from storing them, so we don't assign an output here
