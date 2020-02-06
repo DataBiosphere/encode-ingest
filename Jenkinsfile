@@ -34,7 +34,7 @@ pipeline {
     }
     post {
         always {
-            junit '**/target/test-reports/*'
+            junit allowEmptyResults: true, testResults: '**/target/test-reports/*'
         }
         success {
             script {
@@ -59,7 +59,6 @@ pipeline {
                 sh parts.join('\n')
             }
         }
-
         cleanup {
             cleanWs()
         }
