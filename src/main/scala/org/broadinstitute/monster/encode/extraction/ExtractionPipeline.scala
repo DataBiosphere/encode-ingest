@@ -32,6 +32,16 @@ object ExtractionPipeline {
     batchSize: Long
   )
 
+  // determines whether a replicate is linked to "type=functional-characterization-experiment"
+  def isFunctionalCharacterizationReplicate(replicate: JsonObject): Boolean = {
+    replicate("experiment")
+      .flatMap(_.asString)
+      .exists(
+        experimentString =>
+          experimentString.startsWith("/functional-characterization-experiments/")
+      )
+  }
+
   /**
     * pulling raw metadata using the ENCODE search client API for the following specific entity types...
     * Biosamples, donors, and libraries
@@ -54,8 +64,7 @@ object ExtractionPipeline {
       entityToExtract: EncodeEntity,
       matchingField: String,
       linkingEntities: SCollection[JsonObject],
-      linkedField: String = "@id",
-      manyReferences: Boolean = false
+      linkedField: String = "@id"
     ): SCollection[JsonObject] = {
       linkingEntities.transform(s"Extract ${entityToExtract.entryName} data") {
         linkingEntities =>
@@ -65,8 +74,7 @@ object ExtractionPipeline {
             linkedField
           ) {
             EncodeExtractions.getIds(
-              matchingField,
-              manyReferences
+              matchingField
             )(linkingEntities)
           }
           out.saveAsJsonFile(s"${parsedArgs.outputDir}/${entityToExtract.entryName}")
@@ -102,17 +110,29 @@ object ExtractionPipeline {
       linkedField = "library.accession"
     )
 
+    // partition the replicates stream into two separate SCollection[JsonObject]
+    //passing in a new function to check to see if the experiment type
+    val (fcReplicate, expReplicate) = replicates.partition { replicate =>
+      isFunctionalCharacterizationReplicate(replicate)
+    }
+
     val experiments = extractLinkedEntities(
       entityToExtract = EncodeEntity.Experiment,
       matchingField = "experiment",
-      linkingEntities = replicates
+      linkingEntities = expReplicate
+    )
+
+    val fcExperiments = extractLinkedEntities(
+      entityToExtract = EncodeEntity.FunctionalCharacterizationExperiment,
+      matchingField = "experiment",
+      linkingEntities = fcReplicate
     )
 
     // don't need to use files apart from storing them, so we don't assign an output here
     extractLinkedEntities(
       entityToExtract = EncodeEntity.File,
       matchingField = "@id",
-      linkingEntities = experiments,
+      linkingEntities = SCollection.unionAll(List(experiments, fcExperiments)),
       linkedField = "dataset"
     )
 

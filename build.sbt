@@ -4,6 +4,8 @@ val enumeratumVersion = "1.5.13"
 val logbackVersion = "1.2.3"
 val scioVersion = "0.8.0"
 
+val scalatestVersion = "3.1.0"
+
 lazy val `encode-ingest` = project
   .in(file("."))
   .enablePlugins(MonsterJadeDatasetPlugin)
@@ -18,5 +20,9 @@ lazy val `encode-ingest` = project
       "com.beachape" %% "enumeratum" % enumeratumVersion,
       "ch.qos.logback" % "logback-classic" % logbackVersion,
       "com.spotify" %% "scio-extra" % scioVersion,
-    )
+    ),
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % scalatestVersion,
+      "io.circe" %% "circe-literal" % MonsterJadeDatasetPlugin.CirceVersion,
+    ).map(_ % Test)
   )

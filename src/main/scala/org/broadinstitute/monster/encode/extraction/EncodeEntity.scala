@@ -17,6 +17,8 @@ object EncodeEntity extends Enum[EncodeEntity] {
 
   case object Experiment extends EncodeEntity
 
+  case object FunctionalCharacterizationExperiment extends EncodeEntity
+
   case object File extends EncodeEntity
 
   case object Library extends EncodeEntity
