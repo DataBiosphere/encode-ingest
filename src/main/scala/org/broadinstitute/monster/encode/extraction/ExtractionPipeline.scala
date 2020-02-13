@@ -43,11 +43,11 @@ object ExtractionPipeline {
       * Generic helper method for extracting linked entities and saving them.
       *
       * @param entityToExtract the entity which should be extracted
-      * @param matchingField name of the field to use as an identifier for the entityToExtract
-      *                      (should match the id that's used in the linkedField)
+      * @param matchingField name of the linkingEntity field which matches the value of the given "linkedField"
       * @param linkingEntities the parent entity (which references a set of encodeEntities)
       *                        from which ID extraction will be based
-      * @param linkedField name of the entityToExtract field which references the linkingEntities (default is @id)
+      * @param linkedField name of the entityToExtract field which matches the value of the given "matchingField"
+      *                    (default is @id)
       * @return the extracted linked entities
       */
     def extractLinkedEntities(
@@ -114,6 +114,13 @@ object ExtractionPipeline {
       matchingField = "@id",
       linkingEntities = experiments,
       linkedField = "dataset"
+    )
+
+    // don't need to use targets apart from storing them, so we don't assign an output here
+    extractLinkedEntities(
+      entityToExtract = EncodeEntity.Target,
+      matchingField = "target",
+      linkingEntities = experiments
     )
 
     pipelineContext.run()
