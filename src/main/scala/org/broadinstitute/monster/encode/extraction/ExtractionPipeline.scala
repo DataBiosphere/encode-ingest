@@ -108,12 +108,19 @@ object ExtractionPipeline {
       linkingEntities = replicates
     )
 
-    // don't need to use files apart from storing them, so we don't assign an output here
+    // don't need to use the following entities apart from storing them, so we don't assign an output here
+
     extractLinkedEntities(
       entityToExtract = EncodeEntity.File,
       matchingField = "@id",
       linkingEntities = experiments,
       linkedField = "dataset"
+    )
+
+    extractLinkedEntities(
+      entityToExtract = EncodeEntity.AntibodyLot,
+      matchingField = "antibody",
+      linkingEntities = replicates
     )
 
     pipelineContext.run()
