@@ -156,28 +156,15 @@ object EncodeExtractions {
     *
     * @param referenceField field in the input JSONs containing the IDs
     *                       to extract
-    * @param manyReferences whether or not `referenceField` is an array
     */
   def getIds(
-    referenceField: String,
-    manyReferences: Boolean
+    referenceField: String
   ): SCollection[JsonObject] => SCollection[String] =
     collection =>
       collection.flatMap { jsonObj =>
-        jsonObj(referenceField).toIterable.flatMap { referenceJson =>
-          val references = for {
-            refValues <- if (manyReferences) {
-              referenceJson.as[List[String]]
-            } else {
-              referenceJson.as[String].map { reference =>
-                List(reference)
-              }
-            }
-          } yield {
-            refValues
-          }
-          references.toOption
-        }.flatten
+        jsonObj(referenceField).flatMap { referenceJson =>
+          referenceJson.as[String].toOption
+        }.toIterable
       }.distinct
 
   /**
