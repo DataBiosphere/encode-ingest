@@ -25,6 +25,8 @@ object EncodeEntity extends Enum[EncodeEntity] {
 
   case object Replicate extends EncodeEntity
 
+  case object AntibodyLot extends EncodeEntity
+
   case object Audit extends EncodeEntity
 
   override def values: immutable.IndexedSeq[EncodeEntity] = findValues

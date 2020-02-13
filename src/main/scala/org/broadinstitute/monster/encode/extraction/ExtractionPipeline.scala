@@ -116,6 +116,12 @@ object ExtractionPipeline {
       isFunctionalCharacterizationReplicate(replicate)
     }
 
+    extractLinkedEntities(
+      entityToExtract = EncodeEntity.AntibodyLot,
+      matchingField = "antibody",
+      linkingEntities = replicates
+    )
+
     val experiments = extractLinkedEntities(
       entityToExtract = EncodeEntity.Experiment,
       matchingField = "experiment",
@@ -128,7 +134,6 @@ object ExtractionPipeline {
       linkingEntities = fcReplicate
     )
 
-    // don't need to use files apart from storing them, so we don't assign an output here
     extractLinkedEntities(
       entityToExtract = EncodeEntity.File,
       matchingField = "@id",
