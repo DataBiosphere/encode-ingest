@@ -52,6 +52,8 @@ object EncodeExtractions {
     }
   }
 
+  val logger = org.slf4j.LoggerFactory.getLogger(getClass)
+
   /** HTTP client to use for querying ENCODE APIs. */
   val client = new OkHttpClient()
 
@@ -76,7 +78,6 @@ object EncodeExtractions {
           s"$key=$value"
       }
       val allParams = s"type=${encodeEntity.entryName}" :: baseParams ::: paramStrings
-
       get(client, allParams)
     }
 
@@ -96,6 +97,7 @@ object EncodeExtractions {
         .get
         .build
 
+      logger.debug(s"New API Query: [$request]")
       client
         .newCall(request)
         .enqueue(new Callback {
