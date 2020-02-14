@@ -78,6 +78,7 @@ object EncodeExtractions {
           s"$key=$value"
       }
       val allParams = s"type=${encodeEntity.entryName}" :: baseParams ::: paramStrings
+
       get(client, allParams)
     }
 
