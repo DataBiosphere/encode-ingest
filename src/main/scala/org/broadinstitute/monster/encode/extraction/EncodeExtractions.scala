@@ -1,56 +1,25 @@
 package org.broadinstitute.monster.encode.extraction
 
-import java.io.{IOException, InputStream, OutputStream}
-import java.nio.ByteBuffer
+import java.io.{IOException}
 
-import com.google.common.io.ByteStreams
 import com.spotify.scio.coders.Coder
 import com.spotify.scio.transforms._
 import com.spotify.scio.values.SCollection
 import com.squareup.okhttp.{Callback, OkHttpClient, Request, Response}
-import io.circe.JsonObject
-import io.circe.jawn.JawnParser
-import io.circe.syntax._
-import org.apache.beam.sdk.coders.{Coder => BeamCoder}
 import org.apache.beam.sdk.coders.{KvCoder, StringUtf8Coder}
 import org.apache.beam.sdk.transforms.{GroupIntoBatches, ParDo}
-import org.apache.beam.sdk.util.VarInt
 import org.apache.beam.sdk.values.KV
+import org.broadinstitute.monster.common.msg.JsonParser
+import org.broadinstitute.monster.common.msg.MsgOps
+import org.broadinstitute.monster.common.msg.UpackMsgCoder
+import upack.Msg
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
 
 /** Ingest step responsible for pulling raw metadata for a specific entity type from the ENCODE API. */
 object EncodeExtractions {
-
-  // TODO when updating to upack and msg, will need to change this coder as well
-  implicit val jsonCoder: Coder[JsonObject] = Coder.beam {
-    new BeamCoder[JsonObject] {
-      val parser = new JawnParser()
-
-      override def encode(value: JsonObject, outStream: OutputStream): Unit =
-        Option(value).foreach { jsonObj =>
-          val bytes = jsonObj.asJson.noSpaces.getBytes
-          VarInt.encode(bytes.length, outStream)
-          outStream.write(bytes)
-        }
-      override def decode(inStream: InputStream): JsonObject = {
-        val numBytes = VarInt.decodeInt(inStream)
-        val bytes = new Array[Byte](numBytes)
-        ByteStreams.readFully(inStream, bytes)
-        parser
-          .decodeByteBuffer[JsonObject](ByteBuffer.wrap(bytes))
-          .fold(throw _, identity)
-      }
-      override def getCoderArguments: java.util.List[_ <: BeamCoder[_]] =
-        java.util.Collections.emptyList()
-      override def verifyDeterministic(): Unit =
-        throw new BeamCoder.NonDeterministicException(
-          this,
-          "Equal Msgs don't necessarily encode to the same bytes"
-        )
-    }
-  }
+  implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
   /** HTTP client to use for querying ENCODE APIs. */
   val client = new OkHttpClient()
@@ -125,50 +94,40 @@ object EncodeExtractions {
   }
 
   /**
-    * Pipeline stage which maps batches of search parameters into JSON entities
+    * Pipeline stage which maps batches of search parameters into MessagePack entities
     * from ENCODE matching those parameters.
     *
     * @param encodeEntity the type of ENCODE entity the stage should query
     */
   def getEntities(
     encodeEntity: EncodeEntity
-  ): SCollection[List[(String, String)]] => SCollection[JsonObject] =
+  ): SCollection[List[(String, String)]] => SCollection[Msg] =
     _.applyKvTransform(ParDo.of(new EncodeLookup(encodeEntity))).flatMap { kv =>
-      kv.getValue.fold(
-        throw _,
-        value => {
-          val decoded = for {
-            // TODO change to upack and msg instead of circe and json, dear future monster
-            json <- io.circe.parser.parse(value)
-            cursor = json.hcursor
-            objects <- cursor.downField("@graph").as[Vector[JsonObject]]
-          } yield {
-            objects
-          }
-          decoded.fold(throw _, identity)
-        }
-      )
+      kv.getValue
+        .fold(
+          throw _,
+          JsonParser.parseEncodedJson
+        )
+        .read[Array[Msg]]("@graph")
     }
 
   /**
-    * Pipeline stage which extracts IDs from downloaded JSON entities for
+    * Pipeline stage which extracts IDs from downloaded MessagePack entities for
     * use in subsequent queries.
     *
-    * @param referenceField field in the input JSONs containing the IDs
+    * @param referenceField field in the input MessagePacks containing the IDs
     *                       to extract
     */
   def getIds(
     referenceField: String
-  ): SCollection[JsonObject] => SCollection[String] =
+  ): SCollection[Msg] => SCollection[String] =
     collection =>
-      collection.flatMap { jsonObj =>
-        jsonObj(referenceField).flatMap { referenceJson =>
-          referenceJson.as[String].toOption
-        }.toIterable
+      collection.flatMap { msg =>
+        msg.tryRead[Array[String]](referenceField).getOrElse(Array.empty)
       }.distinct
 
   /**
-    * Pipeline stage which maps entity IDs into corresponding JSON entities
+    * Pipeline stage which maps entity IDs into corresponding MessagePack entities
     * downloaded from ENCODE.
     *
     * @param encodeEntity the type of ENCODE entity the input IDs correspond to
@@ -179,7 +138,7 @@ object EncodeExtractions {
     encodeEntity: EncodeEntity,
     batchSize: Long,
     fieldName: String = "@id"
-  ): SCollection[String] => SCollection[JsonObject] = { idStream =>
+  ): SCollection[String] => SCollection[Msg] = { idStream =>
     val paramsBatchStream =
       idStream
         .map(KV.of("key", _))
@@ -191,7 +150,6 @@ object EncodeExtractions {
             (fieldName -> ref) :: acc
           }
         }
-
     getEntities(encodeEntity)(paramsBatchStream)
   }
 }
