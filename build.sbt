@@ -11,7 +11,6 @@ lazy val `encode-ingest` = project
     ),
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % scalatestVersion,
-      "io.circe" %% "circe-literal" % MonsterJadeDatasetPlugin.CirceVersion,
     ).map(_ % Test),
     scioReleaseBucketName := "TODO",
     scioSnapshotBucketName := "TODO"
