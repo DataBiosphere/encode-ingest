@@ -55,6 +55,7 @@ class ExtractionPipelineSpec extends AnyFlatSpec with Matchers {
       "technical_replicate_number": 1,
       "uuid": "3c996486-0a1b-466c-be00-6d7cd7a89581"
       }"""
+    )
 
   it should "Distinguish between normal experiments and functional-characterization-experiments" in {
     //functional-characterization-experiments case
