@@ -1,14 +1,15 @@
 package org.broadinstitute.monster.encode.extraction
 
-import io.circe.literal._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.broadinstitute.monster.common.msg.JsonParser
 
 class ExtractionPipelineSpec extends AnyFlatSpec with Matchers {
   behavior of "ExtractionPipeline"
 
   val fcExample =
-    json"""{
+    JsonParser.parseEncodedJson(
+      """{
         "@id": "/replicates/d80982c0-ae21-4e83-b3c9-fc7ec356c435/",
         "@type": [
           "Replicate",
@@ -30,9 +31,11 @@ class ExtractionPipelineSpec extends AnyFlatSpec with Matchers {
         "technical_replicate_number": 1,
         "uuid": "d80982c0-ae21-4e83-b3c9-fc7ec356c435"
         }"""
+    )
 
   val expExample =
-    json"""{
+    JsonParser.parseEncodedJson(
+      """{
       "@id": "/replicates/3c996486-0a1b-466c-be00-6d7cd7a89581/",
       "@type": [
         "Replicate",
@@ -52,11 +55,12 @@ class ExtractionPipelineSpec extends AnyFlatSpec with Matchers {
       "technical_replicate_number": 1,
       "uuid": "3c996486-0a1b-466c-be00-6d7cd7a89581"
       }"""
+    )
 
   it should "Distinguish between normal experiments and functional-characterization-experiments" in {
     //functional-characterization-experiments case
-    ExtractionPipeline.isFunctionalCharacterizationReplicate(fcExample.asObject.get) shouldBe true
+    ExtractionPipeline.isFunctionalCharacterizationReplicate(fcExample) shouldBe true
     //normal experiments case
-    ExtractionPipeline.isFunctionalCharacterizationReplicate(expExample.asObject.get) shouldBe false
+    ExtractionPipeline.isFunctionalCharacterizationReplicate(expExample) shouldBe false
   }
 }

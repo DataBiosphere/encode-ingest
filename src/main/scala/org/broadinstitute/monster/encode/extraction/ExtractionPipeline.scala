@@ -2,10 +2,13 @@ package org.broadinstitute.monster.encode.extraction
 
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
 import com.spotify.scio.ContextAndArgs
-import com.spotify.scio.extra.json._
+import com.spotify.scio.coders.Coder
 import com.spotify.scio.values.SCollection
-import io.circe.JsonObject
 import org.broadinstitute.monster.EncodeIngestBuildInfo
+import org.broadinstitute.monster.common.msg.MsgOps
+import org.broadinstitute.monster.common.StorageIO._
+import org.broadinstitute.monster.common.msg.UpackMsgCoder
+import upack._
 
 /**
   * ETL workflow for scraping the latest entity metadata from ENCODE.
@@ -32,14 +35,13 @@ object ExtractionPipeline {
     batchSize: Long
   )
 
+  implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
+
   // determines whether a replicate is linked to "type=functional-characterization-experiment"
-  def isFunctionalCharacterizationReplicate(replicate: JsonObject): Boolean = {
-    replicate("experiment")
-      .flatMap(_.asString)
-      .exists(
-        experimentString =>
-          experimentString.startsWith("/functional-characterization-experiments/")
-      )
+  def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
+    replicate
+      .read[String]("experiment")
+      .startsWith("/functional-characterization-experiments/")
   }
 
   /**
@@ -63,22 +65,27 @@ object ExtractionPipeline {
     def extractLinkedEntities(
       entityToExtract: EncodeEntity,
       matchingField: String,
-      linkingEntities: SCollection[JsonObject],
+      linkingEntities: SCollection[Msg],
       linkedField: String = "@id"
-    ): SCollection[JsonObject] = {
-      linkingEntities.transform(s"Extract ${entityToExtract.entryName} data") {
-        linkingEntities =>
-          val out = EncodeExtractions.getEntitiesByField(
-            entityToExtract,
-            parsedArgs.batchSize,
-            linkedField
-          ) {
-            EncodeExtractions.getIds(
-              matchingField
-            )(linkingEntities)
-          }
-          out.saveAsJsonFile(s"${parsedArgs.outputDir}/${entityToExtract.entryName}")
-          out
+    ): SCollection[Msg] = {
+      linkingEntities.transform(
+        s"Extract ${matchingField} from ${entityToExtract.entryName} data"
+      ) { linkingEntities =>
+        val out = EncodeExtractions.getEntitiesByField(
+          entityToExtract,
+          parsedArgs.batchSize,
+          linkedField
+        ) {
+          EncodeExtractions.getIds(
+            matchingField
+          )(linkingEntities)
+        }
+        writeJsonLists(
+          out,
+          s"${entityToExtract.entryName}",
+          s"${parsedArgs.outputDir}/${entityToExtract.entryName}"
+        )
+        out
       }
     }
 
@@ -87,7 +94,9 @@ object ExtractionPipeline {
       .parallelize(List(List("organism.name" -> "human")))
       .transform(s"Extract ${EncodeEntity.Biosample} data") { rawData =>
         val biosamples = EncodeExtractions.getEntities(EncodeEntity.Biosample)(rawData)
-        biosamples.saveAsJsonFile(
+        writeJsonLists(
+          biosamples,
+          s"${EncodeEntity.Biosample}",
           s"${parsedArgs.outputDir}/${EncodeEntity.Biosample.entryName}"
         )
         biosamples
@@ -110,7 +119,7 @@ object ExtractionPipeline {
       linkedField = "library.accession"
     )
 
-    // partition the replicates stream into two separate SCollection[JsonObject]
+    // partition the replicates stream into two separate SCollection[Msg]
     //passing in a new function to check to see if the experiment type
     val (fcReplicate, expReplicate) = replicates.partition { replicate =>
       isFunctionalCharacterizationReplicate(replicate)
