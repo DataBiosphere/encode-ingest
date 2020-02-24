@@ -119,17 +119,23 @@ object ExtractionPipeline {
       linkedField = "library.accession"
     )
 
+    val antibodies = extractLinkedEntities(
+      entityToExtract = EncodeEntity.AntibodyLot,
+      matchingField = "antibody",
+      linkingEntities = replicates
+    )
+
+    extractLinkedEntities(
+      entityToExtract = EncodeEntity.Target,
+      matchingField = "targets",
+      linkingEntities = antibodies
+    )
+
     // partition the replicates stream into two separate SCollection[Msg]
     //passing in a new function to check to see if the experiment type
     val (fcReplicate, expReplicate) = replicates.partition { replicate =>
       isFunctionalCharacterizationReplicate(replicate)
     }
-
-    extractLinkedEntities(
-      entityToExtract = EncodeEntity.AntibodyLot,
-      matchingField = "antibody",
-      linkingEntities = replicates
-    )
 
     val experiments = extractLinkedEntities(
       entityToExtract = EncodeEntity.Experiment,
