@@ -59,8 +59,8 @@ class ExtractionPipelineSpec extends AnyFlatSpec with Matchers {
 
   it should "Distinguish between normal experiments and functional-characterization-experiments" in {
     //functional-characterization-experiments case
-    ExtractionPipeline.isFunctionalCharacterizationReplicate(fcExample) shouldBe true
+    ExtractionPipelineBuilder.isFunctionalCharacterizationReplicate(fcExample) shouldBe true
     //normal experiments case
-    ExtractionPipeline.isFunctionalCharacterizationReplicate(expExample) shouldBe false
+    ExtractionPipelineBuilder.isFunctionalCharacterizationReplicate(expExample) shouldBe false
   }
 }
