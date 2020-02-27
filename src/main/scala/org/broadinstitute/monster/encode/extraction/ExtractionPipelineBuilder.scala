@@ -10,7 +10,6 @@ import org.broadinstitute.monster.common.msg.UpackMsgCoder
 import upack._
 
 object ExtractionPipelineBuilder extends PipelineBuilder[Args] {
-
   implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
   // determines whether a replicate is linked to "type=functional-characterization-experiment"

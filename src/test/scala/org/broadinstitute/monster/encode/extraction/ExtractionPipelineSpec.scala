@@ -63,8 +63,4 @@ class ExtractionPipelineSpec extends AnyFlatSpec with Matchers {
     //normal experiments case
     ExtractionPipelineBuilder.isFunctionalCharacterizationReplicate(expExample) shouldBe false
   }
-
-  it should "blah" in {
-    ???
-  }
 }
