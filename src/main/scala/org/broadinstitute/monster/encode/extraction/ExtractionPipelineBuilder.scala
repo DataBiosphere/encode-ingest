@@ -103,7 +103,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     // partition the replicates stream into two separate SCollection[Msg]
     //passing in a new function to check to see if the experiment type
     val (fcReplicate, expReplicate) = replicates.partition { replicate =>
-      isFunctionalCharacterizationReplicate(replicate)
+      ExtractionPipelineBuilder.isFunctionalCharacterizationReplicate(replicate)
     }
 
     val experiments = extractLinkedEntities(
@@ -226,6 +226,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 }
 
 object ExtractionPipelineBuilder {
+
   // determines whether a replicate is linked to "type=functional-characterization-experiment"
   def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
     replicate
