@@ -12,6 +12,7 @@ import org.broadinstitute.monster.common.StorageIO.writeJsonLists
 import org.broadinstitute.monster.common.msg.{JsonParser, MsgOps, UpackMsgCoder}
 import upack._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class ExtractionPipelineBuilder(getClient: () => EncodeClient)
@@ -222,7 +223,9 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
         }
     getEntities(encodeEntity)(paramsBatchStream)
   }
+}
 
+object ExtractionPipelineBuilder {
   // determines whether a replicate is linked to "type=functional-characterization-experiment"
   def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
     replicate
