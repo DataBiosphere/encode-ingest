@@ -15,6 +15,12 @@ import upack._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
+/**
+  *
+  * Builder for the ENCODE metadata extraction pipeline.
+  *
+  * @param getClient function that will produce a client which can interact with the ENCODE API
+  */
 class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     extends PipelineBuilder[Args] {
   implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)

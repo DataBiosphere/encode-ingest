@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Future, Promise}
 
+/** Interface for clients that hits ENCODE API. */
 trait EncodeClient extends Serializable {
   def get(entity: EncodeEntity, params: List[(String, String)]): Future[String]
 }
