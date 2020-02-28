@@ -118,11 +118,29 @@ object ExtractionPipelineBuilder extends PipelineBuilder[Args] {
       linkingEntities = fcReplicate
     )
 
-    extractLinkedEntities(
+    val files = extractLinkedEntities(
       entityToExtract = EncodeEntity.File,
       matchingField = "@id",
       linkingEntities = SCollection.unionAll(List(experiments, fcExperiments)),
       linkedField = "dataset"
+    )
+
+    val analysisStepRuns = extractLinkedEntities(
+      entityToExtract = EncodeEntity.AnalysisStepRun,
+      matchingField = "step_run",
+      linkingEntities = files
+    )
+
+    val analysisStepVersions = extractLinkedEntities(
+      entityToExtract = EncodeEntity.AnalysisStepVersion,
+      matchingField = "analysis_step_version",
+      linkingEntities = analysisStepRuns
+    )
+
+    extractLinkedEntities(
+      entityToExtract = EncodeEntity.AnalysisStep,
+      matchingField = "analysis_step",
+      linkingEntities = analysisStepVersions
     )
     ()
   }
