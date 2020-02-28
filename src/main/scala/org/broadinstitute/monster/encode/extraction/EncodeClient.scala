@@ -6,14 +6,13 @@ import java.time.Duration
 import okhttp3.{Call, Callback, OkHttpClient, Request, Response}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 
 trait EncodeClient extends Serializable {
-  def get(entity: EncodeEntity, params: List[(String, String)])
+  def get(entity: EncodeEntity, params: List[(String, String)]): Future[String]
 }
 
 object EncodeClient {
-
   private val timeout = Duration.ofSeconds(60)
 
   private val baseParams =

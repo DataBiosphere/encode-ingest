@@ -2,22 +2,21 @@ package org.broadinstitute.monster.encode.extraction
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
+import com.spotify.scio.transforms.ScalaAsyncLookupDoFn
 import com.spotify.scio.values.SCollection
+import org.apache.beam.sdk.coders.{KvCoder, StringUtf8Coder}
+import org.apache.beam.sdk.transforms.{GroupIntoBatches, ParDo}
+import org.apache.beam.sdk.values.KV
 import org.broadinstitute.monster.common.PipelineBuilder
 import org.broadinstitute.monster.common.StorageIO.writeJsonLists
-import org.broadinstitute.monster.common.msg.MsgOps
-import org.broadinstitute.monster.common.msg.UpackMsgCoder
+import org.broadinstitute.monster.common.msg.{JsonParser, MsgOps, UpackMsgCoder}
 import upack._
 
-class ExtractionPipelineBuilder(getClient: () => EncodeClient) extends PipelineBuilder[Args] {
-  implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
+import scala.concurrent.Future
 
-  // determines whether a replicate is linked to "type=functional-characterization-experiment"
-  def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
-    replicate
-      .read[String]("experiment")
-      .startsWith("/functional-characterization-experiments/")
-  }
+class ExtractionPipelineBuilder(getClient: () => EncodeClient)
+    extends PipelineBuilder[Args] {
+  implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
     /**
@@ -40,12 +39,12 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient) extends PipelineB
       linkingEntities.transform(
         s"Extract ${matchingField} from ${entityToExtract.entryName} data"
       ) { linkingEntities =>
-        val out = EncodeExtractions.getEntitiesByField(
+        val out = getEntitiesByField(
           entityToExtract,
           args.batchSize,
           linkedField
         ) {
-          EncodeExtractions.getIds(
+          getIds(
             matchingField
           )(linkingEntities)
         }
@@ -62,7 +61,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient) extends PipelineB
     val biosamples = ctx
       .parallelize(List(List("organism.name" -> "human")))
       .transform(s"Extract ${EncodeEntity.Biosample} data") { rawData =>
-        val biosamples = EncodeExtractions.getEntities(EncodeEntity.Biosample)(rawData)
+        val biosamples = getEntities(EncodeEntity.Biosample)(rawData)
         writeJsonLists(
           biosamples,
           s"${EncodeEntity.Biosample}",
@@ -125,5 +124,91 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient) extends PipelineB
       linkedField = "dataset"
     )
     ()
+  }
+
+  /**
+    * Pipeline stage which maps batches of query params to output payloads
+    * by sending the query params to the ENCODE search API.
+    *
+    * @param encodeEntity the type of ENCODE entity the stage should query
+    */
+  class EncodeLookup(encodeEntity: EncodeEntity)
+      extends ScalaAsyncLookupDoFn[List[(String, String)], String, EncodeClient] {
+
+    override def asyncLookup(
+      client: EncodeClient,
+      params: List[(String, String)]
+    ): Future[String] = {
+      client.get(encodeEntity, params)
+    }
+
+    override protected def newClient(): EncodeClient = getClient()
+  }
+
+  /**
+    * Pipeline stage which maps batches of search parameters into MessagePack entities
+    * from ENCODE matching those parameters.
+    *
+    * @param encodeEntity the type of ENCODE entity the stage should query
+    */
+  def getEntities(
+    encodeEntity: EncodeEntity
+  ): SCollection[List[(String, String)]] => SCollection[Msg] =
+    _.applyKvTransform(ParDo.of(new EncodeLookup(encodeEntity))).flatMap { kv =>
+      kv.getValue
+        .fold(
+          throw _,
+          JsonParser.parseEncodedJson
+        )
+        .read[Array[Msg]]("@graph")
+    }
+
+  /**
+    * Pipeline stage which extracts IDs from downloaded MessagePack entities for
+    * use in subsequent queries.
+    *
+    * @param referenceField field in the input MessagePacks containing the IDs
+    *                       to extract
+    */
+  def getIds(
+    referenceField: String
+  ): SCollection[Msg] => SCollection[String] =
+    collection =>
+      collection.flatMap { msg =>
+        msg.tryRead[Array[String]](referenceField).getOrElse(Array.empty)
+      }.distinct
+
+  /**
+    * Pipeline stage which maps entity IDs into corresponding MessagePack entities
+    * downloaded from ENCODE.
+    *
+    * @param encodeEntity the type of ENCODE entity the input IDs correspond to
+    * @param batchSize the number of elements in a batch stream
+    * @param fieldName the field name to get the entity by, is "@id" by default
+    */
+  def getEntitiesByField(
+    encodeEntity: EncodeEntity,
+    batchSize: Long,
+    fieldName: String = "@id"
+  ): SCollection[String] => SCollection[Msg] = { idStream =>
+    val paramsBatchStream =
+      idStream
+        .map(KV.of("key", _))
+        .setCoder(KvCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of()))
+        .applyKvTransform(GroupIntoBatches.ofSize(batchSize))
+        .map(_.getValue)
+        .map { ids =>
+          ids.asScala.foldLeft(List.empty[(String, String)]) { (acc, ref) =>
+            (fieldName -> ref) :: acc
+          }
+        }
+    getEntities(encodeEntity)(paramsBatchStream)
+  }
+
+  // determines whether a replicate is linked to "type=functional-characterization-experiment"
+  def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
+    replicate
+      .read[String]("experiment")
+      .startsWith("/functional-characterization-experiments/")
   }
 }
