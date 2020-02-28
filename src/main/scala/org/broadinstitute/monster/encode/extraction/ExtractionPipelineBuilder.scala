@@ -22,7 +22,8 @@ import scala.concurrent.Future
   * @param getClient function that will produce a client which can interact with the ENCODE API
   */
 class ExtractionPipelineBuilder(getClient: () => EncodeClient)
-    extends PipelineBuilder[Args] {
+    extends PipelineBuilder[Args]
+    with Serializable {
   implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
