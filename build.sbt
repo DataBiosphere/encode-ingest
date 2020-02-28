@@ -8,7 +8,6 @@ lazy val `encode-ingest` = project
   .settings(
     libraryDependencies ++= Seq(
       "com.beachape" %% "enumeratum" % enumeratumVersion,
-    )
       "com.squareup.okhttp3" % "okhttp" % okhttpVersion
     )
   )
