@@ -1,6 +1,6 @@
 package org.broadinstitute.monster.encode.extraction
 
-import java.io.{IOException}
+import java.io.IOException
 
 import com.spotify.scio.coders.Coder
 import com.spotify.scio.transforms._
