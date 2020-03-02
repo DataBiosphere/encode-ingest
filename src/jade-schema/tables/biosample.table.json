@@ -1,0 +1,10 @@
+{
+  "name": "biosample",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    }
+  ]
+}

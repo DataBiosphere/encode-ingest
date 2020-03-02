@@ -1,0 +1,10 @@
+{
+  "name": "library_prep_activity",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    }
+  ]
+}

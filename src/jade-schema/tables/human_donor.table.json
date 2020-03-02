@@ -1,0 +1,10 @@
+{
+  "name": "human_donor",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    }
+  ]
+}

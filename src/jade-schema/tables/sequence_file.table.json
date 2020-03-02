@@ -1,0 +1,10 @@
+{
+  "name": "sequence_file",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    }
+  ]
+}

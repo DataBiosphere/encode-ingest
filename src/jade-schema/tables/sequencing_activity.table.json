@@ -1,0 +1,10 @@
+{
+  "name": "sequencing_activity",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    }
+  ]
+}
