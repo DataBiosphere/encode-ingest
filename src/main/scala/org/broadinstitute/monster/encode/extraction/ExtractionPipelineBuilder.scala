@@ -158,7 +158,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     *
     * @param encodeEntity the type of ENCODE entity the stage should query
     */
-  private def EncodeLookup(encodeEntity: EncodeEntity) =
+  private def encodeLookup(encodeEntity: EncodeEntity) =
     new ScalaAsyncLookupDoFn[List[(String, String)], Msg, EncodeClient] {
 
       override def asyncLookup(
@@ -180,7 +180,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
   def getEntities(
     encodeEntity: EncodeEntity
   ): SCollection[List[(String, String)]] => SCollection[Msg] =
-    _.applyKvTransform(ParDo.of(EncodeLookup(encodeEntity))).flatMap { kv =>
+    _.applyKvTransform(ParDo.of(encodeLookup(encodeEntity))).flatMap { kv =>
       kv.getValue
         .fold(
           throw _,

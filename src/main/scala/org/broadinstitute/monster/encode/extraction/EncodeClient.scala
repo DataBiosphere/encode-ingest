@@ -6,7 +6,8 @@ import java.time.Duration
 import okhttp3.{Call, Callback, OkHttpClient, Request, Response}
 import org.broadinstitute.monster.common.msg.JsonParser
 import org.slf4j.LoggerFactory
-import upack.Msg
+import upack.{Arr, Msg, Obj, Str}
+
 import scala.concurrent.{Future, Promise}
 
 /** Interface for clients that hits ENCODE API. */
@@ -55,7 +56,7 @@ object EncodeClient {
             if (response.isSuccessful) {
               p.success(JsonParser.parseEncodedJson(response.body.string))
             } else if (response.code() == 404) {
-              p.success(JsonParser.parseEncodedJson("""{ "@graph": [] }"""))
+              p.success(Obj(Str("@graph") -> Arr()))
             } else {
               p.failure(
                 new RuntimeException(s"ENCODE lookup failed: $response")
