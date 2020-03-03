@@ -5,6 +5,72 @@
       "name": "id",
       "datatype": "string",
       "type": "primary_key"
+    },
+    {
+      "name": "date_created",
+      "datatype": "date",
+      "type": "required"
+    },
+    {
+      "name": "age",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "ethnicities",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "organism",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "sex",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "life_stage",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "parents",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "twins",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
     }
-  ]
+  ],
+  "struct_columns": [
+    {
+      "name": "xrefs",
+      "struct_name": "xref",
+      "type": "repeated"
+    },
 }

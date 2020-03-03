@@ -5,6 +5,73 @@
       "name": "id",
       "datatype": "string",
       "type": "primary_key"
+    },
+    {
+      "name": "date_created",
+      "datatype": "date",
+      "type": "required"
+    },
+    {
+      "name": "source",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "clonality",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "host_organism",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "target",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "isotype",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lot_id",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "product_id",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "purification_method",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    }
+  ],
+  "struct_columns": [
+    {
+      "name": "xrefs",
+      "struct_name": "xref",
+      "type": "repeated"
     }
   ]
 }
