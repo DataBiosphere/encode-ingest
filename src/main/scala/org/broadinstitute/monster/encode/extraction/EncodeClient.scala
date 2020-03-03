@@ -4,13 +4,14 @@ import java.io.IOException
 import java.time.Duration
 
 import okhttp3.{Call, Callback, OkHttpClient, Request, Response}
+import org.broadinstitute.monster.common.msg.JsonParser
 import org.slf4j.LoggerFactory
-
+import upack.Msg
 import scala.concurrent.{Future, Promise}
 
 /** Interface for clients that hits ENCODE API. */
 trait EncodeClient extends Serializable {
-  def get(entity: EncodeEntity, params: List[(String, String)]): Future[String]
+  def get(entity: EncodeEntity, params: List[(String, String)]): Future[Msg]
 }
 
 object EncodeClient {
@@ -34,7 +35,7 @@ object EncodeClient {
       }
       val allParams = s"type=${entity.entryName}" :: baseParams ::: paramStrings
       val url = s"https://www.encodeproject.org/search/?${allParams.mkString(sep = "&")}"
-      val p = Promise[String]()
+      val p = Promise[Msg]()
 
       val request = new Request.Builder()
         .url(url)
@@ -52,9 +53,9 @@ object EncodeClient {
 
           override def onResponse(call: Call, response: Response): Unit = {
             if (response.isSuccessful) {
-              p.success(response.body.string)
+              p.success(JsonParser.parseEncodedJson(response.body.string))
             } else if (response.code() == 404) {
-              p.success("""{ "@graph": [] }""")
+              p.success(JsonParser.parseEncodedJson("""{ "@graph": [] }"""))
             } else {
               p.failure(
                 new RuntimeException(s"ENCODE lookup failed: $response")

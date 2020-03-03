@@ -9,7 +9,7 @@ import org.apache.beam.sdk.transforms.{GroupIntoBatches, ParDo}
 import org.apache.beam.sdk.values.KV
 import org.broadinstitute.monster.common.PipelineBuilder
 import org.broadinstitute.monster.common.StorageIO.writeJsonLists
-import org.broadinstitute.monster.common.msg.{JsonParser, MsgOps, UpackMsgCoder}
+import org.broadinstitute.monster.common.msg.{MsgOps, UpackMsgCoder}
 import upack._
 
 import scala.collection.JavaConverters._
@@ -158,18 +158,18 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     *
     * @param encodeEntity the type of ENCODE entity the stage should query
     */
-  class EncodeLookup(encodeEntity: EncodeEntity)
-      extends ScalaAsyncLookupDoFn[List[(String, String)], String, EncodeClient] {
+  private def EncodeLookup(encodeEntity: EncodeEntity) =
+    new ScalaAsyncLookupDoFn[List[(String, String)], Msg, EncodeClient] {
 
-    override def asyncLookup(
-      client: EncodeClient,
-      params: List[(String, String)]
-    ): Future[String] = {
-      client.get(encodeEntity, params)
+      override def asyncLookup(
+        client: EncodeClient,
+        params: List[(String, String)]
+      ): Future[Msg] = {
+        client.get(encodeEntity, params)
+      }
+
+      override protected def newClient(): EncodeClient = getClient()
     }
-
-    override protected def newClient(): EncodeClient = getClient()
-  }
 
   /**
     * Pipeline stage which maps batches of search parameters into MessagePack entities
@@ -180,13 +180,12 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
   def getEntities(
     encodeEntity: EncodeEntity
   ): SCollection[List[(String, String)]] => SCollection[Msg] =
-    _.applyKvTransform(ParDo.of(new EncodeLookup(encodeEntity))).flatMap { kv =>
+    _.applyKvTransform(ParDo.of(EncodeLookup(encodeEntity))).flatMap { kv =>
       kv.getValue
         .fold(
           throw _,
-          JsonParser.parseEncodedJson
+          _.read[Array[Msg]]("@graph")
         )
-        .read[Array[Msg]]("@graph")
     }
 
   /**
