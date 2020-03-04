@@ -5,6 +5,143 @@
       "name": "id",
       "datatype": "string",
       "type": "primary_key"
+    },
+    {
+      "name": "date_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "source",
+      "datatype": "string"
+    },
+    {
+      "name": "data_use_limitations",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "data_use_requirements",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "date_obtained",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "derived_from",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "anatomical_site",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "biosample_type",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "sample_preservation_state",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "see_also",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "human_donor_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "human_donor",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "audit_labels",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "audit_severities",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "biological_replicate_id",
+      "datatype": "integer",
+      "type": "required"
+    },
+    {
+      "name": "cell_isolation_methods",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "genetic_modifications",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "health_status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "replication_type",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "technical_replicate_id",
+      "datatype": "integer",
+      "type": "required"
+    },
+    {
+      "name": "treatments",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "was_perturbed",
+      "datatype": "boolean",
+      "type": "required"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    }
+  ],
+  "struct_columns": [
+    {
+      "name": "xrefs",
+      "struct_name": "xref",
+      "type": "repeated"
     }
   ]
 }
