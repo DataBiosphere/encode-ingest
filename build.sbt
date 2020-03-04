@@ -6,6 +6,7 @@ val okhttpVersion = "4.4.0"
 lazy val `encode-ingest` = project
   .in(file("."))
   .aggregate(`encode-extraction`, `encode-transformation`)
+  .settings(publish / skip := true)
 
 lazy val `encode-extraction` = project
   .in(file("extraction"))
