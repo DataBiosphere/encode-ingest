@@ -72,5 +72,6 @@
       "name": "xrefs",
       "struct_name": "xref",
       "type": "repeated"
-    },
+    }
+  ]
 }
