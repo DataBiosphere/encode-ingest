@@ -1,10 +1,10 @@
 package org.broadinstitute.monster.encode.extraction
 
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
-import org.broadinstitute.monster.EncodeIngestBuildInfo
+import org.broadinstitute.monster.EncodeExtractionBuildInfo
 
 @AppName("ENCODE Extraction Pipeline")
-@AppVersion(EncodeIngestBuildInfo.version)
+@AppVersion(EncodeExtractionBuildInfo.version)
 @ProgName("org.broadinstitute.monster.etl.encode.ExtractionPipeline")
 /**
   * Command-line arguments for the ETL workflow.
