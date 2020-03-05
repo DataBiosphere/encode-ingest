@@ -7,7 +7,7 @@
       "type": "primary_key"
     },
     {
-      "name": "date_created",
+      "name": "time_created",
       "datatype": "timestamp",
       "type": "required"
     },
