@@ -70,6 +70,17 @@
       "name": "spike_ins",
       "datatype": "string",
       "type": "repeated"
+    },
+    {
+      "name": "biosample_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
     }
   ],
   "struct_columns": [
