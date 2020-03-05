@@ -1,10 +1,142 @@
 {
-  "name": "alignment_file",
+  "name": "other_file",
   "columns": [
     {
       "name": "id",
       "datatype": "string",
       "type": "primary_key"
+    },
+    {
+      "name": "byte_size",
+      "datatype": "integer",
+      "type": "required"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "audit_label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "audit_severity",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "file_format_type",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "platform",
+      "datatype": "string"
+    },
+    {
+      "name": "quality_metrics",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "restriction_enzymes",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "genome_annotation",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "pipeline_id",
+      "datatype": "string"
+    },
+    {
+      "name": "step_run",
+      "datatype": "string"
+    },
+    {
+      "name": "derived_from_alignment_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "alignment_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "derived_from_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "derived_from_other_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "other_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "mapped_read_length",
+      "datatype": "integer",
+      "type": "required"
+    },
+    {
+      "name": "run_type",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "read_structure",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ],
+  "struct_columns": [
+    {
+      "name": "xrefs",
+      "struct_name": "xref",
+      "type": "repeated"
     }
   ]
 }
