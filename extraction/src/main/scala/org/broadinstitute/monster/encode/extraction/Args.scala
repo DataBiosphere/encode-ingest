@@ -1,6 +1,8 @@
 package org.broadinstitute.monster.encode.extraction
 
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
+import caseapp.core.Error.MalformedValue
+import caseapp.core.argparser.{ArgParser, SimpleArgParser}
 import org.broadinstitute.monster.EncodeExtractionBuildInfo
 
 @AppName("ENCODE Extraction Pipeline")
@@ -20,5 +22,22 @@ case class Args(
   @HelpMessage(
     "Batch size that defines the number of elements in a batch when making certain API calls"
   )
-  batchSize: Long
+  batchSize: Long,
+  @HelpMessage(
+    "Initial query to target a specific entry-point to the pipeline."
+  )
+  initialQuery: List[(String, String)] = List("organism.name" -> "human")
 )
+
+object Args {
+
+  implicit val customArgParser: ArgParser[(String, String)] =
+    SimpleArgParser.from("key=value") { s =>
+      val i = s.indexOf("=")
+      if (i == -1) {
+        Left(MalformedValue("key=value", "Missing '=' delimiter"))
+      } else {
+        Right(s.take(i) -> s.drop(i + 1))
+      }
+    }
+}
