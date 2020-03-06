@@ -1,10 +1,88 @@
 {
-  "name": "experiment_activity",
+  "name": "other_activity",
   "columns": [
     {
       "name": "id",
       "datatype": "string",
       "type": "primary_key"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_started",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_ended",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_submitted",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "description",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "assay",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "audit_labels",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "audit_severities",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "biosample_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    }
+  ],
+  "struct_columns": [
+    {
+      "name": "xrefs",
+      "struct_name": "xref",
+      "type": "repeated"
     }
   ]
 }
