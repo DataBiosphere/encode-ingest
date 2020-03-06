@@ -44,9 +44,9 @@
       ]
     },
     {
-      "name": "library_ids",
+      "name": "library_id",
       "datatype": "string",
-      "type": "repeated",
+      "type": "required",
       "links": [
         {
           "table_name": "library",
