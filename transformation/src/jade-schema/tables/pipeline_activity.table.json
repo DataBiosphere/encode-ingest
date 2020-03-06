@@ -1,5 +1,5 @@
 {
-  "name": "other_activity",
+  "name": "pipeline_activity",
   "columns": [
     {
       "name": "id",
