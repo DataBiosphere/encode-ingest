@@ -83,9 +83,9 @@
       "type": "repeated"
     },
     {
-      "name": "audit_severities",
+      "name": "max_audit_flag",
       "datatype": "string",
-      "type": "repeated"
+      "type": "required"
     },
     {
       "name": "award",

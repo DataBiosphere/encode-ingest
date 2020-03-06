@@ -27,12 +27,12 @@
       "type": "required"
     },
     {
-      "name": "audit_label",
+      "name": "audit_labels",
       "datatype": "string",
-      "type": "required"
+      "type": "repeated"
     },
     {
-      "name": "audit_severity",
+      "name": "max_audit_flag",
       "datatype": "string",
       "type": "required"
     },
