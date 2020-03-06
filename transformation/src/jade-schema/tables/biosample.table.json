@@ -7,6 +7,11 @@
       "type": "primary_key"
     },
     {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "time_created",
       "datatype": "timestamp",
       "type": "required"
@@ -31,9 +36,15 @@
       "type": "required"
     },
     {
-      "name": "derived_from",
+      "name": "derived_from_biosample_id",
       "datatype": "string",
-      "type": "required"
+      "type": "required",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
     },
     {
       "name": "anatomical_site",
@@ -135,13 +146,6 @@
       "name": "submitted_by",
       "datatype": "string",
       "type": "required"
-    }
-  ],
-  "struct_columns": [
-    {
-      "name": "xrefs",
-      "struct_name": "xref",
-      "type": "repeated"
     }
   ]
 }

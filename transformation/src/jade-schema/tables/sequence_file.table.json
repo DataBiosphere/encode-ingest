@@ -7,6 +7,11 @@
       "type": "primary_key"
     },
     {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "byte_size",
       "datatype": "integer",
       "type": "required"
@@ -80,10 +85,6 @@
       "datatype": "string"
     },
     {
-      "name": "step_run",
-      "datatype": "string"
-    },
-    {
       "name": "derived_from_alignment_file_ids",
       "datatype": "string",
       "type": "repeated",
@@ -147,13 +148,6 @@
     {
       "name": "library_id",
       "datatype": "string"
-    }
-  ],
-  "struct_columns": [
-    {
-      "name": "xrefs",
-      "struct_name": "xref",
-      "type": "repeated"
     }
   ]
 }

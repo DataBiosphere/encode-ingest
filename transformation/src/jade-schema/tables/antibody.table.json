@@ -7,6 +7,11 @@
       "type": "primary_key"
     },
     {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "time_created",
       "datatype": "timestamp",
       "type": "required"
@@ -65,13 +70,6 @@
       "name": "status",
       "datatype": "string",
       "type": "required"
-    }
-  ],
-  "struct_columns": [
-    {
-      "name": "xrefs",
-      "struct_name": "xref",
-      "type": "repeated"
     }
   ]
 }
