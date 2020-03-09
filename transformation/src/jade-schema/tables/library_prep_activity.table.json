@@ -1,0 +1,62 @@
+{
+  "name": "library_prep_activity",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_started",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_ended",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "library_material",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "library_material_name",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "library_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "library",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "biosample_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    }
+  ]
+}
