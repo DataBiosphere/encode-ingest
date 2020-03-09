@@ -6,18 +6,18 @@ import scala.concurrent.Future
 import scala.collection.mutable
 
 class MockEncodeClient(
-  responseMap: Map[Set[(String, String)], Msg]
+  responseMap: Map[(EncodeEntity, (String, String)), Msg]
 ) extends EncodeClient {
-  val recordedRequests = mutable.Set[Set[(String, String)]]()
+  val recordedRequests = mutable.Set[(EncodeEntity, (String, String))]()
 
   override def get(entity: EncodeEntity, params: List[(String, String)]): Future[Msg] = {
-    val paramsToUse = params.toSet
-    recordedRequests.add(paramsToUse)
+    val paramsToUse = params.head
+    recordedRequests.add((entity, paramsToUse))
     responseMap
-      .get(paramsToUse)
+      .get((entity, paramsToUse))
       .fold(
         Future.failed[Msg](
-          new RuntimeException(s"Entity: ${entity} and params: ${params.toString}")
+          new RuntimeException(s"Entity: ${entity} and params: ${paramsToUse.toString}")
         )
       )(Future.successful)
   }
