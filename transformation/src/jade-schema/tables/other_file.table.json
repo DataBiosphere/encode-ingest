@@ -66,11 +66,6 @@
       "type": "repeated"
     },
     {
-      "name": "status",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
       "name": "submitted_by",
       "datatype": "string",
       "type": "required"

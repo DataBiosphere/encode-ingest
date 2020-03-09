@@ -52,9 +52,15 @@
       "type": "required"
     },
     {
-      "name": "parents",
+      "name": "parent_ids",
       "datatype": "string",
-      "type": "repeated"
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "human_donor",
+          "column_name": "id"
+        }
+      ]
     },
     {
       "name": "status",
@@ -62,9 +68,15 @@
       "type": "required"
     },
     {
-      "name": "twins",
+      "name": "twin_ids",
       "datatype": "string",
-      "type": "repeated"
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "human_donor",
+          "column_name": "id"
+        }
+      ]
     },
     {
       "name": "submitted_by",

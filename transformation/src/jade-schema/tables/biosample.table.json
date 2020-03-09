@@ -21,16 +21,6 @@
       "datatype": "string"
     },
     {
-      "name": "data_use_limitations",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "data_use_requirements",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
       "name": "time_obtained",
       "datatype": "timestamp",
       "type": "required"
