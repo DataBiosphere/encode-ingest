@@ -24,61 +24,56 @@ class ExtractionPipelineIntegrationSpec extends PipelineBuilderSpec[Args] {
   override val builder = ExtractionPipeline.pipelineBuilder
 
   // Paths for entity files downloaded
-  val AnalysisStepPath = (outputDir.pathAsString + "/AnalysisStep")
-  val AnalysisStepRunPath = (outputDir.pathAsString + "/AnalysisStepRun")
-  val AnalysisStepVersionPath = (outputDir.pathAsString + "/AnalysisStepVersion")
-  val AntibodyLotPath = (outputDir.pathAsString + "/AntibodyLot")
-  val BiosamplePath = (outputDir.pathAsString + "/Biosample")
-  val DonorPath = (outputDir.pathAsString + "/Donor")
-  val ExperimentPath = (outputDir.pathAsString + "/Experiment")
-  val FilePath = (outputDir.pathAsString + "/File")
-  val FunctionalCharacterizationExperimentPath = (outputDir.pathAsString + "/FunctionalCharacterizationExperiment")
-  val LibraryPath = (outputDir.pathAsString + "/Library")
-  val ReplicatePath = (outputDir.pathAsString + "/Replicate")
-  val TargetPath = (outputDir.pathAsString + "/Target")
+  val analysisStepPath = (outputDir.pathAsString + "/AnalysisStep")
+  val analysisStepRunPath = (outputDir.pathAsString + "/AnalysisStepRun")
+  val analysisStepVersionPath = (outputDir.pathAsString + "/AnalysisStepVersion")
+  val antibodyLotPath = (outputDir.pathAsString + "/AntibodyLot")
+  val biosamplePath = (outputDir.pathAsString + "/Biosample")
+  val donorPath = (outputDir.pathAsString + "/Donor")
+  val experimentPath = (outputDir.pathAsString + "/Experiment")
+  val filePath = (outputDir.pathAsString + "/File")
+  val functionalCharacterizationExperimentPath = (outputDir.pathAsString + "/FunctionalCharacterizationExperiment")
+  val libraryPath = (outputDir.pathAsString + "/Library")
+  val replicatePath = (outputDir.pathAsString + "/Replicate")
+  val targetPath = (outputDir.pathAsString + "/Target")
 
   /// VERIFY DOWNLOADS
   behavior of "ExtractionPipeline"
 
-  it should "successfully download results from the from Encode API" in {
-    outputDir.nonEmpty should be(true)
-    println("outputDir has contents...")
-  }
   it should "successfully download AnalysisStep files" in {
-    AnalysisStepPath.nonEmpty should be(true)
-    println("/AnalysisStep has contents...")
+    analysisStepPath.nonEmpty should be(true)
   }
   it should "successfully download AnalysisStepRun files" in {
-    AnalysisStepRunPath.nonEmpty should be(true)
+    analysisStepRunPath.nonEmpty should be(true)
   }
   it should "successfully download AnalysisStepVersion files" in {
-    AnalysisStepVersionPath.nonEmpty should be(true)
+    analysisStepVersionPath.nonEmpty should be(true)
   }
   it should "successfully download AntibodyLot files" in {
-    AntibodyLotPath.nonEmpty should be(true)
+    antibodyLotPath.nonEmpty should be(true)
   }
   it should "successfully download Biosample files" in {
-    BiosamplePath.nonEmpty should be(true)
+    biosamplePath.nonEmpty should be(true)
   }
   it should "successfully download Donor files" in {
-    DonorPath.nonEmpty should be(true)
+    donorPath.nonEmpty should be(true)
   }
   it should "successfully download Experiment files" in {
-    ExperimentPath.nonEmpty should be(true)
+    experimentPath.nonEmpty should be(true)
   }
   it should "successfully download File files" in {
-    FilePath.nonEmpty should be(true)
+    filePath.nonEmpty should be(true)
   }
   it should "successfully download FunctionalCharacterizationExperiment files" in {
-    FunctionalCharacterizationExperimentPath.nonEmpty should be(true)
+    functionalCharacterizationExperimentPath.nonEmpty should be(true)
   }
   it should "successfully download Library files" in {
-    LibraryPath.nonEmpty should be(true)
+    libraryPath.nonEmpty should be(true)
   }
   it should "successfully download Replicate files" in {
-    ReplicatePath.nonEmpty should be(true)
+    replicatePath.nonEmpty should be(true)
   }
   it should "successfully download Target files" in {
-    TargetPath.nonEmpty should be(true)
+    targetPath.nonEmpty should be(true)
   }
 }
