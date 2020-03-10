@@ -1,0 +1,75 @@
+{
+  "name": "antibody",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "source",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "clonality",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "host_organism",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "target",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "isotype",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lot_id",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "product_id",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "purification_method",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "name": "experiment_activity",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_started",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_ended",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "generated_alignment_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "alignment_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_other_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "other_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "time_submitted",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "description",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "audit_labels",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "max_audit_flag",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "biosample_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    }
+  ]
+}

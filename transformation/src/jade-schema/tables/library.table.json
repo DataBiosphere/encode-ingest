@@ -1,0 +1,91 @@
+{
+  "name": "library",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "source",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lot_id",
+      "datatype": "string"
+    },
+    {
+      "name": "product_id",
+      "datatype": "string"
+    },
+    {
+      "name": "queried_rnp_size_range",
+      "datatype": "string"
+    },
+    {
+      "name": "rna_integrity_number",
+      "datatype": "float"
+    },
+    {
+      "name": "size_range",
+      "datatype": "string"
+    },
+    {
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "strand_specificity",
+      "datatype": "boolean",
+      "type": "required"
+    },
+    {
+      "name": "treatments",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "spike_ins",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "biosample_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    }
+  ]
+}
