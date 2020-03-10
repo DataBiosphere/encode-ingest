@@ -60,13 +60,21 @@ object EncodeExtractionPipelineBuilderSpec {
   // replicates
   val replicateParams = ("library.accession", "1")
 
+  val replicateIds = 1 to 2
+
   val replicateOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      replicateIds.map { i =>
         Obj(
           Str("@id") -> Str(i.toString),
           Str("antibody") -> Str(i.toString),
-          Str("experiment") -> Str(i.toString)
+          Str("experiment") -> Str(
+            if (i == 1) {
+              i.toString
+            } else {
+              "/functional-characterization-experiments/" + i.toString
+            }
+          )
         ): Msg
       }.to[mutable.ArrayBuffer]
     )
@@ -113,7 +121,7 @@ object EncodeExtractionPipelineBuilderSpec {
   )
 
   // fcexperiments
-  val fcExperimentParams = ("", "")
+  val fcExperimentParams = ("@id", "/functional-characterization-experiments/2")
 
   val fcExperimentOut = Obj(
     Str("@graph") -> new Arr(
@@ -188,7 +196,7 @@ object EncodeExtractionPipelineBuilderSpec {
     (EncodeEntity.AntibodyLot, antibodyParams) -> antibodyOut,
     (EncodeEntity.Target, targetParams) -> targetOut,
     (EncodeEntity.Experiment, experimentParams) -> experimentOut,
-//    fcExperimentParams.toSet -> fcExperimentOut,
+    (EncodeEntity.FunctionalCharacterizationExperiment, fcExperimentParams) -> fcExperimentOut,
     (EncodeEntity.File, fileParams) -> fileOut,
     (EncodeEntity.AnalysisStepRun, analysisStepRunParams) -> analysisStepRunOut,
     (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams) -> analysisStepVersionOut,
@@ -206,7 +214,7 @@ class EncodeExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
 
   override val testArgs = Args(
     outputDir = outputDir.pathAsString,
-    batchSize = 1L
+    batchSize = 2L
   )
 
   override val builder =
@@ -223,6 +231,7 @@ class EncodeExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
       (EncodeEntity.AntibodyLot, antibodyParams),
       (EncodeEntity.Target, targetParams),
       (EncodeEntity.Experiment, experimentParams),
+      (EncodeEntity.FunctionalCharacterizationExperiment, fcExperimentParams),
       (EncodeEntity.File, fileParams),
       (EncodeEntity.AnalysisStepRun, analysisStepRunParams),
       (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams),
