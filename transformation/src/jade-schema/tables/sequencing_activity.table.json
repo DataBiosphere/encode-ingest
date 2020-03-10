@@ -1,0 +1,52 @@
+{
+  "name": "sequencing_activity",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_started",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "time_ended",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "generated_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "library_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "library",
+          "column_name": "id"
+        }
+      ]
+    }
+  ]
+}
