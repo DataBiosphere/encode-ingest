@@ -31,7 +31,7 @@ case class Args(
 
 object Args {
 
-  implicit val customArgParser: ArgParser[(String, String)] =
+  implicit val tupleParser: ArgParser[(String, String)] =
     SimpleArgParser.from("key=value") { s =>
       val i = s.indexOf("=")
       if (i == -1) {
