@@ -5,6 +5,7 @@ import upack.Msg
 import scala.concurrent.Future
 import scala.collection.mutable
 
+/** Mock interface for ENCODE API. */
 class MockEncodeClient(
   responseMap: Map[(EncodeEntity, (String, String)), Msg]
 ) extends EncodeClient {
