@@ -10,12 +10,6 @@ import scala.collection.mutable
 object EncodeExtractionPipelineBuilderSpec {
   val fakeIds = 1 to 1
 
-  val ids = fakeIds.map { i =>
-    Obj(
-      Str("@id") -> Str(i.toString)
-    ): Msg
-  }
-
   // biosamples
   val biosampleParams = ("organism.name", "human")
 
@@ -215,6 +209,7 @@ class EncodeExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
 
   override val testArgs = Args(
     outputDir = outputDir.pathAsString,
+    // batchSize is 2 so that the fcexperiment piece of the pipeline actually has something to interact with
     batchSize = 2L
   )
 
