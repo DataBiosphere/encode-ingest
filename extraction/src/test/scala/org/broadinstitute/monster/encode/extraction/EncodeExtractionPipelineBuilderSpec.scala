@@ -2,6 +2,7 @@ package org.broadinstitute.monster.encode.extraction
 
 import better.files.File
 import org.broadinstitute.monster.common.PipelineBuilderSpec
+import org.broadinstitute.monster.common.msg.MsgOps
 import upack._
 
 import scala.collection.mutable
@@ -67,7 +68,7 @@ object EncodeExtractionPipelineBuilderSpec {
       replicateIds.map { i =>
         Obj(
           Str("@id") -> Str(i.toString),
-          Str("antibody") -> Str(i.toString),
+          Str("antibody") -> Str("1"),
           Str("experiment") -> Str(
             if (i == 1) {
               i.toString
@@ -240,6 +241,29 @@ class EncodeExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
   }
 
   it should "write downloaded outputs to disk" in {
-    readMsgs(outputDir) shouldBe ids.toSet
+    readMsgs(outputDir, s"${EncodeEntity.Biosample}/*.json") shouldBe
+      biosampleOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.Donor}/*.json") shouldBe
+      donorOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.Library}/*.json") shouldBe
+      libraryOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.Replicate}/*.json") shouldBe
+      replicateOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.AntibodyLot}/*.json") shouldBe
+      antibodyOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.Target}/*.json") shouldBe
+      targetOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.Experiment}/*.json") shouldBe
+      experimentOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.FunctionalCharacterizationExperiment}/*.json") shouldBe
+      fcExperimentOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.File}/*.json") shouldBe
+      fileOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.AnalysisStepRun}/*.json") shouldBe
+      analysisStepRunOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.AnalysisStepVersion}/*.json") shouldBe
+      analysisStepVersionOut.read[Array[Msg]]("@graph").toSet
+    readMsgs(outputDir, s"${EncodeEntity.AnalysisStep}/*.json") shouldBe
+      analysisStepOut.read[Array[Msg]]("@graph").toSet
   }
 }
