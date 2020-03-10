@@ -67,7 +67,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 
     // biosamples are the first one and follow a different pattern, so we don't use the generic method
     val biosamples = ctx
-      .parallelize(List({ args.initialQuery }))
+      .parallelize(List(args.initialQuery))
       .transform(s"Extract ${EncodeEntity.Biosample} data") { rawData =>
         val biosamples = getEntities(EncodeEntity.Biosample)(rawData)
         writeJsonLists(
