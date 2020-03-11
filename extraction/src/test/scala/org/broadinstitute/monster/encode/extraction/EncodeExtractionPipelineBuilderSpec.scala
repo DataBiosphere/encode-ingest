@@ -8,20 +8,18 @@ import upack._
 import scala.collection.mutable
 
 object EncodeExtractionPipelineBuilderSpec {
-  val fakeIds = 1 to 1
-
   // biosamples
   val biosampleParams = ("organism.name", "human")
 
   val biosampleOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString),
-          Str("donor") -> Str(i.toString),
-          Str("accession") -> Str(i.toString)
+          Str("@id") -> Str("1"),
+          Str("donor") -> Str("1"),
+          Str("accession") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -30,11 +28,11 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val donorOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString)
+          Str("@id") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -43,12 +41,12 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val libraryOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString),
-          Str("accession") -> Str(i.toString)
+          Str("@id") -> Str("1"),
+          Str("accession") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -80,12 +78,12 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val antibodyOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString),
-          Str("targets") -> Str(i.toString)
+          Str("@id") -> Str("1"),
+          Str("targets") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -94,11 +92,11 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val targetOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString)
+          Str("@id") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -107,11 +105,11 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val experimentOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString)
+          Str("@id") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -120,11 +118,11 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val fcExperimentOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString)
+          Str("@id") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -133,12 +131,12 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val fileOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString),
-          Str("step_run") -> Str(i.toString)
+          Str("@id") -> Str("1"),
+          Str("step_run") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -147,12 +145,12 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val analysisStepRunOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString),
-          Str("analysis_step_version") -> Str(i.toString)
+          Str("@id") -> Str("1"),
+          Str("analysis_step_version") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -161,12 +159,12 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val analysisStepVersionOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString),
-          Str("analysis_step") -> Str(i.toString)
+          Str("@id") -> Str("1"),
+          Str("analysis_step") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
@@ -175,11 +173,11 @@ object EncodeExtractionPipelineBuilderSpec {
 
   val analysisStepOut = Obj(
     Str("@graph") -> new Arr(
-      fakeIds.map { i =>
+      mutable.ArrayBuffer(
         Obj(
-          Str("@id") -> Str(i.toString)
+          Str("@id") -> Str("1")
         ): Msg
-      }.to[mutable.ArrayBuffer]
+      )
     )
   )
 
