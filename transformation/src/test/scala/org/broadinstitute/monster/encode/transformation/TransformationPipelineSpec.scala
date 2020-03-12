@@ -7,8 +7,6 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
   behavior of "TransformationPipeline"
 
   private val testFileLocation = s"${File.currentWorkingDirectory}/src/test/test-files"
-  //private val truthDir = s"${testFileDir}/outputs"
-  //private val compareDir = s"${testFileDir}/outputs-to-compare"
   private val truthDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs"
   private val compareDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs-to-compare"
   private val compareDirString = compareDir.pathAsString
@@ -35,7 +33,6 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
   }
 
   private val outputDirs = Set(
-    // add other directories here as we build the transformations
     "human_donor"
   )
 
