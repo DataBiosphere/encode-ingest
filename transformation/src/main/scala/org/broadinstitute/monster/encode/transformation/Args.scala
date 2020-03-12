@@ -1,8 +1,11 @@
 package org.broadinstitute.monster.encode.transformation
 
-import caseapp.HelpMessage
+import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
+import org.broadinstitute.monster.EncodeTransformationBuildInfo
 
-// TODO: Add AppVersion/AppName/ProgName back in?
+@AppName("Encode transformation pipeline")
+@AppVersion(EncodeTransformationBuildInfo.version)
+@ProgName("org.broadinstitute.monster.etl.encode.EncodeTransformationPipeline")
 case class Args(
   @HelpMessage("Path to the top-level directory where JSON was extracted")
   inputPrefix: String,

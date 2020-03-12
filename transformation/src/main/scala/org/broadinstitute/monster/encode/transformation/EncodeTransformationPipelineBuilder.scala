@@ -27,7 +27,6 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
         s"${args.inputPrefix}/Donors/*.json"
       )
 
-    // TODO: transform
     val humanDonorOutput = donorInputs.map(transformDonor)
 
     // write back to storage
@@ -43,7 +42,7 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     HumanDonor(
       id = donorInput.read[String]("accession"),
       crossReferences = Array[String](), // dbxrefs
-      timeCreated = donorInput.read[OffsetDateTime]("date_created"), // TODO: get working as timestamp
+      timeCreated = donorInput.read[OffsetDateTime]("date_created"),
       age = donorInput.read[String]("age"),
       ethnicities = Array[String](), // ethinicity
       organism = donorInput.read[String]("organism"),
