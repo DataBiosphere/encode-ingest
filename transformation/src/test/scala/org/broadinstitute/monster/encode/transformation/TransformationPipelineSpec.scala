@@ -10,12 +10,12 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
   //private val truthDir = s"${testFileDir}/outputs"
   //private val compareDir = s"${testFileDir}/outputs-to-compare"
   private val truthDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs"
-  private val compareDir = File.currentWorkingDirectory / "src" / "tes" / "test-files" / "outputs-to-compare"
+  private val compareDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs-to-compare"
   private val compareDirString = compareDir.pathAsString
   private val inputDirString = s"${testFileLocation}/inputs"
 
   override val testArgs =
-    Args(inputPrefix = inputDirString, outputPrefix = compareDir)
+    Args(inputPrefix = inputDirString, outputPrefix = compareDirString)
 
   override val builder = EncodeTransformationPipelineBuilder
 

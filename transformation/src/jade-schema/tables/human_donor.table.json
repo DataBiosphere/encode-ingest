@@ -18,8 +18,7 @@
     },
     {
       "name": "age",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "ethnicities",
@@ -48,8 +47,7 @@
     },
     {
       "name": "life_stage",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "parent_ids",
