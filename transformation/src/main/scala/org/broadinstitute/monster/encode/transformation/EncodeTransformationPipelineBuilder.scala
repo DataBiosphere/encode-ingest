@@ -41,18 +41,18 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   def transformDonor(donorInput: Msg): HumanDonor = {
     HumanDonor(
       id = donorInput.read[String]("accession"),
-      crossReferences = Array[String](), // dbxrefs
+      crossReferences = donorInput.read[Array[String]]("dbxrefs"),
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),
       age = donorInput.tryRead[String]("age"),
-      ethnicities = Array[String](), // ethinicity
+      ethnicities = Array() ++ donorInput.tryRead[String]("ethinicity"),
       organism = donorInput.read[String]("organism"),
       sex = donorInput.read[String]("sex"),
       award = donorInput.read[String]("award"),
       lab = donorInput.read[String]("lab"),
       lifeStage = donorInput.tryRead[String]("life_stage"),
-      parentIds = Array[String](), // parents (correct id?)
+      parentIds = donorInput.read[Array[String]]("parents"),
       status = donorInput.read[String]("status"),
-      twinIds = Array[String](), // twin (correct id?)
+      twinIds = Array() ++ donorInput.tryRead[String]("twin"),
       submittedBy = donorInput.read[String]("submitted_by")
     )
   }
