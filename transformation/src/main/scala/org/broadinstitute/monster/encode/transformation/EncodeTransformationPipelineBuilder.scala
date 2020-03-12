@@ -44,7 +44,7 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       crossReferences = donorInput.read[Array[String]]("dbxrefs"),
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),
       age = donorInput.tryRead[String]("age"),
-      ethnicities = Array() ++ donorInput.tryRead[String]("ethinicity"),
+      ethnicities = Array() ++ donorInput.tryRead[String]("ethnicity"),
       organism = donorInput.read[String]("organism"),
       sex = donorInput.read[String]("sex"),
       award = donorInput.read[String]("award"),
