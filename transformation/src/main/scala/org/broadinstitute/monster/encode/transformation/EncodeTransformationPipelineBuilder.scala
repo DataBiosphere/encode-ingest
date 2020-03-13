@@ -43,7 +43,8 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       id = donorInput.read[String]("accession"),
       crossReferences = donorInput.read[Array[String]]("dbxrefs"),
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),
-      age = donorInput.tryRead[String]("age"),
+      age = donorInput.tryRead[Long]("age"),
+      ageUnit = donorInput.tryRead[String]("age_units"),
       ethnicities = Array() ++ donorInput.tryRead[String]("ethnicity"),
       organism = donorInput.read[String]("organism"),
       sex = donorInput.read[String]("sex"),
@@ -51,7 +52,6 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       lab = donorInput.read[String]("lab"),
       lifeStage = donorInput.tryRead[String]("life_stage"),
       parentIds = donorInput.read[Array[String]]("parents"),
-      status = donorInput.read[String]("status"),
       twinIds = Array() ++ donorInput.tryRead[String]("twin"),
       submittedBy = donorInput.read[String]("submitted_by")
     )

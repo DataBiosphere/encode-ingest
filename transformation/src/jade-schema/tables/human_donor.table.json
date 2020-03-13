@@ -18,6 +18,10 @@
     },
     {
       "name": "age",
+      "datatype": "integer"
+    },
+    {
+      "name": "age_unit",
       "datatype": "string"
     },
     {
@@ -59,11 +63,6 @@
           "column_name": "id"
         }
       ]
-    },
-    {
-      "name": "status",
-      "datatype": "string",
-      "type": "required"
     },
     {
       "name": "twin_ids",
