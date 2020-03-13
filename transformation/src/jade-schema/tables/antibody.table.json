@@ -65,11 +65,6 @@
       "name": "purification_method",
       "datatype": "string",
       "type": "required"
-    },
-    {
-      "name": "status",
-      "datatype": "string",
-      "type": "required"
     }
   ]
 }

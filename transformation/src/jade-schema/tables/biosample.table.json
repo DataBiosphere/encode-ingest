@@ -113,11 +113,6 @@
       "type": "required"
     },
     {
-      "name": "status",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
       "name": "technical_replicate_id",
       "datatype": "integer",
       "type": "required"

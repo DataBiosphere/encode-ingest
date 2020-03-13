@@ -52,11 +52,6 @@
       "datatype": "string"
     },
     {
-      "name": "status",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
       "name": "strand_specificity",
       "datatype": "boolean",
       "type": "required"
