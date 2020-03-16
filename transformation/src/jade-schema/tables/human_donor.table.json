@@ -25,9 +25,8 @@
       "datatype": "string"
     },
     {
-      "name": "ethnicities",
-      "datatype": "string",
-      "type": "repeated"
+      "name": "ethnicity",
+      "datatype": "string"
     },
     {
       "name": "organism",
@@ -65,9 +64,8 @@
       ]
     },
     {
-      "name": "twin_ids",
+      "name": "twin_id",
       "datatype": "string",
-      "type": "repeated",
       "links": [
         {
           "table_name": "human_donor",

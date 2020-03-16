@@ -45,14 +45,14 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),
       age = donorInput.tryRead[Long]("age"),
       ageUnit = donorInput.tryRead[String]("age_units"),
-      ethnicities = Array() ++ donorInput.tryRead[String]("ethnicity"),
+      ethnicity = donorInput.tryRead[String]("ethnicity"),
       organism = donorInput.read[String]("organism"),
       sex = donorInput.read[String]("sex"),
       award = donorInput.read[String]("award"),
       lab = donorInput.read[String]("lab"),
       lifeStage = donorInput.tryRead[String]("life_stage"),
       parentIds = donorInput.read[Array[String]]("parents"),
-      twinIds = Array() ++ donorInput.tryRead[String]("twin"),
+      twinId = donorInput.tryRead[String]("twin"),
       submittedBy = donorInput.read[String]("submitted_by")
     )
   }
