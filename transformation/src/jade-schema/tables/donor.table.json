@@ -1,5 +1,5 @@
 {
-  "name": "human_donor",
+  "name": "donor",
   "columns": [
     {
       "name": "id",
@@ -58,7 +58,7 @@
       "type": "repeated",
       "links": [
         {
-          "table_name": "human_donor",
+          "table_name": "donor",
           "column_name": "id"
         }
       ]
@@ -68,7 +68,7 @@
       "datatype": "string",
       "links": [
         {
-          "table_name": "human_donor",
+          "table_name": "donor",
           "column_name": "id"
         }
       ]

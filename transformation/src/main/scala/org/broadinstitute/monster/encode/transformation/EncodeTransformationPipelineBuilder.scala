@@ -5,7 +5,7 @@ import com.spotify.scio.coders.Coder
 import java.time.OffsetDateTime
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
-import org.broadinstitute.monster.encode.jadeschema.table.HumanDonor
+import org.broadinstitute.monster.encode.jadeschema.table._
 import upack.Msg
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -27,19 +27,19 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
         s"${args.inputPrefix}/Donor/*.json"
       )
 
-    val humanDonorOutput = donorInputs.map(transformDonor)
+    val donorOutput = donorInputs.map(transformDonor)
 
     // write back to storage
     StorageIO.writeJsonLists(
-      humanDonorOutput,
-      "HumanDonors",
-      s"${args.outputPrefix}/human_donor"
+      donorOutput,
+      "Donors",
+      s"${args.outputPrefix}/donor"
     )
     ()
   }
 
-  def transformDonor(donorInput: Msg): HumanDonor = {
-    HumanDonor(
+  def transformDonor(donorInput: Msg): Donor = {
+    Donor(
       id = donorInput.read[String]("accession"),
       crossReferences = donorInput.read[Array[String]]("dbxrefs"),
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),

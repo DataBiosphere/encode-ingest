@@ -33,7 +33,7 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
   }
 
   private val outputDirs = Set(
-    "human_donor"
+    "donor"
   )
 
   outputDirs.foreach {
