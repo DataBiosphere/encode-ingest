@@ -5,7 +5,7 @@ val okhttpVersion = "4.4.0"
 
 lazy val `encode-ingest` = project
   .in(file("."))
-  .aggregate(`encode-extraction`, `encode-transformation`)
+  .aggregate(`encode-extraction`, `encode-schema`, `encode-transformation-pipeline`)
   .settings(publish / skip := true)
 
 lazy val `encode-extraction` = project
@@ -18,9 +18,9 @@ lazy val `encode-extraction` = project
     )
   )
 
-lazy val `encode-transformation` = project
-  .in(file("transformation"))
-  .enablePlugins(MonsterJadeDatasetPlugin, MonsterScioPipelinePlugin)
+lazy val `encode-schema` = project
+  .in(file("schema"))
+  .enablePlugins(MonsterJadeDatasetPlugin)
   .settings(
     jadeDatasetName := JadeIdentifier
         .fromString("broad_dsp_encode")
@@ -29,3 +29,8 @@ lazy val `encode-transformation` = project
     jadeTablePackage := "org.broadinstitute.monster.encode.jadeschema.table",
     jadeStructPackage := "org.broadinstitute.monster.encode.jadeschema.struct"
   )
+
+lazy val `encode-transformation-pipeline` = project
+  .in(file("transformation"))
+  .enablePlugins(MonsterScioPipelinePlugin)
+  .dependsOn(`encode-schema`)
