@@ -12,4 +12,3 @@ case class Args(
   @HelpMessage("Path where transformed JSON should be written")
   outputPrefix: String
 )
-
