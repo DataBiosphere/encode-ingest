@@ -1,5 +1,5 @@
 {
-  "name": "human_donor",
+  "name": "donor",
   "columns": [
     {
       "name": "id",
@@ -18,13 +18,15 @@
     },
     {
       "name": "age",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "integer"
     },
     {
-      "name": "ethnicities",
-      "datatype": "string",
-      "type": "repeated"
+      "name": "age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "ethnicity",
+      "datatype": "string"
     },
     {
       "name": "organism",
@@ -48,8 +50,7 @@
     },
     {
       "name": "life_stage",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "parent_ids",
@@ -57,23 +58,17 @@
       "type": "repeated",
       "links": [
         {
-          "table_name": "human_donor",
+          "table_name": "donor",
           "column_name": "id"
         }
       ]
     },
     {
-      "name": "status",
+      "name": "twin_id",
       "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "twin_ids",
-      "datatype": "string",
-      "type": "repeated",
       "links": [
         {
-          "table_name": "human_donor",
+          "table_name": "donor",
           "column_name": "id"
         }
       ]

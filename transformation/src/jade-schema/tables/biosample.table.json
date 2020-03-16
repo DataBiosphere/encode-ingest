@@ -57,12 +57,12 @@
       "type": "repeated"
     },
     {
-      "name": "human_donor_ids",
+      "name": "donor_ids",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "human_donor",
+          "table_name": "donor",
           "column_name": "id"
         }
       ]
@@ -109,11 +109,6 @@
     },
     {
       "name": "replication_type",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "status",
       "datatype": "string",
       "type": "required"
     },
