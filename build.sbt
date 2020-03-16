@@ -23,8 +23,8 @@ lazy val `encode-schema` = project
   .enablePlugins(MonsterJadeDatasetPlugin)
   .settings(
     jadeDatasetName := JadeIdentifier
-      .fromString("broad_dsp_encode")
-      .fold(sys.error, identity),
+        .fromString("broad_dsp_encode")
+        .fold(sys.error, identity),
     jadeDatasetDescription := "Mirror of ENCODE, maintained by Broad's Data Sciences Platform",
     jadeTablePackage := "org.broadinstitute.monster.encode.jadeschema.table",
     jadeStructPackage := "org.broadinstitute.monster.encode.jadeschema.struct"
