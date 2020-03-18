@@ -6,6 +6,7 @@ import java.time.OffsetDateTime
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.jadeschema.table._
+//import scala.util.matching.Regex
 import upack.Msg
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -21,19 +22,19 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
     // read in extracted info
     val donorInputs = StorageIO
-      .readJsonLists(
-        ctx,
-        "Donors",
-        s"${args.inputPrefix}/Donor/*.json"
-      )
+      .readJsonLists(ctx, "Donors", s"${args.inputPrefix}/Donor/*.json")
+    val antibodyInputs = StorageIO
+      .readJsonLists(ctx, "AntibodyLot", s"${args.inputPrefix}/AntibodyLot/*.json")
 
     val donorOutput = donorInputs.map(transformDonor)
+    val antibodyOutput = antibodyInputs.map(transformAntibody)
 
     // write back to storage
+    StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
     StorageIO.writeJsonLists(
-      donorOutput,
-      "Donors",
-      s"${args.outputPrefix}/donor"
+      antibodyOutput,
+      "Antibodies",
+      s"${args.outputPrefix}/antibody"
     )
     ()
   }
@@ -54,6 +55,30 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       parentIds = donorInput.read[Array[String]]("parents"),
       twinId = donorInput.tryRead[String]("twin"),
       submittedBy = donorInput.read[String]("submitted_by")
+    )
+  }
+
+  def transformAntibody(antibodyInput: Msg): Antibody = {
+    // Regex matching human species flag in encode targets, used to filter out non-human targets
+    val humanTarget = antibodyInput
+      .read[Array[String]]("targets")
+      .head // we expect that targets will have the same name after species info is removed, so we only need the first
+      .replaceAll(raw"\/targets\/|-.*\/", "") // remove "/target/" and species info
+
+    Antibody(
+      id = antibodyInput.read[String]("accession"),
+      crossReferences = antibodyInput.read[Array[String]]("dbxrefs"),
+      timeCreated = antibodyInput.read[OffsetDateTime]("date_created"),
+      source = antibodyInput.read[String]("source"),
+      clonality = antibodyInput.read[String]("clonality"),
+      hostOrganism = antibodyInput.read[String]("host_organism"),
+      target = humanTarget,
+      award = antibodyInput.read[String]("award"),
+      isotype = antibodyInput.read[String]("isotype"),
+      lab = antibodyInput.read[String]("lab"),
+      lotId = antibodyInput.read[String]("lot_id"),
+      productId = antibodyInput.read[String]("product_id"),
+      purificationMethod = antibodyInput.read[String]("purifications")
     )
   }
 }
