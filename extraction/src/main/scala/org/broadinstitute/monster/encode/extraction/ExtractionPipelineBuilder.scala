@@ -218,10 +218,12 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
   ): SCollection[String] => SCollection[Msg] = { idStream =>
     val paramsBatchStream =
       idStream
-        .map(KV.of("key", _))
+        .withName("Apply fake keys")
+        .map(KV.of("", _))
         .setCoder(KvCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of()))
         .applyKvTransform(GroupIntoBatches.ofSize(batchSize))
-        .map(_.getValue)
+        .withName("Strip away fake keys")
+        .map[java.lang.Iterable[String]](_.getValue)
         .map { ids =>
           ids.asScala.foldLeft(List.empty[(String, String)]) { (acc, ref) =>
             (fieldName -> ref) :: acc
