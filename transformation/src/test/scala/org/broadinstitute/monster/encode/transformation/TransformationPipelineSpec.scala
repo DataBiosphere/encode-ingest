@@ -39,7 +39,13 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
 
   private val outputDirs = Set(
     "donor",
+<<<<<<< HEAD
     "antibody"
+=======
+    "alignment_file",
+    "other_file",
+    "sequencing_file"
+>>>>>>> db1162fd15edbb9f7a2ae4e8769cea903cdee7e0
   )
 
   outputDirs.foreach {
