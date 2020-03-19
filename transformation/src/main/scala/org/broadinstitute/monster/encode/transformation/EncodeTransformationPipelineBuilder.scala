@@ -113,7 +113,7 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       .head
 
     // extract code from target string (remove "/target/" and species info), get rid of synthetic targets
-    var mappedTarget = Some(someTarget.replaceAll(raw"\/targets\/|-.*\/", "")): Option[
+    var mappedTarget = Some(someTarget.replaceAll(raw"\/targets\/|-[a-zA-Z]*\/", "")): Option[
       String
     ]
     if (someTarget.matches(".*synthetic_tag/")) {
