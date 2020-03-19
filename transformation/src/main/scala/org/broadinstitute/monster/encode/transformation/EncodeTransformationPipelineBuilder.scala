@@ -59,11 +59,19 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   }
 
   def transformAntibody(antibodyInput: Msg): Antibody = {
-    // Regex matching human species flag in encode targets, used to filter out non-human targets
-    val humanTarget = antibodyInput
+    // Regex matching human species flag in encode targets, used to filter out non-human targets.
+    // We expect that targets will have the same name after species info is removed, so we only need the first.
+    val someTarget = antibodyInput
       .read[Array[String]]("targets")
-      .head // we expect that targets will have the same name after species info is removed, so we only need the first
-      .replaceAll(raw"\/targets\/|-.*\/", "") // remove "/target/" and species info
+      .head
+
+    // extract code from target string (remove "/target/" and species info), get rid of synthetic targets
+    var mappedTarget = Some(someTarget.replaceAll(raw"\/targets\/|-.*\/", "")): Option[
+      String
+    ]
+    if (someTarget.matches(".*synthetic_tag/")) {
+      mappedTarget = None
+    }
 
     Antibody(
       id = antibodyInput.read[String]("accession"),
@@ -72,13 +80,13 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       source = antibodyInput.read[String]("source"),
       clonality = antibodyInput.read[String]("clonality"),
       hostOrganism = antibodyInput.read[String]("host_organism"),
-      target = humanTarget,
+      target = mappedTarget,
       award = antibodyInput.read[String]("award"),
-      isotype = antibodyInput.read[String]("isotype"),
+      isotype = antibodyInput.tryRead[String]("isotype"),
       lab = antibodyInput.read[String]("lab"),
       lotId = antibodyInput.read[String]("lot_id"),
       productId = antibodyInput.read[String]("product_id"),
-      purificationMethod = antibodyInput.read[String]("purifications")
+      purificationMethods = antibodyInput.read[Array[String]]("purifications")
     )
   }
 }
