@@ -10,10 +10,15 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
   private val truthDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs"
   private val compareDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs-to-compare"
   private val compareDirString = compareDir.pathAsString
-  private val inputDirString = s"${testFileLocation}/inputs"
+  private val inputDirString = s"$testFileLocation/inputs"
 
   override val testArgs =
     Args(inputPrefix = inputDirString, outputPrefix = compareDirString)
+
+  override def afterAll(): Unit = {
+    compareDir.delete()
+    ()
+  }
 
   override val builder = EncodeTransformationPipelineBuilder
 

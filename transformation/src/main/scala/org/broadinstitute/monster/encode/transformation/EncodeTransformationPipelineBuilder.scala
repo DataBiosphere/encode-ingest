@@ -12,6 +12,12 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** (De)serializer for the upack messages we read from storage. */
   implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
+  /** (De)serializer for the ODTs we extract from raw data. */
+  implicit val odtCoder: Coder[OffsetDateTime] = Coder.xmap(Coder.stringCoder)(
+    OffsetDateTime.parse(_),
+    _.toString
+  )
+
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.
     *
