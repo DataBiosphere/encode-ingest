@@ -6,7 +6,6 @@ import java.time.OffsetDateTime
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.jadeschema.table._
-//import scala.util.matching.Regex
 import upack.Msg
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -106,19 +105,13 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   }
 
   def transformAntibody(antibodyInput: Msg): Antibody = {
-    // Regex matching human species flag in encode targets, used to filter out non-human targets.
-    // We expect that targets will have the same name after species info is removed, so we only need the first.
-    val someTarget = antibodyInput
+    // Use regular expressions to remove everything but the actual target name, which should be the same across
+    // all targets in the list. Remove "synthetic_tag" type targets.
+    val mappedTarget = antibodyInput
       .read[Array[String]]("targets")
-      .head
-
-    // extract code from target string (remove "/target/" and species info), get rid of synthetic targets
-    var mappedTarget = Some(someTarget.replaceAll(raw"\/targets\/|-[a-zA-Z]*\/", "")): Option[
-      String
-    ]
-    if (someTarget.matches(".*synthetic_tag/")) {
-      mappedTarget = None
-    }
+      .filterNot(target => target.matches(".*synthetic_tag/"))
+      .headOption
+      .map(target => target.replaceAll(raw"\/targets\/|-[a-zA-Z]*\/", ""))
 
     Antibody(
       id = antibodyInput.read[String]("accession"),
