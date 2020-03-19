@@ -38,7 +38,10 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
   }
 
   private val outputDirs = Set(
-    "donor"
+    "donor",
+    "alignment_file",
+    "other_file",
+    "sequencing_file"
   )
 
   outputDirs.foreach {

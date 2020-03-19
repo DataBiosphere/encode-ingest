@@ -18,6 +18,12 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     _.toString
   )
 
+  /** Output category for sequencing files. */
+  val SequencingCategory = "raw data"
+
+  /** Output category for alignment files. */
+  val AlignmentCategory = "alignment"
+
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.
     *
@@ -33,6 +39,13 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
         s"${args.inputPrefix}/Donor/*.json"
       )
 
+    val fileInputs = StorageIO
+      .readJsonLists(
+        ctx,
+        "Files",
+        s"${args.inputPrefix}/File/*.json"
+      )
+
     val donorOutput = donorInputs.map(transformDonor)
 
     // write back to storage
@@ -40,6 +53,34 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       donorOutput,
       "Donors",
       s"${args.outputPrefix}/donor"
+    )
+
+    // Split the file stream based on category.
+    val Seq(sequencingFiles, alignmentFiles, otherFiles) =
+      fileInputs.partition(
+        3,
+        rawFile => {
+          val category = rawFile.read[String]("output_category")
+          if (category == SequencingCategory) 0
+          else if (category == AlignmentCategory) 1
+          else 2
+        }
+      )
+    // FIXME: We should ultimately write out mapped files.
+    StorageIO.writeJsonLists(
+      sequencingFiles,
+      "Sequencing Files",
+      s"${args.outputPrefix}/sequencing_file"
+    )
+    StorageIO.writeJsonLists(
+      alignmentFiles,
+      "Alignment Files",
+      s"${args.outputPrefix}/alignment_file"
+    )
+    StorageIO.writeJsonLists(
+      otherFiles,
+      "Other Files",
+      s"${args.outputPrefix}/other_file"
     )
     ()
   }
