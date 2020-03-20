@@ -22,7 +22,7 @@ case class Args(
   @HelpMessage(
     "Batch size that defines the number of elements in a batch when making certain API calls"
   )
-  batchSize: Long,
+  batchSize: Long = 64L,
   @HelpMessage(
     "Initial query to target a specific entry-point to the pipeline."
   )
