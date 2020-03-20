@@ -3,7 +3,7 @@ package org.broadinstitute.monster.encode.extraction
 import better.files.File
 import org.broadinstitute.monster.common.PipelineBuilderSpec
 
-class ExtractionPipelineIntegrationSpec extends PipelineBuilderSpec[Args] {
+class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args] {
   val outputDir = File.newTemporaryDirectory()
   override def afterAll(): Unit = outputDir.delete()
 
@@ -38,7 +38,7 @@ class ExtractionPipelineIntegrationSpec extends PipelineBuilderSpec[Args] {
   val targetPath = (outputDir.pathAsString + "/Target")
 
   /// VERIFY DOWNLOADS
-  behavior of "ExtractionPipeline"
+  behavior of "ExtractionPipelineBuilder"
 
   it should "successfully download AnalysisStep files" in {
     analysisStepPath.nonEmpty should be(true)
