@@ -7,8 +7,6 @@ class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args]
   val outputDir = File.newTemporaryDirectory()
   override def afterAll(): Unit = outputDir.delete()
 
-  val testBatchSize: Long = 100
-
   val allParams: List[(String, String)] = {
     List(
       // Default Human Params
@@ -20,7 +18,7 @@ class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args]
 
   /// KICK OFF EXTRACTION
   override val testArgs =
-    Args(outputDir.pathAsString, testBatchSize, allParams)
+    Args(outputDir.pathAsString, allParams)
   override val builder = ExtractionPipeline.pipelineBuilder
 
   // Paths for entity files downloaded

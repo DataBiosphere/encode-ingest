@@ -28,6 +28,14 @@ object ExtractionPipelineBuilderSpec {
     Str("accession") -> Str("1")
   )
 
+  // files
+  val fileParams = ("replicate_libraries", "1")
+
+  val fileOut = Obj(
+    Str("@id") -> Str("1"),
+    Str("step_run") -> Str("1")
+  )
+
   // replicates
   val replicateParams = ("library.accession", "1")
   val replicateIds = 1 to 2
@@ -60,21 +68,14 @@ object ExtractionPipelineBuilderSpec {
 
   // experiments
   val experimentParams = ("@id", "1")
-  val experimentOut = Obj(Str("files") -> Arr(Str("1"), Str("3")))
+  val experimentOut = Obj(Str("@id") -> Str("1"))
 
   // fcexperiments
   val fcExperimentParams = ("@id", "/functional-characterization-experiments/2")
-  val fcExperimentOut = Obj(Str("files") -> Arr(Str("2")))
 
-  // files
-  val fileIds = 1 to 3
-
-  val fileRequestResponse = fileIds.map { i =>
-    (EncodeEntity.File, ("@id", i.toString)) -> Obj(
-      Str("@id") -> Str(i.toString),
-      Str("step_run") -> Str("1")
-    )
-  }.toMap[(EncodeEntity, (String, String)), Msg]
+  val fcExperimentOut = Obj(
+    Str("@id") -> Str("/functional-characterization-experiments/2")
+  )
 
   // analysisStepRuns
   val analysisStepRunParams = ("@id", "1")
@@ -96,7 +97,7 @@ object ExtractionPipelineBuilderSpec {
   val analysisStepParams = ("@id", "1")
   val analysisStepOut = Obj(Str("@id") -> Str("1"))
 
-  val responseMap = fileRequestResponse.mapValues(List(_)) ++ Map(
+  val responseMap = Map[(EncodeEntity, (String, String)), List[Msg]](
     (EncodeEntity.Biosample, biosampleParams) -> List(biosampleOut),
     (EncodeEntity.Donor, donorParams) -> List(donorOut),
     (EncodeEntity.Library, libraryParams) -> List(libraryOut),
@@ -111,7 +112,8 @@ object ExtractionPipelineBuilderSpec {
     (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams) -> List(
       analysisStepVersionOut
     ),
-    (EncodeEntity.AnalysisStep, analysisStepParams) -> List(analysisStepOut)
+    (EncodeEntity.AnalysisStep, analysisStepParams) -> List(analysisStepOut),
+    (EncodeEntity.File, fileParams) -> List(fileOut)
   )
 
   val mockClient = new MockEncodeClient(responseMap)
@@ -174,13 +176,10 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
   val outputDir = File.newTemporaryDirectory()
   override def afterAll(): Unit = outputDir.delete()
 
-  override val testArgs = Args(
-    outputDir = outputDir.pathAsString,
-    batchSize = 2L
-  )
+  override val testArgs = Args(outputDir = outputDir.pathAsString)
 
   override val builder =
-    new ExtractionPipelineBuilder(getClient = () => mockClient)
+    new ExtractionPipelineBuilder(2L, getClient = () => mockClient)
 
   behavior of "ExtractionPipelineBuilder"
 
@@ -242,8 +241,8 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
   }
 
   it should "query and write File data as expected" in {
-    mockClient.recordedRequests.toSet should contain allElementsOf fileRequestResponse.keys
-    readMsgs(outputDir, s"${EncodeEntity.File}/*.json") shouldBe fileRequestResponse.values.toSet
+    mockClient.recordedRequests.toSet should contain((EncodeEntity.File, fileParams))
+    readMsgs(outputDir, s"${EncodeEntity.File}/*.json") shouldBe Set(fileOut)
   }
 
   it should "query and write AnalysisStepRun data as expected" in {

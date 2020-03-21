@@ -19,7 +19,7 @@ import scala.concurrent.Future
   *
   * @param getClient function that will produce a client which can interact with the ENCODE API
   */
-class ExtractionPipelineBuilder(getClient: () => EncodeClient)
+class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
     extends PipelineBuilder[Args]
     with Serializable {
   import ExtractionPipelineBuilder._
@@ -84,9 +84,10 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
         s"Query ${targetEntityType.entryName} data using ${sourceEntityType.entryName} objects"
 
       val out = sourceEntities.transform(description) { entities =>
-        val joinValues = getDistinctValues(sourceField, entities)
-        val queryBatches = groupValues(args.batchSize, joinValues.map(targetField -> _))
-        getEntities(targetEntityType, queryBatches)
+        val joinValues =
+          entities.flatMap(_.tryRead[Array[String]](sourceField).getOrElse(Array.empty))
+        val queryBatches = groupValues(batchSize, joinValues.map(targetField -> _))
+        getEntities(targetEntityType, queryBatches).distinctBy(_.read[String]("@id"))
       }
       writeJsonLists(
         out,
@@ -101,14 +102,15 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .withName("Inject initial query")
       .parallelize(List(args.initialQuery))
       .transform(s"Extract ${EncodeEntity.Biosample} data") { initialQuery =>
-        val biosamples = getEntities(EncodeEntity.Biosample, initialQuery)
-        writeJsonLists(
-          biosamples,
-          s"${EncodeEntity.Biosample}",
-          s"${args.outputDir}/${EncodeEntity.Biosample.entryName}"
-        )
-        biosamples
+        // No need to de-duplicate here, there's only one query batch and
+        // ENCODE won't return the same object twice in one query.
+        getEntities(EncodeEntity.Biosample, initialQuery)
       }
+    writeJsonLists(
+      biosamples,
+      s"${EncodeEntity.Biosample}",
+      s"${args.outputDir}/${EncodeEntity.Biosample.entryName}"
+    )
 
     // don't need to use donors apart from storing them, so we don't assign an output here
     extractLinkedEntities(
@@ -125,6 +127,38 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.Library,
       targetField = "biosample.accession"
+    )
+
+    val files = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Library,
+      sourceField = "@id",
+      sourceEntities = libraries,
+      targetEntityType = EncodeEntity.File,
+      targetField = "replicate_libraries"
+    )
+
+    val analysisStepRuns = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.File,
+      sourceField = "step_run",
+      sourceEntities = files,
+      targetEntityType = EncodeEntity.AnalysisStepRun,
+      targetField = "@id"
+    )
+
+    val analysisStepVersions = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.AnalysisStepRun,
+      sourceField = "analysis_step_version",
+      sourceEntities = analysisStepRuns,
+      targetEntityType = EncodeEntity.AnalysisStepVersion,
+      targetField = "@id"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.AnalysisStepVersion,
+      sourceField = "analysis_step",
+      sourceEntities = analysisStepVersions,
+      targetEntityType = EncodeEntity.AnalysisStep,
+      targetField = "@id"
     )
 
     val replicates = extractLinkedEntities(
@@ -152,56 +186,23 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     // partition the replicates stream into two separate SCollection[Msg]
-    //passing in a new function to check to see if the experiment type
-    val (fcReplicate, expReplicate) =
-      replicates.partition(isFunctionalCharacterizationReplicate)
+    // passing in a new function to check to see if the experiment type
+    val (fcReplicate, expReplicate) = replicates
+      .withName("Split by experiment type")
+      .partition(isFunctionalCharacterizationReplicate)
 
-    val experiments = extractLinkedEntities(
+    extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = expReplicate,
       targetEntityType = EncodeEntity.Experiment,
       targetField = "@id"
     )
-
-    val fcExperiments = extractLinkedEntities(
+    extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = fcReplicate,
       targetEntityType = EncodeEntity.FunctionalCharacterizationExperiment,
-      targetField = "@id"
-    )
-
-    val files = extractLinkedEntities(
-      // Fudging a little, but it's only used for logging so it's ok.
-      sourceEntityType = EncodeEntity.Experiment,
-      sourceField = "files",
-      sourceEntities = SCollection.unionAll(List(experiments, fcExperiments)),
-      targetEntityType = EncodeEntity.File,
-      targetField = "@id"
-    )
-
-    val analysisStepRuns = extractLinkedEntities(
-      sourceEntityType = EncodeEntity.File,
-      sourceField = "step_run",
-      sourceEntities = files,
-      targetEntityType = EncodeEntity.AnalysisStepRun,
-      targetField = "@id"
-    )
-
-    val analysisStepVersions = extractLinkedEntities(
-      sourceEntityType = EncodeEntity.AnalysisStepRun,
-      sourceField = "analysis_step_version",
-      sourceEntities = analysisStepRuns,
-      targetEntityType = EncodeEntity.AnalysisStepVersion,
-      targetField = "@id"
-    )
-
-    extractLinkedEntities(
-      sourceEntityType = EncodeEntity.AnalysisStepVersion,
-      sourceField = "analysis_step",
-      sourceEntities = analysisStepVersions,
-      targetEntityType = EncodeEntity.AnalysisStep,
       targetField = "@id"
     )
     ()
@@ -226,19 +227,6 @@ object ExtractionPipelineBuilder {
       .read[String]("experiment")
       .startsWith("/functional-characterization-experiments/")
   }
-
-  /**
-    * Extract the value(s) of a key from a stream of raw objects, filtering
-    * out duplicates.
-    *
-    * If `key` is an array in any object, the items of the array will be
-    * flattened into the stream and de-duped.
-    *
-    * @param key field in the input objects containing the values to extract
-    * @param objects stream of raw objects to extract `key` from
-    */
-  def getDistinctValues(key: String, objects: SCollection[Msg]): SCollection[String] =
-    objects.flatMap(_.tryRead[Array[String]](key).getOrElse(Array.empty)).distinct
 
   /**
     * Group the values in a stream into fixed-size batches.
