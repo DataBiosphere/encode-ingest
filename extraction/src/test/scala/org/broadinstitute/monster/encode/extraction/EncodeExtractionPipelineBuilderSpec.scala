@@ -3,6 +3,7 @@ package org.broadinstitute.monster.encode.extraction
 import better.files.File
 import org.broadinstitute.monster.common.PipelineBuilderSpec
 import org.broadinstitute.monster.common.msg.{JsonParser, MsgOps}
+import org.broadinstitute.monster.encode.EncodeEntity
 import upack._
 
 import scala.collection.mutable

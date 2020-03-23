@@ -3,10 +3,15 @@ package org.broadinstitute.monster.encode.transformation
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
 import java.time.OffsetDateTime
+
+import com.spotify.scio.values.SCollection
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
+import org.broadinstitute.monster.encode.EncodeEntity
 import org.broadinstitute.monster.encode.jadeschema.table._
-import upack.Msg
+import upack.{Msg, Obj, Str}
+
+import scala.collection.mutable
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** (De)serializer for the upack messages we read from storage. */
@@ -31,20 +36,18 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     * is called on it.
     */
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
-    // read in extracted info
-    val donorInputs = StorageIO
-      .readJsonLists(
-        ctx,
-        "Donors",
-        s"${args.inputPrefix}/Donor/*.json"
-      )
+    def readRawEntities(entityType: EncodeEntity): SCollection[Msg] =
+      StorageIO
+        .readJsonLists(
+          ctx,
+          entityType.entryName,
+          s"${args.inputPrefix}/${entityType.entryName}/*.json"
+        )
+        .map(removeUnknowns)
 
-    val fileInputs = StorageIO
-      .readJsonLists(
-        ctx,
-        "Files",
-        s"${args.inputPrefix}/File/*.json"
-      )
+    // read in extracted info
+    val donorInputs = readRawEntities(EncodeEntity.Donor)
+    val fileInputs = readRawEntities(EncodeEntity.File)
 
     val donorOutput = donorInputs.map(transformDonor)
 
@@ -83,6 +86,22 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/other_file"
     )
     ()
+  }
+
+  /** Message value used by ENCODE in place of null. */
+  val UnknownValue: Msg = Str("unknown")
+
+  /**
+    * Process an arbitrary ENCODE object to strip out all
+    * values representing null / absence of data.
+    */
+  def removeUnknowns(rawObject: Msg): Msg = {
+    val cleaned = new mutable.LinkedHashMap[Msg, Msg]()
+    rawObject.obj.foreach {
+      case (_, UnknownValue) => ()
+      case (k, v)            => cleaned += k -> v
+    }
+    new Obj(cleaned)
   }
 
   def transformDonor(donorInput: Msg): Donor = {

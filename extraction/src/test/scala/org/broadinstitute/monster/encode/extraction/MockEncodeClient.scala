@@ -1,5 +1,6 @@
 package org.broadinstitute.monster.encode.extraction
 
+import org.broadinstitute.monster.encode.EncodeEntity
 import upack.Msg
 
 import scala.concurrent.Future
