@@ -4,8 +4,10 @@ import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
 import java.time.OffsetDateTime
 
+import com.spotify.scio.values.SCollection
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
+import org.broadinstitute.monster.encode.EncodeEntity
 import org.broadinstitute.monster.encode.jadeschema.table._
 import upack.{Msg, Obj, Str}
 
@@ -34,22 +36,18 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     * is called on it.
     */
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
-    // read in extracted info
-    val donorInputs = StorageIO
-      .readJsonLists(
-        ctx,
-        "Donors",
-        s"${args.inputPrefix}/Donor/*.json"
-      )
-      .map(removeUnknowns)
+    def readRawEntities(entityType: EncodeEntity): SCollection[Msg] =
+      StorageIO
+        .readJsonLists(
+          ctx,
+          entityType.entryName,
+          s"${args.inputPrefix}/${entityType.entryName}/*.json"
+        )
+        .map(removeUnknowns)
 
-    val fileInputs = StorageIO
-      .readJsonLists(
-        ctx,
-        "Files",
-        s"${args.inputPrefix}/File/*.json"
-      )
-      .map(removeUnknowns)
+    // read in extracted info
+    val donorInputs = readRawEntities(EncodeEntity.Donor)
+    val fileInputs = readRawEntities(EncodeEntity.File)
 
     val donorOutput = donorInputs.map(transformDonor)
 
@@ -90,10 +88,13 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     ()
   }
 
-  /** TODO */
-  val UnknownValue = Str("unknown")
+  /** Message value used by ENCODE in place of null. */
+  val UnknownValue: Msg = Str("unknown")
 
-  /** TODO */
+  /**
+    * Process an arbitrary ENCODE object to strip out all
+    * values representing null / absence of data.
+    */
   def removeUnknowns(rawObject: Msg): Msg = {
     val cleaned = new mutable.LinkedHashMap[Msg, Msg]()
     rawObject.obj.foreach {
