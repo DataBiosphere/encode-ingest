@@ -24,6 +24,8 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** Output category for alignment files. */
   val AlignmentCategory = "alignment"
 
+  val EncodeIdPattern = "/[^/]+/([^/]+)/".r
+
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.
     *
@@ -35,7 +37,7 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     val donorInputs = StorageIO
       .readJsonLists(ctx, "Donors", s"${args.inputPrefix}/Donor/*.json")
     val antibodyInputs = StorageIO
-      .readJsonLists(ctx, "AntibodyLot", s"${args.inputPrefix}/AntibodyLot/*.json")
+      .readJsonLists(ctx, "AntibodyLots", s"${args.inputPrefix}/AntibodyLot/*.json")
 
     val fileInputs = StorageIO
       .readJsonLists(
@@ -109,9 +111,12 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     // all targets in the list. Remove "synthetic_tag" type targets.
     val mappedTarget = antibodyInput
       .read[Array[String]]("targets")
-      .filterNot(target => target.matches(".*synthetic_tag/"))
-      .headOption
-      .map(target => target.replaceAll(raw"\/targets\/|-[a-zA-Z]*\/", ""))
+      .collectFirst { case EncodeIdPattern(accession) => accession } // filter out non-matches
+      .flatMap { accession =>
+        val (front, back) = accession.splitAt(accession.lastIndexOf('-'))
+        if (back == "-synthetic_tag") None
+        else Some(front)
+      }
 
     Antibody(
       id = antibodyInput.read[String]("accession"),
