@@ -26,20 +26,22 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     * is called on it.
     */
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
-    def readRawEntities(entityType: EncodeEntity): SCollection[Msg] =
+    def readRawEntities(entityType: EncodeEntity): SCollection[Msg] = {
+      val name = entityType.entryName
+
       StorageIO
-        .readJsonLists(
-          ctx,
-          entityType.entryName,
-          s"${args.inputPrefix}/${entityType.entryName}/*.json"
-        )
+        .readJsonLists(ctx, name, s"${args.inputPrefix}/$name/*.json")
+        .withName(s"Strip unknown values from '$name' objects")
         .map(CommonTransformations.removeUnknowns)
+    }
 
     // read in extracted info
     val donorInputs = readRawEntities(EncodeEntity.Donor)
     val fileInputs = readRawEntities(EncodeEntity.File)
 
-    val donorOutput = donorInputs.map(DonorTransformations.transformDonor)
+    val donorOutput = donorInputs
+      .withName("Transform Donor objects")
+      .map(DonorTransformations.transformDonor)
 
     // write back to storage
     StorageIO.writeJsonLists(
