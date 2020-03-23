@@ -17,7 +17,11 @@
       "type": "required"
     },
     {
-      "name": "age",
+      "name": "age_min",
+      "datatype": "integer"
+    },
+    {
+      "name": "age_max",
       "datatype": "integer"
     },
     {
@@ -35,8 +39,7 @@
     },
     {
       "name": "sex",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",
@@ -53,7 +56,7 @@
       "datatype": "string"
     },
     {
-      "name": "parent_ids",
+      "name": "parent_donor_ids",
       "datatype": "string",
       "type": "repeated",
       "links": [
@@ -64,7 +67,7 @@
       ]
     },
     {
-      "name": "twin_id",
+      "name": "twin_donor_id",
       "datatype": "string",
       "links": [
         {
