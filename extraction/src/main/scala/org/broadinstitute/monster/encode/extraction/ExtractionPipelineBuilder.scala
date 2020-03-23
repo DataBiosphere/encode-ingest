@@ -4,16 +4,13 @@ import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
 import com.spotify.scio.transforms.ScalaAsyncLookupDoFn
 import com.spotify.scio.values.SCollection
-import org.apache.beam.sdk.coders.{KvCoder, StringUtf8Coder}
-import org.apache.beam.sdk.transforms.{GroupIntoBatches, ParDo}
-import org.apache.beam.sdk.values.KV
+import org.apache.beam.sdk.transforms.ParDo
 import org.broadinstitute.monster.common.PipelineBuilder
 import org.broadinstitute.monster.common.StorageIO.writeJsonLists
 import org.broadinstitute.monster.common.msg.{MsgOps, UpackMsgCoder}
 import org.broadinstitute.monster.encode.EncodeEntity
 import upack._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 /**
@@ -22,224 +19,232 @@ import scala.concurrent.Future
   *
   * @param getClient function that will produce a client which can interact with the ENCODE API
   */
-class ExtractionPipelineBuilder(getClient: () => EncodeClient)
+class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
     extends PipelineBuilder[Args]
     with Serializable {
+  import ExtractionPipelineBuilder._
+
   implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
+
+  /** Convenience alias to make signatures a little less nasty. */
+  private type LookupParams = (EncodeEntity, List[(String, String)])
+
+  private val lookupFn =
+    new ScalaAsyncLookupDoFn[LookupParams, Msg, EncodeClient](MaxConcurrentRequests) {
+
+      override def asyncLookup(
+        client: EncodeClient,
+        params: LookupParams
+      ): Future[Msg] = {
+        val (encodeEntity, filters) = params
+        client.get(encodeEntity, filters)
+      }
+      override protected def newClient(): EncodeClient = getClient()
+    }
+
+  /**
+    * Map a  batch of search parameters into MessagePack entities from
+    * ENCODE matching those parameters.
+    *
+    * @param encodeEntity the type of ENCODE entity the stage should query
+    * @param filterBatches batches of key=value filters to include in API queries
+    */
+  def getEntities(
+    encodeEntity: EncodeEntity,
+    filterBatches: SCollection[List[(String, String)]]
+  ): SCollection[Msg] =
+    filterBatches
+      .withName("Construct full query parameters")
+      .map(encodeEntity -> _)
+      .withName("Query ENCODE API")
+      .applyKvTransform(ParDo.of(lookupFn))
+      .withName("Extract result graph")
+      .flatMap(_.getValue.fold(throw _, _.read[Array[Msg]]("@graph")))
 
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
     /**
       * Generic helper method for extracting linked entities and saving them.
       *
-      * @param entityToExtract the entity which should be extracted
-      * @param matchingField name of the field to use as an identifier for the entityToExtract
-      *                      (should match the id that's used in the linkedField)
-      * @param linkingEntities the parent entity (which references a set of encodeEntities)
-      *                        from which ID extraction will be based
-      * @param linkedField name of the entityToExtract field which references the linkingEntities (default is @id)
-      * @return the extracted linked entities
+      * @param sourceEntityType type of objects contained in `sourceEntities`
+      * @param sourceField key within `sourceEntities` to extract for use as a query filter
+      * @param sourceEntities raw objects of type `sourceEntityType` containing data
+      *                       which can be used to pull `targetEntityType` objects
+      * @param targetEntityType type of objects to extract from the API
+      * @param targetField field in `targetEntityType` objects with values that match the
+      *                    `sourceField` values from `sourceEntityType` objects
       */
     def extractLinkedEntities(
-      entityToExtract: EncodeEntity,
-      matchingField: String,
-      linkingEntities: SCollection[Msg],
-      linkedField: String = "@id"
+      sourceEntityType: EncodeEntity,
+      sourceField: String,
+      sourceEntities: SCollection[Msg],
+      targetEntityType: EncodeEntity,
+      targetField: String
     ): SCollection[Msg] = {
-      linkingEntities.transform(
-        s"Extract ${matchingField} from ${entityToExtract.entryName} data"
-      ) { linkingEntities =>
-        val out = getEntitiesByField(
-          entityToExtract,
-          args.batchSize,
-          linkedField
-        ) {
-          getIds(
-            matchingField
-          )(linkingEntities)
-        }
-        writeJsonLists(
-          out,
-          s"${entityToExtract.entryName}",
-          s"${args.outputDir}/${entityToExtract.entryName}"
-        )
-        out
+      val description =
+        s"Query ${targetEntityType.entryName} data using ${sourceEntityType.entryName} objects"
+
+      val out = sourceEntities.transform(description) { entities =>
+        val joinValues =
+          entities.flatMap(_.tryRead[Array[String]](sourceField).getOrElse(Array.empty))
+        val queryBatches = groupValues(batchSize, joinValues.map(targetField -> _))
+        getEntities(targetEntityType, queryBatches).distinctBy(_.read[String]("@id"))
       }
+      writeJsonLists(
+        out,
+        s"${targetEntityType.entryName}",
+        s"${args.outputDir}/${targetEntityType.entryName}"
+      )
+      out
     }
 
     // biosamples are the first one and follow a different pattern, so we don't use the generic method
     val biosamples = ctx
+      .withName("Inject initial query")
       .parallelize(List(args.initialQuery))
-      .transform(s"Extract ${EncodeEntity.Biosample} data") { rawData =>
-        val biosamples = getEntities(EncodeEntity.Biosample)(rawData)
-        writeJsonLists(
-          biosamples,
-          s"${EncodeEntity.Biosample}",
-          s"${args.outputDir}/${EncodeEntity.Biosample.entryName}"
-        )
-        biosamples
+      .transform(s"Extract ${EncodeEntity.Biosample} data") { initialQuery =>
+        // No need to de-duplicate here, there's only one query batch and
+        // ENCODE won't return the same object twice in one query.
+        getEntities(EncodeEntity.Biosample, initialQuery)
       }
+    writeJsonLists(
+      biosamples,
+      s"${EncodeEntity.Biosample}",
+      s"${args.outputDir}/${EncodeEntity.Biosample.entryName}"
+    )
 
     // don't need to use donors apart from storing them, so we don't assign an output here
-    extractLinkedEntities(EncodeEntity.Donor, "donor", biosamples)
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "donor",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.Donor,
+      targetField = "@id"
+    )
 
     val libraries = extractLinkedEntities(
-      entityToExtract = EncodeEntity.Library,
-      matchingField = "accession",
-      linkingEntities = biosamples,
-      linkedField = "biosample.accession"
-    )
-
-    val replicates = extractLinkedEntities(
-      entityToExtract = EncodeEntity.Replicate,
-      matchingField = "accession",
-      linkingEntities = libraries,
-      linkedField = "library.accession"
-    )
-
-    val antibodies = extractLinkedEntities(
-      entityToExtract = EncodeEntity.AntibodyLot,
-      matchingField = "antibody",
-      linkingEntities = replicates
-    )
-
-    extractLinkedEntities(
-      entityToExtract = EncodeEntity.Target,
-      matchingField = "targets",
-      linkingEntities = antibodies
-    )
-
-    // partition the replicates stream into two separate SCollection[Msg]
-    //passing in a new function to check to see if the experiment type
-    val (fcReplicate, expReplicate) = replicates.partition { replicate =>
-      ExtractionPipelineBuilder.isFunctionalCharacterizationReplicate(replicate)
-    }
-
-    val experiments = extractLinkedEntities(
-      entityToExtract = EncodeEntity.Experiment,
-      matchingField = "experiment",
-      linkingEntities = expReplicate
-    )
-
-    val fcExperiments = extractLinkedEntities(
-      entityToExtract = EncodeEntity.FunctionalCharacterizationExperiment,
-      matchingField = "experiment",
-      linkingEntities = fcReplicate
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "accession",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.Library,
+      targetField = "biosample.accession"
     )
 
     val files = extractLinkedEntities(
-      entityToExtract = EncodeEntity.File,
-      matchingField = "@id",
-      linkingEntities = SCollection.unionAll(List(experiments, fcExperiments)),
-      linkedField = "dataset"
+      sourceEntityType = EncodeEntity.Library,
+      sourceField = "@id",
+      sourceEntities = libraries,
+      targetEntityType = EncodeEntity.File,
+      targetField = "replicate_libraries"
     )
 
     val analysisStepRuns = extractLinkedEntities(
-      entityToExtract = EncodeEntity.AnalysisStepRun,
-      matchingField = "step_run",
-      linkingEntities = files
+      sourceEntityType = EncodeEntity.File,
+      sourceField = "step_run",
+      sourceEntities = files,
+      targetEntityType = EncodeEntity.AnalysisStepRun,
+      targetField = "@id"
     )
 
     val analysisStepVersions = extractLinkedEntities(
-      entityToExtract = EncodeEntity.AnalysisStepVersion,
-      matchingField = "analysis_step_version",
-      linkingEntities = analysisStepRuns
+      sourceEntityType = EncodeEntity.AnalysisStepRun,
+      sourceField = "analysis_step_version",
+      sourceEntities = analysisStepRuns,
+      targetEntityType = EncodeEntity.AnalysisStepVersion,
+      targetField = "@id"
     )
 
     extractLinkedEntities(
-      entityToExtract = EncodeEntity.AnalysisStep,
-      matchingField = "analysis_step",
-      linkingEntities = analysisStepVersions
+      sourceEntityType = EncodeEntity.AnalysisStepVersion,
+      sourceField = "analysis_step",
+      sourceEntities = analysisStepVersions,
+      targetEntityType = EncodeEntity.AnalysisStep,
+      targetField = "@id"
+    )
+
+    val replicates = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Library,
+      sourceField = "accession",
+      sourceEntities = libraries,
+      targetEntityType = EncodeEntity.Replicate,
+      targetField = "library.accession"
+    )
+
+    val antibodies = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Replicate,
+      sourceField = "antibody",
+      sourceEntities = replicates,
+      targetEntityType = EncodeEntity.AntibodyLot,
+      targetField = "@id"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.AntibodyLot,
+      sourceField = "targets",
+      sourceEntities = antibodies,
+      targetEntityType = EncodeEntity.Target,
+      targetField = "@id"
+    )
+
+    // partition the replicates stream into two separate SCollection[Msg]
+    // passing in a new function to check to see if the experiment type
+    val (fcReplicate, expReplicate) = replicates
+      .withName("Split by experiment type")
+      .partition(isFunctionalCharacterizationReplicate)
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Replicate,
+      sourceField = "experiment",
+      sourceEntities = expReplicate,
+      targetEntityType = EncodeEntity.Experiment,
+      targetField = "@id"
+    )
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Replicate,
+      sourceField = "experiment",
+      sourceEntities = fcReplicate,
+      targetEntityType = EncodeEntity.FunctionalCharacterizationExperiment,
+      targetField = "@id"
     )
     ()
-  }
-
-  /**
-    * Pipeline stage which maps batches of query params to output payloads
-    * by sending the query params to the ENCODE search API.
-    *
-    * @param encodeEntity the type of ENCODE entity the stage should query
-    */
-  private def encodeLookup(encodeEntity: EncodeEntity) =
-    new ScalaAsyncLookupDoFn[List[(String, String)], Msg, EncodeClient] {
-
-      override def asyncLookup(
-        client: EncodeClient,
-        params: List[(String, String)]
-      ): Future[Msg] = {
-        client.get(encodeEntity, params)
-      }
-
-      override protected def newClient(): EncodeClient = getClient()
-    }
-
-  /**
-    * Pipeline stage which maps batches of search parameters into MessagePack entities
-    * from ENCODE matching those parameters.
-    *
-    * @param encodeEntity the type of ENCODE entity the stage should query
-    */
-  def getEntities(
-    encodeEntity: EncodeEntity
-  ): SCollection[List[(String, String)]] => SCollection[Msg] =
-    _.applyKvTransform(ParDo.of(encodeLookup(encodeEntity))).flatMap { kv =>
-      kv.getValue
-        .fold(
-          throw _,
-          _.read[Array[Msg]]("@graph")
-        )
-    }
-
-  /**
-    * Pipeline stage which extracts IDs from downloaded MessagePack entities for
-    * use in subsequent queries.
-    *
-    * @param referenceField field in the input MessagePacks containing the IDs
-    *                       to extract
-    */
-  def getIds(
-    referenceField: String
-  ): SCollection[Msg] => SCollection[String] =
-    collection =>
-      collection.flatMap { msg =>
-        msg.tryRead[Array[String]](referenceField).getOrElse(Array.empty)
-      }.distinct
-
-  /**
-    * Pipeline stage which maps entity IDs into corresponding MessagePack entities
-    * downloaded from ENCODE.
-    *
-    * @param encodeEntity the type of ENCODE entity the input IDs correspond to
-    * @param batchSize the number of elements in a batch stream
-    * @param fieldName the field name to get the entity by, is "@id" by default
-    */
-  def getEntitiesByField(
-    encodeEntity: EncodeEntity,
-    batchSize: Long,
-    fieldName: String = "@id"
-  ): SCollection[String] => SCollection[Msg] = { idStream =>
-    val paramsBatchStream =
-      idStream
-        .withName("Apply fake keys")
-        .map(KV.of("", _))
-        .setCoder(KvCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of()))
-        .applyKvTransform(GroupIntoBatches.ofSize(batchSize))
-        .withName("Strip away fake keys")
-        .map[java.lang.Iterable[String]](_.getValue)
-        .map { ids =>
-          ids.asScala.foldLeft(List.empty[(String, String)]) { (acc, ref) =>
-            (fieldName -> ref) :: acc
-          }
-        }
-    getEntities(encodeEntity)(paramsBatchStream)
   }
 }
 
 object ExtractionPipelineBuilder {
+  /**
+    * Max number of HTTP requests to have in-flight at any time.
+    *
+    * Picked arbitrarily; the default is 1000 if not set, which
+    * definitely makes the ENCODE server unhappy.
+    */
+  val MaxConcurrentRequests = 8
 
-  // determines whether a replicate is linked to "type=functional-characterization-experiment"
+  /**
+    * Determines whether a replicate is linked to a FunctionalCharacterizationExperiment
+    * (vs. a "normal" Experiment).
+    */
   def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
     replicate
       .read[String]("experiment")
       .startsWith("/functional-characterization-experiments/")
   }
+
+  /**
+    * Group the values in a stream into fixed-size batches.
+    *
+    * NOTE: AFAIK, the ordering of items in the batches will depend on how
+    * elements are spread across all the pipeline workers, so it shouldn't
+    * be relied upon.
+    *
+    * FIXME: Move this to monster-scio-utils so it can be reused.
+    *
+    * @param batchSize max number of elements to include per output batch
+    * @param vals stream of values to group
+    */
+  def groupValues[V: Coder](batchSize: Long, vals: SCollection[V]): SCollection[List[V]] =
+    vals
+      .withName("Apply fake keys")
+      .map("" -> _)
+      .batchByKey(batchSize)
+      .withName("Strip away fake keys")
+      .map(_._2.toList)
 }

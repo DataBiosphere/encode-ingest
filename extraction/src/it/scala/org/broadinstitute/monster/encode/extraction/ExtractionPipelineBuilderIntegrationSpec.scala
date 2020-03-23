@@ -3,11 +3,9 @@ package org.broadinstitute.monster.encode.extraction
 import better.files.File
 import org.broadinstitute.monster.common.PipelineBuilderSpec
 
-class ExtractionPipelineIntegrationSpec extends PipelineBuilderSpec[Args] {
+class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args] {
   val outputDir = File.newTemporaryDirectory()
   override def afterAll(): Unit = outputDir.delete()
-
-  val testBatchSize: Long = 100
 
   val allParams: List[(String, String)] = {
     List(
@@ -20,7 +18,7 @@ class ExtractionPipelineIntegrationSpec extends PipelineBuilderSpec[Args] {
 
   /// KICK OFF EXTRACTION
   override val testArgs =
-    Args(outputDir.pathAsString, testBatchSize, allParams)
+    Args(outputDir.pathAsString, allParams)
   override val builder = ExtractionPipeline.pipelineBuilder
 
   // Paths for entity files downloaded
@@ -38,7 +36,7 @@ class ExtractionPipelineIntegrationSpec extends PipelineBuilderSpec[Args] {
   val targetPath = (outputDir.pathAsString + "/Target")
 
   /// VERIFY DOWNLOADS
-  behavior of "ExtractionPipeline"
+  behavior of "ExtractionPipelineBuilder"
 
   it should "successfully download AnalysisStep files" in {
     analysisStepPath.nonEmpty should be(true)
