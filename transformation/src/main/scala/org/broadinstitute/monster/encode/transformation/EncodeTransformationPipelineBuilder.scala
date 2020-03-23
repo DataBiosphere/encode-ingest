@@ -3,10 +3,13 @@ package org.broadinstitute.monster.encode.transformation
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
 import java.time.OffsetDateTime
+
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.jadeschema.table._
-import upack.Msg
+import upack.{Msg, Obj, Str}
+
+import scala.collection.mutable
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** (De)serializer for the upack messages we read from storage. */
@@ -38,6 +41,7 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
         "Donors",
         s"${args.inputPrefix}/Donor/*.json"
       )
+      .map(removeUnknowns)
 
     val fileInputs = StorageIO
       .readJsonLists(
@@ -45,6 +49,7 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
         "Files",
         s"${args.inputPrefix}/File/*.json"
       )
+      .map(removeUnknowns)
 
     val donorOutput = donorInputs.map(transformDonor)
 
@@ -83,6 +88,19 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/other_file"
     )
     ()
+  }
+
+  /** TODO */
+  val UnknownValue = Str("unknown")
+
+  /** TODO */
+  def removeUnknowns(rawObject: Msg): Msg = {
+    val cleaned = new mutable.LinkedHashMap[Msg, Msg]()
+    rawObject.obj.foreach {
+      case (_, UnknownValue) => ()
+      case (k, v)            => cleaned += k -> v
+    }
+    new Obj(cleaned)
   }
 
   def transformDonor(donorInput: Msg): Donor = {
