@@ -12,13 +12,13 @@
       "type": "repeated"
     },
     {
-      "name": "byte_size",
-      "datatype": "integer",
+      "name": "time_created",
+      "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "time_created",
-      "datatype": "timestamp",
+      "name": "lab",
+      "datatype": "string",
       "type": "required"
     },
     {
@@ -33,8 +33,7 @@
     },
     {
       "name": "max_audit_flag",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",
@@ -42,14 +41,13 @@
       "type": "required"
     },
     {
-      "name": "file_format_type",
+      "name": "file_format",
       "datatype": "string",
       "type": "required"
     },
     {
-      "name": "lab",
-      "datatype": "string",
-      "type": "required"
+      "name": "file_format_type",
+      "datatype": "string"
     },
     {
       "name": "platform",
@@ -71,29 +69,34 @@
       "type": "required"
     },
     {
-      "name": "genome_annotation",
+      "name": "library_id",
       "datatype": "string",
-      "type": "repeated"
-    },
-    {
-      "name": "pipeline_id",
-      "datatype": "string"
-    },
-    {
-      "name": "derived_from_alignment_file_ids",
-      "datatype": "string",
-      "type": "repeated",
       "links": [
         {
-          "table_name": "alignment_file",
+          "table_name": "library",
           "column_name": "id"
         }
       ]
     },
     {
-      "name": "derived_from_sequence_file_ids",
+      "name": "library_layout",
+      "datatype": "string"
+    },
+    {
+      "name": "read_count",
+      "datatype": "integer"
+    },
+    {
+      "name": "read_length",
+      "datatype": "integer"
+    },
+    {
+      "name": "paired_end_identifier",
+      "datatype": "integer"
+    },
+    {
+      "name": "paired_with_sequence_file_id",
       "datatype": "string",
-      "type": "repeated",
       "links": [
         {
           "table_name": "sequence_file",
@@ -102,47 +105,8 @@
       ]
     },
     {
-      "name": "derived_from_other_file_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "other_file",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "library_layout",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "paired_end_identifier",
-      "datatype": "integer",
-      "type": "required"
-    },
-    {
-      "name": "read_count",
-      "datatype": "integer",
-      "type": "required"
-    },
-    {
-      "name": "read_length",
-      "datatype": "integer"
-    },
-    {
-      "name": "reference_assembly",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "paired_with",
-      "datatype": "string"
-    },
-    {
-      "name": "library_id",
-      "datatype": "string"
+      "name": "cloud_path",
+      "datatype": "fileref"
     }
   ]
 }

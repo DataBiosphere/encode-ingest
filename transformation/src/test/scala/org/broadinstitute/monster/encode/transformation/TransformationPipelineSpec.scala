@@ -16,7 +16,7 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
     Args(inputPrefix = inputDirString, outputPrefix = compareDirString)
 
   override def afterAll(): Unit = {
-    compareDir.delete()
+    //compareDir.delete()
     ()
   }
 
@@ -41,7 +41,7 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
     "donor",
     "alignment_file",
     "other_file",
-    "sequencing_file"
+    "sequence_file"
   )
 
   outputDirs.foreach {

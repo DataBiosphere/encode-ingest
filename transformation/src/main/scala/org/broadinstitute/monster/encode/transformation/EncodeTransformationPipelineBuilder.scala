@@ -13,12 +13,6 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** (De)serializer for the upack messages we read from storage. */
   implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
-  /** Output category for sequencing files. */
-  val SequencingCategory = "raw data"
-
-  /** Output category for alignment files. */
-  val AlignmentCategory = "alignment"
-
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.
     *
@@ -37,12 +31,9 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // read in extracted info
     val donorInputs = readRawEntities(EncodeEntity.Donor)
-    val fileInputs = readRawEntities(EncodeEntity.File)
-
     val donorOutput = donorInputs
-      .withName("Transform Donor objects")
+      .withName("Transform donors")
       .map(DonorTransformations.transformDonor)
-
     // write back to storage
     StorageIO.writeJsonLists(
       donorOutput,
@@ -51,29 +42,40 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     )
 
     // Split the file stream based on category.
-    val Seq(sequencingFiles, alignmentFiles, otherFiles) =
-      fileInputs.partition(
-        3,
-        rawFile => {
-          val category = rawFile.read[String]("output_category")
-          if (category == SequencingCategory) 0
-          else if (category == AlignmentCategory) 1
-          else 2
-        }
-      )
-    // FIXME: We should ultimately write out mapped files.
+    val fileInputs = readRawEntities(EncodeEntity.File)
+    val fileBranches = FileTransformations.partitionRawFiles(fileInputs)
+    val fileIdToType = FileTransformations.buildIdTypeMap(fileBranches)
+
+    val sequenceFileOutput = fileBranches.sequence
+      .withName("Transform sequence files")
+      .map(FileTransformations.transformSequenceFile)
+    val alignmentFileOutput = fileBranches.alignment
+      .withSideInputs(fileIdToType)
+      .withName("Transform alignment files")
+      .map { (rawFile, sideCtx) =>
+        FileTransformations.transformAlignmentFile(rawFile, sideCtx(fileIdToType))
+      }
+      .toSCollection
+    val otherFileOutput = fileBranches.other
+      .withSideInputs(fileIdToType)
+      .withName("Transform other files")
+      .map { (rawFile, sideCtx) =>
+        FileTransformations.transformOtherFile(rawFile, sideCtx(fileIdToType))
+      }
+      .toSCollection
+
     StorageIO.writeJsonLists(
-      sequencingFiles,
-      "Sequencing Files",
-      s"${args.outputPrefix}/sequencing_file"
+      sequenceFileOutput,
+      "Sequence Files",
+      s"${args.outputPrefix}/sequence_file"
     )
     StorageIO.writeJsonLists(
-      alignmentFiles,
+      alignmentFileOutput,
       "Alignment Files",
       s"${args.outputPrefix}/alignment_file"
     )
     StorageIO.writeJsonLists(
-      otherFiles,
+      otherFileOutput,
       "Other Files",
       s"${args.outputPrefix}/other_file"
     )

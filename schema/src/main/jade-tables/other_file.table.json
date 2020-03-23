@@ -12,11 +12,6 @@
       "type": "repeated"
     },
     {
-      "name": "byte_size",
-      "datatype": "integer",
-      "type": "required"
-    },
-    {
       "name": "time_created",
       "datatype": "timestamp",
       "type": "required"
@@ -33,8 +28,7 @@
     },
     {
       "name": "max_audit_flag",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",
@@ -42,9 +36,13 @@
       "type": "required"
     },
     {
-      "name": "file_format_type",
+      "name": "file_format",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "file_format_type",
+      "datatype": "string"
     },
     {
       "name": "lab",
@@ -72,11 +70,6 @@
     },
     {
       "name": "genome_annotation",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
-      "name": "pipeline_id",
       "datatype": "string"
     },
     {
@@ -111,6 +104,10 @@
           "column_name": "id"
         }
       ]
+    },
+    {
+      "name": "cloud_path",
+      "datatype": "fileref"
     }
   ]
 }
