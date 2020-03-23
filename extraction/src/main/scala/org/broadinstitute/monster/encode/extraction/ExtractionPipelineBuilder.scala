@@ -10,6 +10,7 @@ import org.apache.beam.sdk.values.KV
 import org.broadinstitute.monster.common.PipelineBuilder
 import org.broadinstitute.monster.common.StorageIO.writeJsonLists
 import org.broadinstitute.monster.common.msg.{MsgOps, UpackMsgCoder}
+import org.broadinstitute.monster.encode.EncodeEntity
 import upack._
 
 import scala.collection.JavaConverters._

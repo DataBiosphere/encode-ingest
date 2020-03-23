@@ -29,7 +29,6 @@ lazy val `encode-extraction` = project
   .dependsOn(`encode-common`)
   .settings(
     libraryDependencies ++= Seq(
-      "com.beachape" %% "enumeratum" % enumeratumVersion,
       "com.squareup.okhttp3" % "okhttp" % okhttpVersion
     )
   )

@@ -5,6 +5,7 @@ import java.time.Duration
 
 import okhttp3.{Call, Callback, OkHttpClient, Request, Response}
 import org.broadinstitute.monster.common.msg.JsonParser
+import org.broadinstitute.monster.encode.EncodeEntity
 import org.slf4j.LoggerFactory
 import upack.{Arr, Msg, Obj, Str}
 
