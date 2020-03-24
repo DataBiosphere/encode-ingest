@@ -1,0 +1,17 @@
+{
+  "name": "read_structure",
+  "fields": [
+    {
+      "name": "sequence_element",
+      "datatype": "string"
+    },
+    {
+      "name": "start",
+      "datatype": "integer"
+    },
+    {
+      "name": "end",
+      "datatype": "integer"
+    }
+  ]
+}

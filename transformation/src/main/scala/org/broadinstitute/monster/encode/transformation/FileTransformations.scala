@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 
 import com.spotify.scio.values.{SCollection, SideInput}
 import enumeratum.{Enum, EnumEntry}
+import org.broadinstitute.monster.encode.jadeschema.struct.ReadStructure
 import org.broadinstitute.monster.encode.jadeschema.table.{
   AlignmentFile,
   OtherFile,
@@ -129,6 +130,9 @@ object FileTransformations {
     }
   }
 
+  /** 'run_type' value indicating a paired run in ENCODE. */
+  private val PairedEndType = "paired-ended"
+
   /**
     * Transform a raw sequence file into our preferred schema.
     *
@@ -138,9 +142,20 @@ object FileTransformations {
   def transformSequenceFile(rawFile: Msg): SequenceFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val modality = computeDataModality(rawFile)
+    val id = CommonTransformations.readId(rawFile)
+
+    val (containsRead1, containsRead2) = rawFile.tryRead[String]("paired_end") match {
+      case None        => (None, None)
+      case Some("1")   => (Some(true), Some(false))
+      case Some("2")   => (Some(false), Some(true))
+      case Some("1,2") => (Some(true), Some(true))
+      case Some(other) =>
+        logger.warn(s"Encountered unknown run_type in file $id: '$other''")
+        (None, None)
+    }
 
     SequenceFile(
-      id = CommonTransformations.readId(rawFile),
+      id = id,
       crossReferences = rawFile.read[Array[String]]("dbxrefs"),
       timeCreated = rawFile.read[OffsetDateTime]("date_created"),
       lab = rawFile.read[String]("lab"),
@@ -152,16 +167,25 @@ object FileTransformations {
       fileFormatType = rawFile.tryRead[String]("file_format_type"),
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
-      restrictionEnzymes = rawFile
-        .tryRead[Array[String]]("restriction_enzymes")
-        .getOrElse(Array.empty),
       submittedBy = rawFile.read[String]("submitted_by"),
       libraryId =
         rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
-      libraryLayout = rawFile.tryRead[String]("run_type"),
+      pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
-      pairedEndIdentifier = rawFile.tryRead[Long]("paired_end"),
+      readStructure = rawFile.tryRead[Array[Msg]]("read_structure") match {
+        case Some(structures) =>
+          structures.map { rawStructure =>
+            ReadStructure(
+              sequenceElement = rawStructure.tryRead[String]("sequence_element"),
+              start = rawStructure.tryRead[Long]("start"),
+              end = rawStructure.tryRead[Long]("end")
+            )
+          }
+        case None => Array.empty
+      },
+      pairedEnd1 = containsRead1,
+      pairedEnd2 = containsRead2,
       pairedWithSequenceFileId =
         rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId),
       cloudPath = None
@@ -192,23 +216,15 @@ object FileTransformations {
       maxAuditFlag = auditLevel,
       award = rawFile.read[String]("award"),
       fileFormat = rawFile.read[String]("file_format"),
-      fileFormatType = rawFile.tryRead[String]("file_format_type"),
       lab = rawFile.read[String]("lab"),
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
-      restrictionEnzymes = rawFile
-        .tryRead[Array[String]]("restriction_enzymes")
-        .getOrElse(Array.empty),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
       derivedFromAlignmentFileIds = parentBranches.alignment,
       derivedFromSequenceFileIds = parentBranches.sequence,
       derivedFromOtherFileIds = parentBranches.other,
       mappedReadLength = rawFile.tryRead[Long]("mapped_read_length"),
-      runType = rawFile.tryRead[String]("mapped_run_type"),
-      readStructure = rawFile
-        .tryRead[Array[String]]("read_structure")
-        .getOrElse(Array.empty),
       referenceAssembly = rawFile.read[String]("assembly"),
       cloudPath = None,
       indexCloudPath = None

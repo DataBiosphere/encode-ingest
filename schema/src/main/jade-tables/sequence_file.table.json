@@ -59,11 +59,6 @@
       "type": "repeated"
     },
     {
-      "name": "restriction_enzymes",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
       "name": "submitted_by",
       "datatype": "string",
       "type": "required"
@@ -87,12 +82,16 @@
       ]
     },
     {
-      "name": "library_layout",
-      "datatype": "string"
+      "name": "paired_library_layout",
+      "datatype": "boolean"
     },
     {
-      "name": "paired_end_identifier",
-      "datatype": "integer"
+      "name": "paired_end_1",
+      "datatype": "boolean"
+    },
+    {
+      "name": "paired_end_2",
+      "datatype": "boolean"
     },
     {
       "name": "paired_with_sequence_file_id",
@@ -107,6 +106,13 @@
     {
       "name": "cloud_path",
       "datatype": "fileref"
+    }
+  ],
+  "struct_columns": [
+    {
+      "name": "read_structure",
+      "struct_name": "read_structure",
+      "type": "repeated"
     }
   ]
 }

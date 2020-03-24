@@ -41,10 +41,6 @@
       "type": "required"
     },
     {
-      "name": "file_format_type",
-      "datatype": "string"
-    },
-    {
       "name": "lab",
       "datatype": "string",
       "type": "required"
@@ -55,11 +51,6 @@
     },
     {
       "name": "quality_metrics",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
-      "name": "restriction_enzymes",
       "datatype": "string",
       "type": "repeated"
     },
@@ -108,15 +99,6 @@
     {
       "name": "mapped_read_length",
       "datatype": "integer"
-    },
-    {
-      "name": "run_type",
-      "datatype": "string"
-    },
-    {
-      "name": "read_structure",
-      "datatype": "string",
-      "type": "repeated"
     },
     {
       "name": "reference_assembly",
