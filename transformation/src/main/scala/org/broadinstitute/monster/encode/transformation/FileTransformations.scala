@@ -48,8 +48,9 @@ object FileTransformations {
 
   /** Divide a stream of raw files into branches, with one branch per file category. */
   def partitionRawFiles(rawStream: SCollection[Msg]): FileBranches[SCollection, Msg] = {
-    val Seq(sequence, alignment, other) =
-      rawStream.partition(
+    val Seq(sequence, alignment, other) = rawStream
+      .withName("Split raw files by category")
+      .partition(
         3,
         rawFile => {
           val category = rawFile.read[String]("output_category")
@@ -72,11 +73,16 @@ object FileTransformations {
     def extractFileIdAndTagType(typ: FileType)(rawFile: Msg): (String, FileType) =
       CommonTransformations.readId(rawFile) -> typ
 
-    val sequenceIds = branches.sequence.map(extractFileIdAndTagType(FileType.Sequence))
-    val alignmentIds = branches.alignment.map(extractFileIdAndTagType(FileType.Alignment))
-    val otherIds = branches.other.map(extractFileIdAndTagType(FileType.Other))
+    val taggedIds = branches.sequence.transform("Tag file IDs with category") {
+      sequenceBranch =>
+        val sequenceIds = sequenceBranch.map(extractFileIdAndTagType(FileType.Sequence))
+        val alignmentIds =
+          branches.alignment.map(extractFileIdAndTagType(FileType.Alignment))
+        val otherIds = branches.other.map(extractFileIdAndTagType(FileType.Other))
+        SCollection.unionAll(List(sequenceIds, alignmentIds, otherIds))
+    }
 
-    SCollection.unionAll(List(sequenceIds, alignmentIds, otherIds)).asMapSideInput
+    taggedIds.withName("Build ID->category map").asMapSideInput
   }
 
   /**
@@ -84,8 +90,9 @@ object FileTransformations {
     * per file category.
     *
     * NOTE: Any parent IDs not found within the input id -> category map will be
-    * discarded. We don't expect this to ever happen outside of testing, but if
-    * it does it feels safer to omit info than it does to expose incorrect info.
+    * discarded. This will happen if a file derives from a restricted / archived
+    * file. We've been told that it's better to remove the references than it is
+    * to have dangling pointers to nonexistent rows.
     */
   private def splitParentReferences(
     rawFile: Msg,

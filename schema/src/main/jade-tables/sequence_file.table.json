@@ -69,6 +69,14 @@
       "type": "required"
     },
     {
+      "name": "read_count",
+      "datatype": "integer"
+    },
+    {
+      "name": "read_length",
+      "datatype": "integer"
+    },
+    {
       "name": "library_id",
       "datatype": "string",
       "links": [
@@ -81,14 +89,6 @@
     {
       "name": "library_layout",
       "datatype": "string"
-    },
-    {
-      "name": "read_count",
-      "datatype": "integer"
-    },
-    {
-      "name": "read_length",
-      "datatype": "integer"
     },
     {
       "name": "paired_end_identifier",
