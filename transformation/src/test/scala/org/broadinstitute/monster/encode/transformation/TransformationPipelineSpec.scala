@@ -16,7 +16,7 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
     Args(inputPrefix = inputDirString, outputPrefix = compareDirString)
 
   override def afterAll(): Unit = {
-    //compareDir.delete()
+    compareDir.delete()
     ()
   }
 
