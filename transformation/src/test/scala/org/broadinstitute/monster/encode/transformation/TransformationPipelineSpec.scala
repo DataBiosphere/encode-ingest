@@ -39,6 +39,7 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
 
   private val outputDirs = Set(
     "donor",
+    "biosample",
     "alignment_file",
     "other_file",
     "sequencing_file"

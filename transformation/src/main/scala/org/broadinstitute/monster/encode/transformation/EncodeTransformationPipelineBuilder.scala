@@ -37,17 +37,28 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // read in extracted info
     val donorInputs = readRawEntities(EncodeEntity.Donor)
+    val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
     val fileInputs = readRawEntities(EncodeEntity.File)
 
     val donorOutput = donorInputs
       .withName("Transform Donor objects")
       .map(DonorTransformations.transformDonor)
 
+    val biosampleOutput = biosampleInputs
+        .withName("Transform Biosample objects")
+        .map(BiosampleTransformations.transformBiosample)
+
     // write back to storage
     StorageIO.writeJsonLists(
       donorOutput,
       "Donors",
       s"${args.outputPrefix}/donor"
+    )
+
+    StorageIO.writeJsonLists(
+      biosampleOutput,
+      "Biosamples",
+      s"${args.outputPrefix}/biosample"
     )
 
     // Split the file stream based on category.
