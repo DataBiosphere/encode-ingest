@@ -2,22 +2,19 @@ package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
+
+import com.spotify.scio.values.SCollection
 import java.time.OffsetDateTime
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.jadeschema.table._
 import org.slf4j.LoggerFactory
+import org.broadinstitute.monster.encode.EncodeEntity
 import upack.Msg
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** (De)serializer for the upack messages we read from storage. */
   implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
-
-  /** (De)serializer for the ODTs we extract from raw data. */
-  implicit val odtCoder: Coder[OffsetDateTime] = Coder.xmap(Coder.stringCoder)(
-    OffsetDateTime.parse(_),
-    _.toString
-  )
 
   /** Output category for sequencing files. */
   val SequencingCategory = "raw data"
@@ -36,20 +33,23 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
     * is called on it.
     */
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
+    def readRawEntities(entityType: EncodeEntity): SCollection[Msg] = {
+      val name = entityType.entryName
+
+      StorageIO
+        .readJsonLists(ctx, name, s"${args.inputPrefix}/$name/*.json")
+        .withName(s"Strip unknown values from '$name' objects")
+        .map(CommonTransformations.removeUnknowns)
+    }
+
     // read in extracted info
-    val donorInputs = StorageIO
-      .readJsonLists(ctx, "Donors", s"${args.inputPrefix}/Donor/*.json")
-    val antibodyInputs = StorageIO
-      .readJsonLists(ctx, "AntibodyLots", s"${args.inputPrefix}/AntibodyLot/*.json")
+    val donorInputs = readRawEntities(EncodeEntity.Donor)
+    val antibodyInputs = readRawEntities(EncodeEntity.Antibody)
+    val fileInputs = readRawEntities(EncodeEntity.File)
 
-    val fileInputs = StorageIO
-      .readJsonLists(
-        ctx,
-        "Files",
-        s"${args.inputPrefix}/File/*.json"
-      )
-
-    val donorOutput = donorInputs.map(transformDonor)
+    val donorOutput = donorInputs
+      .withName("Transform Donor objects")
+      .map(DonorTransformations.transformDonor)
     val antibodyOutput = antibodyInputs.map(transformAntibody)
 
     // write back to storage
@@ -88,25 +88,6 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/other_file"
     )
     ()
-  }
-
-  def transformDonor(donorInput: Msg): Donor = {
-    Donor(
-      id = donorInput.read[String]("accession"),
-      crossReferences = donorInput.read[Array[String]]("dbxrefs"),
-      timeCreated = donorInput.read[OffsetDateTime]("date_created"),
-      age = donorInput.tryRead[Long]("age"),
-      ageUnit = donorInput.tryRead[String]("age_units"),
-      ethnicity = donorInput.tryRead[String]("ethnicity"),
-      organism = donorInput.read[String]("organism"),
-      sex = donorInput.read[String]("sex"),
-      award = donorInput.read[String]("award"),
-      lab = donorInput.read[String]("lab"),
-      lifeStage = donorInput.tryRead[String]("life_stage"),
-      parentIds = donorInput.read[Array[String]]("parents"),
-      twinId = donorInput.tryRead[String]("twin"),
-      submittedBy = donorInput.read[String]("submitted_by")
-    )
   }
 
   def transformAntibody(antibodyInput: Msg): Antibody = {
