@@ -33,8 +33,7 @@
     },
     {
       "name": "target",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",
@@ -43,8 +42,7 @@
     },
     {
       "name": "isotype",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "lab",
@@ -62,9 +60,9 @@
       "type": "required"
     },
     {
-      "name": "purification_method",
+      "name": "purification_methods",
       "datatype": "string",
-      "type": "required"
+      "type": "repeated"
     }
   ]
 }
