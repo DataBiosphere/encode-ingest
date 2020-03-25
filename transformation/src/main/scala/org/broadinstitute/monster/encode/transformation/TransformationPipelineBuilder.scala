@@ -10,7 +10,6 @@ import org.broadinstitute.monster.encode.EncodeEntity
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
-
   /** (De)serializer for the upack messages we read from storage. */
   implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
