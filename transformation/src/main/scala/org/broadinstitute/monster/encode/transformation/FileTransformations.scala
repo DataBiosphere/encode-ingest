@@ -3,7 +3,6 @@ package org.broadinstitute.monster.encode.transformation
 import java.time.OffsetDateTime
 
 import com.spotify.scio.values.{SCollection, SideInput}
-import enumeratum.{Enum, EnumEntry}
 import org.broadinstitute.monster.encode.jadeschema.table.{
   AlignmentFile,
   OtherFile,
@@ -14,17 +13,6 @@ import upack.Msg
 
 object FileTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
-
-  /** Category of file stored by ENCODE. */
-  sealed trait FileType extends EnumEntry with Product with Serializable
-
-  private object FileType extends Enum[FileType] {
-    override val values = findValues
-
-    case object Sequence extends FileType
-    case object Alignment extends FileType
-    case object Other extends FileType
-  }
 
   /**
     * Generic container for containers-of-files, divided according to
@@ -86,37 +74,29 @@ object FileTransformations {
   }
 
   /**
-    * Split the derives_from links in a raw file into branches, with one branch
-    * per file category.
+    * Split a set of raw links to ENCODE files, with one branch per file category.
     *
-    * NOTE: Any parent IDs not found within the input id -> category map will be
-    * discarded. This will happen if a file derives from a restricted / archived
-    * file. We've been told that it's better to remove the references than it is
-    * to have dangling pointers to nonexistent rows.
+    * NOTE: Any  IDs not found within the input id -> category map will be discarded.
+    * This will happen if a file derives from a restricted / archived file. We've been
+    * told that it's better to remove the references than it is to have dangling
+    * pointers to nonexistent rows.
     */
-  private def splitParentReferences(
-    rawFile: Msg,
+  def splitFileReferences(
+    references: Array[String],
     idsToType: Map[String, FileType]
   ): FileBranches[Array, String] = {
-    val baseId = CommonTransformations.readId(rawFile)
+    val (seq, align, other) = references.map { rawId =>
+      val id = CommonTransformations.transformId(rawId)
 
-    val (seq, align, other) = rawFile
-      .tryRead[Array[String]]("derived_from")
-      .getOrElse(Array.empty)
-      .map(CommonTransformations.transformId)
-      .map { id =>
-        idsToType.get(id) match {
-          case Some(FileType.Alignment) => (Some(id), None, None)
-          case Some(FileType.Sequence)  => (None, Some(id), None)
-          case Some(FileType.Other)     => (None, None, Some(id))
-          case None =>
-            logger.warn(
-              s"File '$id' referenced in derived_from of file '$baseId' not found in type map"
-            )
-            (None, None, None)
-        }
+      idsToType.get(id) match {
+        case Some(FileType.Alignment) => (Some(id), None, None)
+        case Some(FileType.Sequence)  => (None, Some(id), None)
+        case Some(FileType.Other)     => (None, None, Some(id))
+        case None =>
+          logger.warn(s"No type found for file '$rawId'")
+          (None, None, None)
       }
-      .unzip3
+    }.unzip3
 
     FileBranches(seq.flatten, align.flatten, other.flatten)
   }
@@ -191,7 +171,8 @@ object FileTransformations {
   ): AlignmentFile = {
     val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val parentBranches = splitParentReferences(rawFile, idsToType)
+    val parentBranches =
+      splitFileReferences(rawFile.read[Array[String]]("derived_from"), idsToType)
     val modality = computeDataModality(rawFile)
 
     AlignmentFile(
@@ -223,7 +204,8 @@ object FileTransformations {
     idsToType: Map[String, FileType]
   ): OtherFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val parentBranches = splitParentReferences(rawFile, idsToType)
+    val parentBranches =
+      splitFileReferences(rawFile.read[Array[String]]("derived_from"), idsToType)
     val modality = computeDataModality(rawFile)
 
     OtherFile(
