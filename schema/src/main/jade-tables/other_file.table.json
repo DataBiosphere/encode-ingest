@@ -59,11 +59,6 @@
       "type": "repeated"
     },
     {
-      "name": "restriction_enzymes",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
       "name": "submitted_by",
       "datatype": "string",
       "type": "required"

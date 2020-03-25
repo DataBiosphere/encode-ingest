@@ -97,10 +97,6 @@
       ]
     },
     {
-      "name": "mapped_read_length",
-      "datatype": "integer"
-    },
-    {
       "name": "reference_assembly",
       "datatype": "string",
       "type": "required"

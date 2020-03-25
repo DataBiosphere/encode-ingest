@@ -107,12 +107,5 @@
       "name": "cloud_path",
       "datatype": "fileref"
     }
-  ],
-  "struct_columns": [
-    {
-      "name": "read_structure",
-      "struct_name": "read_structure",
-      "type": "repeated"
-    }
   ]
 }

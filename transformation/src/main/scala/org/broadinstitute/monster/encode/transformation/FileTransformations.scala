@@ -4,7 +4,6 @@ import java.time.OffsetDateTime
 
 import com.spotify.scio.values.{SCollection, SideInput}
 import enumeratum.{Enum, EnumEntry}
-import org.broadinstitute.monster.encode.jadeschema.struct.ReadStructure
 import org.broadinstitute.monster.encode.jadeschema.table.{
   AlignmentFile,
   OtherFile,
@@ -173,17 +172,6 @@ object FileTransformations {
       pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
-      readStructure = rawFile.tryRead[Array[Msg]]("read_structure") match {
-        case Some(structures) =>
-          structures.map { rawStructure =>
-            ReadStructure(
-              sequenceElement = rawStructure.tryRead[String]("sequence_element"),
-              start = rawStructure.tryRead[Long]("start"),
-              end = rawStructure.tryRead[Long]("end")
-            )
-          }
-        case None => Array.empty
-      },
       pairedEnd1 = containsRead1,
       pairedEnd2 = containsRead2,
       pairedWithSequenceFileId =
@@ -224,7 +212,6 @@ object FileTransformations {
       derivedFromAlignmentFileIds = parentBranches.alignment,
       derivedFromSequenceFileIds = parentBranches.sequence,
       derivedFromOtherFileIds = parentBranches.other,
-      mappedReadLength = rawFile.tryRead[Long]("mapped_read_length"),
       referenceAssembly = rawFile.read[String]("assembly"),
       cloudPath = None,
       indexCloudPath = None
@@ -253,9 +240,6 @@ object FileTransformations {
       lab = rawFile.read[String]("lab"),
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
-      restrictionEnzymes = rawFile
-        .tryRead[Array[String]]("restriction_enzymes")
-        .getOrElse(Array.empty),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
       derivedFromAlignmentFileIds = parentBranches.alignment,
