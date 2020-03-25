@@ -9,15 +9,9 @@ import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
 import upack.Msg
 
-object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
+object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   /** (De)serializer for the upack messages we read from storage. */
   implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
-
-  /** Output category for sequencing files. */
-  val SequencingCategory = "raw data"
-
-  /** Output category for alignment files. */
-  val AlignmentCategory = "alignment"
 
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.
@@ -35,48 +29,60 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
         .map(CommonTransformations.removeUnknowns)
     }
 
-    // read in extracted info
+    // Donors can be processed in isolation.
     val donorInputs = readRawEntities(EncodeEntity.Donor)
-    val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
-    val fileInputs = readRawEntities(EncodeEntity.File)
-
     val donorOutput = donorInputs
-      .withName("Transform Donor objects")
+      .withName("Transform donors")
       .map(DonorTransformations.transformDonor)
-    val antibodyOutput = antibodyInputs.map(AntibodyTransformations.transformAntibody)
-
-    // write back to storage
     StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
+
+    // So can antibodies.
+    val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
+    val antibodyOutput = antibodyInputs
+      .withName("Transform antibodies")
+      .map(AntibodyTransformations.transformAntibody)
     StorageIO.writeJsonLists(
       antibodyOutput,
       "Antibodies",
       s"${args.outputPrefix}/antibody"
     )
 
-    // Split the file stream based on category.
-    val Seq(sequencingFiles, alignmentFiles, otherFiles) =
-      fileInputs.partition(
-        3,
-        rawFile => {
-          val category = rawFile.read[String]("output_category")
-          if (category == SequencingCategory) 0
-          else if (category == AlignmentCategory) 1
-          else 2
-        }
-      )
-    // FIXME: We should ultimately write out mapped files.
+    // Files are more complicated.
+    val fileInputs = readRawEntities(EncodeEntity.File)
+    // Split the file stream by output category.
+    val fileBranches = FileTransformations.partitionRawFiles(fileInputs)
+    val fileIdToType = FileTransformations.buildIdTypeMap(fileBranches)
+
+    val sequenceFileOutput = fileBranches.sequence
+      .withName("Transform sequence files")
+      .map(FileTransformations.transformSequenceFile)
+    val alignmentFileOutput = fileBranches.alignment
+      .withSideInputs(fileIdToType)
+      .withName("Transform alignment files")
+      .map { (rawFile, sideCtx) =>
+        FileTransformations.transformAlignmentFile(rawFile, sideCtx(fileIdToType))
+      }
+      .toSCollection
+    val otherFileOutput = fileBranches.other
+      .withSideInputs(fileIdToType)
+      .withName("Transform other files")
+      .map { (rawFile, sideCtx) =>
+        FileTransformations.transformOtherFile(rawFile, sideCtx(fileIdToType))
+      }
+      .toSCollection
+
     StorageIO.writeJsonLists(
-      sequencingFiles,
-      "Sequencing Files",
-      s"${args.outputPrefix}/sequencing_file"
+      sequenceFileOutput,
+      "Sequence Files",
+      s"${args.outputPrefix}/sequence_file"
     )
     StorageIO.writeJsonLists(
-      alignmentFiles,
+      alignmentFileOutput,
       "Alignment Files",
       s"${args.outputPrefix}/alignment_file"
     )
     StorageIO.writeJsonLists(
-      otherFiles,
+      otherFileOutput,
       "Other Files",
       s"${args.outputPrefix}/other_file"
     )
