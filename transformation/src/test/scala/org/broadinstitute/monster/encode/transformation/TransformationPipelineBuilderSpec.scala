@@ -3,8 +3,8 @@ package org.broadinstitute.monster.encode.transformation
 import better.files.File
 import org.broadinstitute.monster.common.PipelineBuilderSpec
 
-class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
-  behavior of "TransformationPipeline"
+class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
+  behavior of "TransformationPipelineBuilder"
 
   private val testFileLocation = s"${File.currentWorkingDirectory}/src/test/test-files"
   private val truthDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs"
@@ -20,7 +20,7 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
     ()
   }
 
-  override val builder = EncodeTransformationPipelineBuilder
+  override val builder = TransformationPipelineBuilder
 
   /**
     *
@@ -39,9 +39,10 @@ class TransformationPipelineSpec extends PipelineBuilderSpec[Args] {
 
   private val outputDirs = Set(
     "donor",
+    "antibody",
     "alignment_file",
     "other_file",
-    "sequencing_file"
+    "sequence_file"
   )
 
   outputDirs.foreach {
