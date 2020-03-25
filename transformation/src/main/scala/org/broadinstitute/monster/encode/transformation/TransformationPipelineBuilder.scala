@@ -10,6 +10,7 @@ import org.broadinstitute.monster.encode.EncodeEntity
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
+
   /** (De)serializer for the upack messages we read from storage. */
   implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
@@ -29,20 +30,27 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .map(CommonTransformations.removeUnknowns)
     }
 
-    // read in extracted info
+    // Donors can be processed in isolation.
     val donorInputs = readRawEntities(EncodeEntity.Donor)
     val donorOutput = donorInputs
       .withName("Transform donors")
       .map(DonorTransformations.transformDonor)
-    // write back to storage
+    StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
+
+    // So can antibodies.
+    val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
+    val antibodyOutput = antibodyInputs
+      .withName("Transform antibodies")
+      .map(AntibodyTransformations.transformAntibody)
     StorageIO.writeJsonLists(
-      donorOutput,
-      "Donors",
-      s"${args.outputPrefix}/donor"
+      antibodyOutput,
+      "Antibodies",
+      s"${args.outputPrefix}/antibody"
     )
 
-    // Split the file stream based on category.
+    // Files are more complicated.
     val fileInputs = readRawEntities(EncodeEntity.File)
+    // Split the file stream by output category.
     val fileBranches = FileTransformations.partitionRawFiles(fileInputs)
     val fileIdToType = FileTransformations.buildIdTypeMap(fileBranches)
 
