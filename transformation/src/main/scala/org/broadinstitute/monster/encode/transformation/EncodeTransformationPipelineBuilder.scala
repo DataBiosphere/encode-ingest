@@ -6,6 +6,7 @@ import java.time.OffsetDateTime
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.jadeschema.table._
+import org.slf4j.LoggerFactory
 import upack.Msg
 
 object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -25,6 +26,8 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   val AlignmentCategory = "alignment"
 
   val EncodeIdPattern = "/[^/]+/([^/]+)/".r
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.
@@ -107,25 +110,37 @@ object EncodeTransformationPipelineBuilder extends PipelineBuilder[Args] {
   }
 
   def transformAntibody(antibodyInput: Msg): Antibody = {
+    val id = antibodyInput.read[String]("accession")
+    val targets = antibodyInput
+      .read[Array[String]]("targets")
+
     // Use regular expressions to remove everything but the actual target name, which should be the same across
     // all targets in the list. Remove "synthetic_tag" type targets.
-    val mappedTarget = antibodyInput
-      .read[Array[String]]("targets")
-      .collectFirst { case EncodeIdPattern(accession) => accession } // filter out non-matches
-      .flatMap { accession =>
-        val (front, back) = accession.splitAt(accession.lastIndexOf('-'))
-        if (back == "-synthetic_tag") None
-        else Some(front)
-      }
+    val mappedTargets = targets.collect {
+      case EncodeIdPattern(target) => target
+    } // filter out non-matches
+    .flatMap { target =>
+      val (front, back) = target.splitAt(target.lastIndexOf('-'))
+      if (back == "-synthetic_tag") None
+      else Some(front)
+    }
+    val firstMappedTarget = mappedTargets.headOption
+
+    // check that all other target values match the first target value
+    if (!mappedTargets.forall(target => target == firstMappedTarget)) {
+      logger.warn(
+        s"Antibody '$id' contains multiple target types in [${mappedTargets.mkString(",")}]."
+      )
+    }
 
     Antibody(
-      id = antibodyInput.read[String]("accession"),
+      id = id,
       crossReferences = antibodyInput.read[Array[String]]("dbxrefs"),
       timeCreated = antibodyInput.read[OffsetDateTime]("date_created"),
       source = antibodyInput.read[String]("source"),
       clonality = antibodyInput.read[String]("clonality"),
       hostOrganism = antibodyInput.read[String]("host_organism"),
-      target = mappedTarget,
+      target = firstMappedTarget,
       award = antibodyInput.read[String]("award"),
       isotype = antibodyInput.tryRead[String]("isotype"),
       lab = antibodyInput.read[String]("lab"),
