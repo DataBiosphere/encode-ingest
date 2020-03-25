@@ -143,14 +143,14 @@ object FileTransformations {
     val modality = computeDataModality(rawFile)
     val id = CommonTransformations.readId(rawFile)
 
-    val (containsRead1, containsRead2) = rawFile.tryRead[String]("paired_end") match {
-      case None        => (None, None)
-      case Some("1")   => (Some(true), Some(false))
-      case Some("2")   => (Some(false), Some(true))
-      case Some("1,2") => (Some(true), Some(true))
+    val pairedEndId = rawFile.tryRead[String]("paired_end") match {
+      case None        => None
+      case Some("1")   => Some(1L)
+      case Some("2")   => Some(2L)
+      case Some("1,2") => None
       case Some(other) =>
         logger.warn(s"Encountered unknown run_type in file $id: '$other''")
-        (None, None)
+        None
     }
 
     SequenceFile(
@@ -169,11 +169,10 @@ object FileTransformations {
       submittedBy = rawFile.read[String]("submitted_by"),
       libraryId =
         rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
-      pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
-      pairedEnd1 = containsRead1,
-      pairedEnd2 = containsRead2,
+      pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
+      pairedEndIdentifier = pairedEndId,
       pairedWithSequenceFileId =
         rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId),
       cloudPath = None

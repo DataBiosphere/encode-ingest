@@ -86,12 +86,8 @@
       "datatype": "boolean"
     },
     {
-      "name": "paired_end_1",
-      "datatype": "boolean"
-    },
-    {
-      "name": "paired_end_2",
-      "datatype": "boolean"
+      "name": "paired_end_identifier",
+      "datatype": "integer"
     },
     {
       "name": "paired_with_sequence_file_id",
