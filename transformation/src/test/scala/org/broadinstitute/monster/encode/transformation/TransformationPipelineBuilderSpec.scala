@@ -42,7 +42,8 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
     "antibody",
     "alignment_file",
     "other_file",
-    "sequence_file"
+    "sequence_file",
+    "experiment_activity"
   )
 
   outputDirs.foreach {
