@@ -33,8 +33,13 @@ object ExperimentTransformations {
       award = rawExperiment.read[String]("award"),
       lab = rawExperiment.read[String]("lab"),
       submittedBy = rawExperiment.read[String]("submitted_by"),
-      // FIXME: Filling this in will require joining against the raw replicates
-      // AFTER they've been joined against the raw biosamples.
+      /*
+       * FIXME: Filling this in will require:
+       *   1. Join raw replicates and libraries on replicate.library = library.@id
+       *   2. Group those results by joined.experiment
+       *   3. Join the groups with raw experiments on group.experiment = experiment.@id
+       *   4. Pass in the (group, experiment) pair to this method, and pull out group.map(_.biosample)
+       */
       biosampleIds = Array.empty[String]
     )
   }
