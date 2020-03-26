@@ -5,9 +5,11 @@ import org.broadinstitute.monster.encode.jadeschema.table.Antibody
 import org.slf4j.LoggerFactory
 import upack.Msg
 
+/** Transformation logic for ENCODE antibody objects. */
 object AntibodyTransformations {
   private val logger = LoggerFactory.getLogger(getClass)
 
+  /** Transform a raw ENCODE antibody into our preferred schema. */
   def transformAntibody(antibodyInput: Msg): Antibody = {
     import org.broadinstitute.monster.common.msg.MsgOps
 

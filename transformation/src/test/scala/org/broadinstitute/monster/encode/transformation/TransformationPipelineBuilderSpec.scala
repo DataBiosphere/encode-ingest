@@ -40,6 +40,7 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
   private val outputDirs = Set(
     "donor",
     "antibody",
+    "library",
     "alignment_file",
     "other_file",
     "sequence_file"

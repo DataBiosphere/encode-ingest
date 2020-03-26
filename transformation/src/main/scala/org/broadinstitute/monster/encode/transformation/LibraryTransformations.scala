@@ -10,7 +10,7 @@ object LibraryTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw ENCODE library into our preferred schema. */
-  def transformDonor(libraryInput: Msg): Library = {
+  def transformLibrary(libraryInput: Msg): Library = {
     Library(
       id = CommonTransformations.readId(libraryInput),
       crossReferences = libraryInput.read[Array[String]]("dbxrefs"),
