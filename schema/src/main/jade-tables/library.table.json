@@ -17,11 +17,6 @@
       "type": "required"
     },
     {
-      "name": "source",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
       "name": "award",
       "datatype": "string",
       "type": "required"
