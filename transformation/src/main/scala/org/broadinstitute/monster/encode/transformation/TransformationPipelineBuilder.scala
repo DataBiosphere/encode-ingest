@@ -97,6 +97,28 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       "Other Files",
       s"${args.outputPrefix}/other_file"
     )
+
+    // Experiments merge two different raw streams.
+    val experimentInputs = readRawEntities(EncodeEntity.Experiment)
+    val fcExperimentInputs =
+      readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment)
+    val experimentOutput = experimentInputs
+      .withName("Merge experiments")
+      .union(fcExperimentInputs)
+      .withSideInputs(fileIdToType)
+      .withName("Transform experiments")
+      .map { (rawExperiment, sideCtx) =>
+        ExperimentTransformations.transformExperiment(
+          rawExperiment,
+          sideCtx(fileIdToType)
+        )
+      }
+      .toSCollection
+    StorageIO.writeJsonLists(
+      experimentOutput,
+      "Experiments",
+      s"${args.outputPrefix}/experiment_activity"
+    )
     ()
   }
 }
