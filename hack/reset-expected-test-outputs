@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+declare -r SCRIPT_DIR=$(cd $(dirname ${0}) >/dev/null 2>&1 && pwd)
+declare -r REPO_ROOT=$(cd $(dirname ${SCRIPT_DIR}) >/dev/null 2>&1 && pwd)
+
+declare -r INPUT_DIR=${REPO_ROOT}/transformation/src/test/test-files/inputs
+declare -r OUTPUT_DIR=${REPO_ROOT}/transformation/src/test/test-files/outputs
+
+function main () {
+  trap "cd $(pwd)" EXIT
+  cd ${REPO_ROOT}
+
+  # Run the transformation pipeline, writing outputs to a temp directory.
+  local -r tmp_out=$(mktemp -d -t encode-transformation-)
+  sbt "encode-transformation-pipeline/run --inputPrefix ${INPUT_DIR} --outputPrefix ${tmp_out}"
+
+  # Concat all the output part-files, and move the result back into the
+  # git repository.
+  for dir in ${tmp_out}/*; do
+    local output_dir=${OUTPUT_DIR}/$(basename ${dir})
+    mkdir -p ${output_dir}
+    jq -cS . ${dir}/* | sort > ${output_dir}/part-1.json
+  done
+}
+
+main
