@@ -1,7 +1,7 @@
 import org.broadinstitute.monster.sbt.model.JadeIdentifier
 
-val enumeratumVersion = "1.5.13"
-val okhttpVersion = "4.4.0"
+val enumeratumVersion = "1.5.15"
+val okhttpVersion = "4.4.1"
 
 lazy val `encode-ingest` = project
   .in(file("."))
