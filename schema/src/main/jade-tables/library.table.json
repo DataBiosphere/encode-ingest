@@ -27,14 +27,6 @@
       "type": "required"
     },
     {
-      "name": "lot_id",
-      "datatype": "string"
-    },
-    {
-      "name": "product_id",
-      "datatype": "string"
-    },
-    {
       "name": "queried_rnp_size_range",
       "datatype": "string"
     },

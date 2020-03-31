@@ -17,8 +17,6 @@ object LibraryTransformations {
       timeCreated = libraryInput.read[OffsetDateTime]("date_created"),
       award = libraryInput.read[String]("award"),
       lab = libraryInput.read[String]("lab"),
-      lotId = libraryInput.tryRead[String]("lot_id"),
-      productId = libraryInput.tryRead[String]("product_id"),
       queriedRnpSizeRange = libraryInput.tryRead[String]("queried_RNP_size_range"),
       rnaIntegrityNumber = libraryInput.tryRead[Double]("rna_integrity_number"),
       sizeRange = libraryInput.tryRead[String]("size_range"),
