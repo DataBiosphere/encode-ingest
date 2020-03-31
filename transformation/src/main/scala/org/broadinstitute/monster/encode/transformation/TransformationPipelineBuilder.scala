@@ -47,6 +47,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/antibody"
     )
 
+    // Libraries can also be processed in isolation
+    val libraryInputs = readRawEntities(EncodeEntity.Library)
+    val libraryOutput = libraryInputs
+      .withName("Transform libraries")
+      .map(LibraryTransformations.transformLibrary)
+    StorageIO.writeJsonLists(
+      libraryOutput,
+      "Libraries",
+      s"${args.outputPrefix}/library"
+    )
+
     // Files are more complicated.
     val fileInputs = readRawEntities(EncodeEntity.File)
     // Split the file stream by output category.
