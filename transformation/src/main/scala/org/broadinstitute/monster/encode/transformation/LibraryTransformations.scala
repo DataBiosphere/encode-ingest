@@ -10,7 +10,7 @@ object LibraryTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw ENCODE library into our preferred schema. */
-  def transformLibrary(libraryInput: Msg): Library = {
+  def transformLibrary(libraryInput: Msg): Library =
     Library(
       id = CommonTransformations.readId(libraryInput),
       crossReferences = libraryInput.read[Array[String]]("dbxrefs"),
@@ -24,8 +24,6 @@ object LibraryTransformations {
       treatments = libraryInput.read[Array[String]]("treatments"),
       submittedBy = libraryInput.read[String]("submitted_by"),
       spikeIns = libraryInput.read[Array[String]]("spikeins_used"),
-      biosampleId =
-        CommonTransformations.transformId(libraryInput.read[String]("biosample"))
+      biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample"))
     )
-  }
 }

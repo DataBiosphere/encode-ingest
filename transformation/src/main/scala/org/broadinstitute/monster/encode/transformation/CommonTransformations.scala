@@ -49,28 +49,27 @@ object CommonTransformations {
     *   2. The set of unique audit categories present
     */
   def summarizeAudits(rawObject: Msg): (Option[String], Array[String]) =
-    rawObject.tryRead[Msg]("audit").fold((Option.empty[String], Array.empty[String])) {
-      audits =>
-        // ENCODE's audits are grouped by severity, but they also include
-        // that label within each record, so it's fine to simplify and strip
-        // away the grouping.
-        val allAudits = audits.obj.valuesIterator.flatMap(_.arr)
+    rawObject.tryRead[Msg]("audit").fold((Option.empty[String], Array.empty[String])) { audits =>
+      // ENCODE's audits are grouped by severity, but they also include
+      // that label within each record, so it's fine to simplify and strip
+      // away the grouping.
+      val allAudits = audits.obj.valuesIterator.flatMap(_.arr)
 
-        val (maxLevel, labels) = allAudits.foldLeft((0L, Set.empty[String])) {
-          case ((max, acc), audit) =>
-            val label = audit.read[String]("category")
-            val level = audit.read[Long]("level")
+      val (maxLevel, labels) = allAudits.foldLeft((0L, Set.empty[String])) {
+        case ((max, acc), audit) =>
+          val label = audit.read[String]("category")
+          val level = audit.read[Long]("level")
 
-            (math.max(max, level), acc + label)
-        }
+          (math.max(max, level), acc + label)
+      }
 
-        val levelColor = maxLevel match {
-          case 40 => "yellow"
-          case 50 => "orange"
-          case 60 => "red"
-          case _  => "white"
-        }
+      val levelColor = maxLevel match {
+        case 40 => "yellow"
+        case 50 => "orange"
+        case 60 => "red"
+        case _  => "white"
+      }
 
-        (Some(levelColor), labels.toArray)
+      (Some(levelColor), labels.toArray)
     }
 }
