@@ -15,12 +15,12 @@ import scala.concurrent.{Future, Promise}
 trait EncodeClient extends Serializable {
 
   /**
-    * TODO
+    * Search for entities within ENCODE.
     *
-    * @param entity
-    * @param params
-    * @param negativeParams
-    * @return
+    * @param entity the type of entity to search on
+    * @param params key=value parameters that returned entities must match
+    * @param negativeParams key!=value parameters that returned entities
+    *                       must not match
     */
   def get(
     entity: EncodeEntity,

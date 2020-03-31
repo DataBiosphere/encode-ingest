@@ -49,7 +49,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     * ENCODE matching those parameters.
     *
     * @param encodeEntity the type of ENCODE entity the stage should query
-    * @param filterBatches batches of key=value filters to include in API queries
+    * @param filterBatches batches of key=value and key!=value filters to include in API queries
     */
   def getEntities(
     encodeEntity: EncodeEntity,
@@ -70,6 +70,8 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
      *
      * @param encodeEntity type of objects to extract from the API
      * @param queryBatches batches of query parameters to use when querying the API
+     * @param negativeFilters batch of query parameters which should be used to
+     *                        restrict the results returned by matching on queryBatches
      */
     def extractEntities(
       encodeEntity: EncodeEntity,
@@ -248,7 +250,10 @@ object ExtractionPipelineBuilder {
     */
   val MaxConcurrentRequests = 8
 
-  /** TODO */
+  /**
+    * "Negative" filters to include in all file searches, to filter
+    * out records we don't want to bother extracting.
+    */
   val NegativeFileFilters: List[(String, String)] = List("output_category" -> "reference")
 
   /**
