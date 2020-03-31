@@ -3,7 +3,11 @@ package org.broadinstitute.monster.encode.transformation
 import java.time.OffsetDateTime
 
 import com.spotify.scio.values.{SCollection, SideInput}
-import org.broadinstitute.monster.encode.jadeschema.table.{AlignmentFile, OtherFile, SequenceFile}
+import org.broadinstitute.monster.encode.jadeschema.table.{
+  AlignmentFile,
+  OtherFile,
+  SequenceFile
+}
 import org.slf4j.LoggerFactory
 import upack.Msg
 
@@ -57,12 +61,13 @@ object FileTransformations {
     def extractFileIdAndTagType(typ: FileType)(rawFile: Msg): (String, FileType) =
       CommonTransformations.readId(rawFile) -> typ
 
-    val taggedIds = branches.sequence.transform("Tag file IDs with category") { sequenceBranch =>
-      val sequenceIds = sequenceBranch.map(extractFileIdAndTagType(FileType.Sequence))
-      val alignmentIds =
-        branches.alignment.map(extractFileIdAndTagType(FileType.Alignment))
-      val otherIds = branches.other.map(extractFileIdAndTagType(FileType.Other))
-      SCollection.unionAll(List(sequenceIds, alignmentIds, otherIds))
+    val taggedIds = branches.sequence.transform("Tag file IDs with category") {
+      sequenceBranch =>
+        val sequenceIds = sequenceBranch.map(extractFileIdAndTagType(FileType.Sequence))
+        val alignmentIds =
+          branches.alignment.map(extractFileIdAndTagType(FileType.Alignment))
+        val otherIds = branches.other.map(extractFileIdAndTagType(FileType.Other))
+        SCollection.unionAll(List(sequenceIds, alignmentIds, otherIds))
     }
 
     taggedIds.withName("Build ID->category map").asMapSideInput
@@ -141,7 +146,8 @@ object FileTransformations {
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
-      libraryId = rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
+      libraryId =
+        rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
       pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
