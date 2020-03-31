@@ -8,7 +8,9 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
 
   private val testFileLocation = s"${File.currentWorkingDirectory}/src/test/test-files"
   private val truthDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs"
-  private val compareDir = File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs-to-compare"
+
+  private val compareDir =
+    File.currentWorkingDirectory / "src" / "test" / "test-files" / "outputs-to-compare"
   private val compareDirString = compareDir.pathAsString
   private val inputDirString = s"$testFileLocation/inputs"
 
@@ -29,13 +31,12 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
     * @param subDir The sub-directory of the outputs dir containing the files to read
     * @return A tuple of Set of Json, where the first one is the Set-to-test and the second one is the truth-Set
     */
-  private def compareTruthAndCompSets(subDir: String): Unit = {
+  private def compareTruthAndCompSets(subDir: String): Unit =
     it should s"have written the correct $subDir data" in {
       val expected = readMsgs(truthDir / subDir)
       val actual = readMsgs(compareDir / subDir)
       actual should contain theSameElementsAs expected
     }
-  }
 
   private val outputDirs = Set(
     "donor",

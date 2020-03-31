@@ -62,17 +62,17 @@ class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
       .flatMap(_.getValue.fold(throw _, _.read[Array[Msg]]("@graph")))
 
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
-    /**
-      * Generic helper method for extracting linked entities and saving them.
-      *
-      * @param sourceEntityType type of objects contained in `sourceEntities`
-      * @param sourceField key within `sourceEntities` to extract for use as a query filter
-      * @param sourceEntities raw objects of type `sourceEntityType` containing data
-      *                       which can be used to pull `targetEntityType` objects
-      * @param targetEntityType type of objects to extract from the API
-      * @param targetField field in `targetEntityType` objects with values that match the
-      *                    `sourceField` values from `sourceEntityType` objects
-      */
+    /*
+     * Generic helper method for extracting linked entities and saving them.
+     *
+     * @param sourceEntityType type of objects contained in `sourceEntities`
+     * @param sourceField key within `sourceEntities` to extract for use as a query filter
+     * @param sourceEntities raw objects of type `sourceEntityType` containing data
+     *                       which can be used to pull `targetEntityType` objects
+     * @param targetEntityType type of objects to extract from the API
+     * @param targetField field in `targetEntityType` objects with values that match the
+     *                    `sourceField` values from `sourceEntityType` objects
+     */
     def extractLinkedEntities(
       sourceEntityType: EncodeEntity,
       sourceField: String,
@@ -222,11 +222,10 @@ object ExtractionPipelineBuilder {
     * Determines whether a replicate is linked to a FunctionalCharacterizationExperiment
     * (vs. a "normal" Experiment).
     */
-  def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean = {
+  def isFunctionalCharacterizationReplicate(replicate: Msg): Boolean =
     replicate
       .read[String]("experiment")
       .startsWith("/functional-characterization-experiments/")
-  }
 
   /**
     * Group the values in a stream into fixed-size batches.
