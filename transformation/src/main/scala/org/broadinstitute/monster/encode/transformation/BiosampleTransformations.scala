@@ -18,27 +18,29 @@ object BiosampleTransformations {
       timeCreated = biosampleInput.read[OffsetDateTime]("date_created"),
       source = biosampleInput.tryRead[String]("source"),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
-      // DONE ABOVE HERE
-
-      derivedFromBiosampleId = biosampleInput.tryRead[String]("age_units"),
-      anatomicalSite = biosampleInput.tryRead[String]("biosample_ontology"),
-      biosampleType = biosampleInput.tryRead[String]("biosample_ontology"),
-      samplePreservationState = biosampleInput.tryRead[String](
-        "preservation_method").fold("not reported")(identity), // DONE
-      seeAlso = biosampleInput.tryRead[Array[String]]("url"), // DONE
-      donorId = biosampleInput.read[String]("donor"), // DONE
-      auditLabels = auditLabels, // DONE
-      maxAuditFlag = auditLevel, // DONE
-      award = biosampleInput.tryRead[String]("award"), // DONE
-      biologicalReplicateId = biosampleInput.tryRead[String]("submitted_by"),
-      cellIsolationMethods = biosampleInput.tryRead[Array[String]]("cell_isolation_method"), // DONE
-      geneticModifications = biosampleInput.tryRead[Array[String]]("applied_modifications"), // DONE
-      healthStatus = biosampleInput.tryRead[String]("health_status"), // DONE
-      lab = biosampleInput.tryRead[String]("lab"), // DONE
-      replicationType = "",
-      technicalReplicateId = "",
-
-      // DONE BELOW HERE
+      derivedFromBiosampleId =
+        biosampleInput.tryRead[String]("library").map(CommonTransformations.transformId),
+      // TODO needs biosampleType join
+      anatomicalSite = "site",
+      // TODO needs biosampleType join
+      biosampleType = "type",
+      samplePreservationState =
+        biosampleInput.tryRead[String]("preservation_method").fold("not reported")(identity),
+      seeAlso = biosampleInput.read[Array[String]]("url"),
+      donorId = biosampleInput.read[String]("donor"),
+      auditLabels = auditLabels,
+      maxAuditFlag = auditLevel,
+      award = biosampleInput.read[String]("award"),
+      // TODO needs replicates
+      biologicalReplicateId = 42,
+      cellIsolationMethods = biosampleInput.read[Array[String]]("cell_isolation_method"),
+      geneticModifications = biosampleInput.read[Array[String]]("applied_modifications"),
+      healthStatus = biosampleInput.read[String]("health_status"),
+      lab = biosampleInput.read[String]("lab"),
+      // TODO needs to join with experiments
+      replicationType = "repType",
+      // TODO needs replicates
+      technicalReplicateId = 43,
       treatments = biosampleInput.read[Array[String]]("treatments"),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
       submittedBy = biosampleInput.read[String]("submitted_by")

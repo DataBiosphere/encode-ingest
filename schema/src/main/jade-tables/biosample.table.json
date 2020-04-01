@@ -27,7 +27,6 @@
     {
       "name": "derived_from_biosample_id",
       "datatype": "string",
-      "type": "required",
       "links": [
         {
           "table_name": "biosample",
@@ -58,7 +57,13 @@
     {
       "name": "donor_id",
       "datatype": "string",
-      "type": "required"
+      "type": "required",
+      "links": [
+        {
+          "table_name": "donor",
+          "column_name": "id"
+        }
+      ]
     },
     {
       "name": "audit_labels",
@@ -67,8 +72,7 @@
     },
     {
       "name": "max_audit_flag",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",
