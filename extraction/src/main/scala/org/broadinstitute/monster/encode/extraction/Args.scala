@@ -5,15 +5,15 @@ import caseapp.core.Error.MalformedValue
 import caseapp.core.argparser.{ArgParser, SimpleArgParser}
 import org.broadinstitute.monster.EncodeExtractionBuildInfo
 
-@AppName("ENCODE Extraction Pipeline")
-@AppVersion(EncodeExtractionBuildInfo.version)
-@ProgName("org.broadinstitute.monster.etl.encode.ExtractionPipeline")
 /**
   * Command-line arguments for the ETL workflow.
   *
   * scio's `ContextAndArgs.typed` delegates down to `caseapp`, which will generate
   * parsers + help text for these args (as well as Beams' underlying options)
   */
+@AppName("ENCODE Extraction Pipeline")
+@AppVersion(EncodeExtractionBuildInfo.version)
+@ProgName("org.broadinstitute.monster.etl.encode.ExtractionPipeline")
 case class Args(
   @HelpMessage(
     "Path to directory where the extracted raw ENCODE metadata should be written"

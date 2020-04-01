@@ -17,14 +17,8 @@
       "type": "required"
     },
     {
-      "name": "time_started",
-      "datatype": "timestamp",
-      "type": "required"
-    },
-    {
-      "name": "time_ended",
-      "datatype": "timestamp",
-      "type": "required"
+      "name": "date_submitted",
+      "datatype": "date"
     },
     {
       "name": "generated_alignment_file_ids",
@@ -60,14 +54,8 @@
       ]
     },
     {
-      "name": "time_submitted",
-      "datatype": "timestamp",
-      "type": "required"
-    },
-    {
       "name": "description",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "audit_labels",
@@ -76,8 +64,7 @@
     },
     {
       "name": "max_audit_flag",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",

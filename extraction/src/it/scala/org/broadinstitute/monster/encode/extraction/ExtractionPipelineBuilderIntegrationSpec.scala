@@ -30,7 +30,9 @@ class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args]
   val donorPath = (outputDir.pathAsString + "/Donor")
   val experimentPath = (outputDir.pathAsString + "/Experiment")
   val filePath = (outputDir.pathAsString + "/File")
-  val functionalCharacterizationExperimentPath = (outputDir.pathAsString + "/FunctionalCharacterizationExperiment")
+
+  val functionalCharacterizationExperimentPath =
+    (outputDir.pathAsString + "/FunctionalCharacterizationExperiment")
   val libraryPath = (outputDir.pathAsString + "/Library")
   val replicatePath = (outputDir.pathAsString + "/Replicate")
   val targetPath = (outputDir.pathAsString + "/Target")
