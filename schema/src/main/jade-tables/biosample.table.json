@@ -21,9 +21,8 @@
       "datatype": "string"
     },
     {
-      "name": "time_obtained",
-      "datatype": "timestamp",
-      "type": "required"
+      "name": "date_obtained",
+      "datatype": "date"
     },
     {
       "name": "derived_from_biosample_id",
@@ -57,15 +56,9 @@
       "type": "repeated"
     },
     {
-      "name": "donor_ids",
+      "name": "donor_id",
       "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "donor",
-          "column_name": "id"
-        }
-      ]
+      "type": "required"
     },
     {
       "name": "audit_labels",
