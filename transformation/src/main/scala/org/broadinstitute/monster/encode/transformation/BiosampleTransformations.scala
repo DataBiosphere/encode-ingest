@@ -23,7 +23,7 @@ object BiosampleTransformations {
       derivedFromBiosampleId = biosampleInput.tryRead[String]("age_units"),
       anatomicalSite = biosampleInput.tryRead[String]("biosample_ontology").flatMap(site =>
       site.),
-      biosampleType = biosampleInput.tryRead[String]("organism"),
+      biosampleType = biosampleInput.tryRead[String]("biosample_ontology"),
       samplePreservationState = biosampleInput.tryRead[String](
         "preservation_method").fold("not reported")(identity), // DONE
       seeAlso = biosampleInput.tryRead[Array[String]]("url"), // DONE
