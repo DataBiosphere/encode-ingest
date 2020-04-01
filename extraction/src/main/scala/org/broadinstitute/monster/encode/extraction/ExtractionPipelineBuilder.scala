@@ -254,7 +254,10 @@ object ExtractionPipelineBuilder {
     * "Negative" filters to include in all file searches, to filter
     * out records we don't want to bother extracting.
     */
-  val NegativeFileFilters: List[(String, String)] = List("output_category" -> "reference")
+  val NegativeFileFilters: List[(String, String)] = List(
+    "output_category" -> "reference",
+    "restricted" -> "true"
+  )
 
   /**
     * Determines whether a replicate is linked to a FunctionalCharacterizationExperiment
