@@ -11,6 +11,7 @@ object ExperimentTransformations {
   /** Transform a raw experiment into our preferred schema. */
   def transformExperiment(
     rawExperiment: Msg,
+    rawLibraries: Iterable[Msg],
     fileIdToTypeMap: Map[String, FileType]
   ): ExperimentActivity = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawExperiment)
@@ -33,14 +34,9 @@ object ExperimentTransformations {
       award = rawExperiment.read[String]("award"),
       lab = rawExperiment.read[String]("lab"),
       submittedBy = rawExperiment.read[String]("submitted_by"),
-      /*
-       * FIXME: Filling this in will require:
-       *   1. Join raw replicates and libraries on replicate.library = library.@id
-       *   2. Group those results by joined.experiment
-       *   3. Join the groups with raw experiments on group.experiment = experiment.@id
-       *   4. Pass in the (group, experiment) pair to this method, and pull out group.map(_.biosample)
-       */
-      biosampleIds = Array.empty[String]
+      biosampleIds = rawLibraries.map { lib =>
+        CommonTransformations.transformId(lib.read[String]("biosample"))
+      }.toArray.distinct
     )
   }
 }
