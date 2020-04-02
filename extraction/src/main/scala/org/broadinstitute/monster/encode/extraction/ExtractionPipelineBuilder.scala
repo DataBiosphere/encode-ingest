@@ -14,12 +14,11 @@ import upack._
 import scala.concurrent.Future
 
 /**
-  *
   * Builder for the ENCODE metadata extraction pipeline.
   *
   * @param getClient function that will produce a client which can interact with the ENCODE API
   */
-class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
+class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     extends PipelineBuilder[Args]
     with Serializable {
   import ExtractionPipelineBuilder._
@@ -27,7 +26,7 @@ class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
   implicit val coder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
   /** Convenience alias to make signatures a little less nasty. */
-  private type LookupParams = (EncodeEntity, List[(String, String)])
+  private type LookupParams = (EncodeEntity, List[(String, String)], List[(String, String)])
 
   private val lookupFn =
     new ScalaAsyncLookupDoFn[LookupParams, Msg, EncodeClient](MaxConcurrentRequests) {
@@ -36,32 +35,59 @@ class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
         client: EncodeClient,
         params: LookupParams
       ): Future[Msg] = {
-        val (encodeEntity, filters) = params
-        client.get(encodeEntity, filters)
+        val (encodeEntity, posFilters, negFilters) = params
+        client.get(encodeEntity, posFilters, negFilters)
       }
       override protected def newClient(): EncodeClient = getClient()
     }
+
+  // Batch size of 64 seems to work well in practice.
+  private val batchSize = 64L
 
   /**
     * Map a  batch of search parameters into MessagePack entities from
     * ENCODE matching those parameters.
     *
     * @param encodeEntity the type of ENCODE entity the stage should query
-    * @param filterBatches batches of key=value filters to include in API queries
+    * @param filterBatches batches of key=value and key!=value filters to include in API queries
     */
   def getEntities(
     encodeEntity: EncodeEntity,
-    filterBatches: SCollection[List[(String, String)]]
+    filterBatches: SCollection[(List[(String, String)], List[(String, String)])]
   ): SCollection[Msg] =
-    filterBatches
-      .withName("Construct full query parameters")
-      .map(encodeEntity -> _)
-      .withName("Query ENCODE API")
-      .applyKvTransform(ParDo.of(lookupFn))
-      .withName("Extract result graph")
-      .flatMap(_.getValue.fold(throw _, _.read[Array[Msg]]("@graph")))
+    filterBatches.transform(s"Query ${encodeEntity.entryName} data") {
+      _.withName("Construct full query parameters").map {
+        case (pos, neg) => (encodeEntity, pos, neg)
+      }.withName("Query ENCODE API")
+        .applyKvTransform(ParDo.of(lookupFn))
+        .withName("Extract result graph")
+        .flatMap(_.getValue.fold(throw _, _.read[Array[Msg]]("@graph")))
+    }
 
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
+    /*
+     * Generic helper method for extracting entities and saving them.
+     *
+     * @param encodeEntity type of objects to extract from the API
+     * @param queryBatches batches of query parameters to use when querying the API
+     * @param negativeFilters batch of query parameters which should be used to
+     *                        restrict the results returned by matching on queryBatches
+     */
+    def extractEntities(
+      encodeEntity: EncodeEntity,
+      queryBatches: SCollection[List[(String, String)]],
+      negativeFilters: List[(String, String)]
+    ): SCollection[Msg] = {
+      val out = getEntities(encodeEntity, queryBatches.map(_ -> negativeFilters))
+        .distinctBy(_.read[String]("@id"))
+      writeJsonLists(
+        out,
+        encodeEntity.entryName,
+        s"${args.outputDir}/${encodeEntity.entryName}"
+      )
+      out
+    }
+
     /*
      * Generic helper method for extracting linked entities and saving them.
      *
@@ -81,35 +107,21 @@ class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
       targetField: String
     ): SCollection[Msg] = {
       val description =
-        s"Query ${targetEntityType.entryName} data using ${sourceEntityType.entryName} objects"
+        s"Build queries: ${targetEntityType.entryName}.$targetField=${sourceEntityType.entryName}.$sourceField"
 
-      val out = sourceEntities.transform(description) { entities =>
+      val queries = sourceEntities.transform(description) { entities =>
         val joinValues =
           entities.flatMap(_.tryRead[Array[String]](sourceField).getOrElse(Array.empty))
-        val queryBatches = groupValues(batchSize, joinValues.map(targetField -> _))
-        getEntities(targetEntityType, queryBatches).distinctBy(_.read[String]("@id"))
+        groupValues(batchSize, joinValues.map(targetField -> _))
       }
-      writeJsonLists(
-        out,
-        s"${targetEntityType.entryName}",
-        s"${args.outputDir}/${targetEntityType.entryName}"
-      )
-      out
+      extractEntities(targetEntityType, queries, Nil)
     }
 
     // biosamples are the first one and follow a different pattern, so we don't use the generic method
-    val biosamples = ctx
-      .withName("Inject initial query")
-      .parallelize(List(args.initialQuery))
-      .transform(s"Extract ${EncodeEntity.Biosample} data") { initialQuery =>
-        // No need to de-duplicate here, there's only one query batch and
-        // ENCODE won't return the same object twice in one query.
-        getEntities(EncodeEntity.Biosample, initialQuery)
-      }
-    writeJsonLists(
-      biosamples,
-      s"${EncodeEntity.Biosample}",
-      s"${args.outputDir}/${EncodeEntity.Biosample.entryName}"
+    val biosamples = extractEntities(
+      EncodeEntity.Biosample,
+      ctx.withName("Inject initial query").parallelize(List(args.initialQuery)),
+      Nil
     )
 
     // don't need to use donors apart from storing them, so we don't assign an output here
@@ -127,38 +139,6 @@ class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.Library,
       targetField = "biosample.accession"
-    )
-
-    val files = extractLinkedEntities(
-      sourceEntityType = EncodeEntity.Library,
-      sourceField = "@id",
-      sourceEntities = libraries,
-      targetEntityType = EncodeEntity.File,
-      targetField = "replicate_libraries"
-    )
-
-    val analysisStepRuns = extractLinkedEntities(
-      sourceEntityType = EncodeEntity.File,
-      sourceField = "step_run",
-      sourceEntities = files,
-      targetEntityType = EncodeEntity.AnalysisStepRun,
-      targetField = "@id"
-    )
-
-    val analysisStepVersions = extractLinkedEntities(
-      sourceEntityType = EncodeEntity.AnalysisStepRun,
-      sourceField = "analysis_step_version",
-      sourceEntities = analysisStepRuns,
-      targetEntityType = EncodeEntity.AnalysisStepVersion,
-      targetField = "@id"
-    )
-
-    extractLinkedEntities(
-      sourceEntityType = EncodeEntity.AnalysisStepVersion,
-      sourceField = "analysis_step",
-      sourceEntities = analysisStepVersions,
-      targetEntityType = EncodeEntity.AnalysisStep,
-      targetField = "@id"
     )
 
     val replicates = extractLinkedEntities(
@@ -191,25 +171,77 @@ class ExtractionPipelineBuilder(batchSize: Long, getClient: () => EncodeClient)
       .withName("Split by experiment type")
       .partition(isFunctionalCharacterizationReplicate)
 
-    extractLinkedEntities(
+    val experiments = extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = expReplicate,
       targetEntityType = EncodeEntity.Experiment,
       targetField = "@id"
     )
-    extractLinkedEntities(
+    val fcExperiments = extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = fcReplicate,
       targetEntityType = EncodeEntity.FunctionalCharacterizationExperiment,
       targetField = "@id"
     )
+
+    // Extracting files is too complicated to fit into the usual pattern.
+    val files = {
+      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
+      val allFileIds = allExperiments
+        .withName("Extract file IDs")
+        .flatMap { msg =>
+          val inputFiles = msg.read[Array[String]]("contributing_files")
+          val outputFiles = msg.read[Array[String]]("files")
+
+          List.concat(inputFiles, outputFiles)
+        }
+        .distinct
+
+      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
+        groupValues(batchSize, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
+      }
+
+      getEntities(EncodeEntity.File, queryBatches)
+    }
+
+    writeJsonLists(
+      files,
+      EncodeEntity.File.entryName,
+      s"${args.outputDir}/${EncodeEntity.File.entryName}"
+    )
+
+    val analysisStepRuns = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.File,
+      sourceField = "step_run",
+      sourceEntities = files,
+      targetEntityType = EncodeEntity.AnalysisStepRun,
+      targetField = "@id"
+    )
+
+    val analysisStepVersions = extractLinkedEntities(
+      sourceEntityType = EncodeEntity.AnalysisStepRun,
+      sourceField = "analysis_step_version",
+      sourceEntities = analysisStepRuns,
+      targetEntityType = EncodeEntity.AnalysisStepVersion,
+      targetField = "@id"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.AnalysisStepVersion,
+      sourceField = "analysis_step",
+      sourceEntities = analysisStepVersions,
+      targetEntityType = EncodeEntity.AnalysisStep,
+      targetField = "@id"
+    )
+
     ()
   }
 }
 
 object ExtractionPipelineBuilder {
+
   /**
     * Max number of HTTP requests to have in-flight at any time.
     *
@@ -217,6 +249,15 @@ object ExtractionPipelineBuilder {
     * definitely makes the ENCODE server unhappy.
     */
   val MaxConcurrentRequests = 8
+
+  /**
+    * "Negative" filters to include in all file searches, to filter
+    * out records we don't want to bother extracting.
+    */
+  val NegativeFileFilters: List[(String, String)] = List(
+    "output_category" -> "reference",
+    "restricted" -> "true"
+  )
 
   /**
     * Determines whether a replicate is linked to a FunctionalCharacterizationExperiment

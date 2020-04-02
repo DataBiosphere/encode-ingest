@@ -13,7 +13,20 @@ import scala.concurrent.{Future, Promise}
 
 /** Interface for clients that hits ENCODE API. */
 trait EncodeClient extends Serializable {
-  def get(entity: EncodeEntity, params: List[(String, String)]): Future[Msg]
+
+  /**
+    * Search for entities within ENCODE.
+    *
+    * @param entity the type of entity to search on
+    * @param params key=value parameters that returned entities must match
+    * @param negativeParams key!=value parameters that returned entities
+    *                       must not match
+    */
+  def get(
+    entity: EncodeEntity,
+    params: List[(String, String)],
+    negativeParams: List[(String, String)]
+  ): Future[Msg]
 }
 
 object EncodeClient {
@@ -30,12 +43,16 @@ object EncodeClient {
       .readTimeout(timeout)
       .build()
 
-    (entity, params) => {
+    (entity, params, negParams) => {
       val paramStrings = params.map {
         case (key, value) =>
           s"$key=$value"
       }
-      val allParams = s"type=${entity.entryName}" :: baseParams ::: paramStrings
+      val negParamStrings = negParams.map {
+        case (key, value) =>
+          s"$key!=$value"
+      }
+      val allParams = s"type=${entity.entryName}" :: baseParams ::: paramStrings ::: negParamStrings
       val url = s"https://www.encodeproject.org/search/?${allParams.mkString(sep = "&")}"
       val p = Promise[Msg]()
 
