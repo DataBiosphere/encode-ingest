@@ -26,7 +26,7 @@ object BiosampleTransformations {
       biosampleType = "type",
       samplePreservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
-      donorId = biosampleInput.read[String]("donor"),
+      donorId = CommonTransformations.transformId(biosampleInput.read[String]("donor")),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       award = biosampleInput.read[String]("award"),
