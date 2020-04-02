@@ -26,16 +26,16 @@ object BiosampleTransformations {
       biosampleType = "type",
       samplePreservationState =
         biosampleInput.tryRead[String]("preservation_method").fold("not reported")(identity),
-      seeAlso = biosampleInput.read[Array[String]]("url"),
+      seeAlso = biosampleInput.tryRead[String]("url"),
       donorId = biosampleInput.read[String]("donor"),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       award = biosampleInput.read[String]("award"),
       // TODO needs replicates
       biologicalReplicateId = 42,
-      cellIsolationMethods = biosampleInput.read[Array[String]]("cell_isolation_method"),
+      cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
       geneticModifications = biosampleInput.read[Array[String]]("applied_modifications"),
-      healthStatus = biosampleInput.read[String]("health_status"),
+      healthStatus = biosampleInput.tryRead[String]("health_status"),
       lab = biosampleInput.read[String]("lab"),
       // TODO needs to join with experiments
       replicationType = "repType",

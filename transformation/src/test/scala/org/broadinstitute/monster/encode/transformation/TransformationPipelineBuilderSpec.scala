@@ -17,10 +17,9 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
   override val testArgs =
     Args(inputPrefix = inputDirString, outputPrefix = compareDirString)
 
-  override def afterAll(): Unit = {
+  override def afterAll(): Unit =
     compareDir.delete()
-    ()
-  }
+  ()
 
   override val builder = TransformationPipelineBuilder
 
