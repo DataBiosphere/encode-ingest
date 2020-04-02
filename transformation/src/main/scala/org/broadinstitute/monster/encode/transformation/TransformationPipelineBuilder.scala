@@ -119,6 +119,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       "Experiments",
       s"${args.outputPrefix}/experiment_activity"
     )
+
+    // Biosamples need replicates and experiments?
+    val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
+    val biosampleOutput = biosampleInputs
+      .withName("Transform biosamples")
+      .map(BiosampleTransformations.transformBiosample)
+    StorageIO.writeJsonLists(
+      biosampleOutput,
+      "Biosamples",
+      s"${args.outputPrefix}/biosample"
+    )
     ()
   }
 }

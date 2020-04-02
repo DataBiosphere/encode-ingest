@@ -21,14 +21,12 @@
       "datatype": "string"
     },
     {
-      "name": "time_obtained",
-      "datatype": "timestamp",
-      "type": "required"
+      "name": "date_obtained",
+      "datatype": "date"
     },
     {
       "name": "derived_from_biosample_id",
       "datatype": "string",
-      "type": "required",
       "links": [
         {
           "table_name": "biosample",
@@ -48,18 +46,16 @@
     },
     {
       "name": "sample_preservation_state",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "see_also",
-      "datatype": "string",
-      "type": "repeated"
+      "datatype": "string"
     },
     {
-      "name": "donor_ids",
+      "name": "donor_id",
       "datatype": "string",
-      "type": "repeated",
+      "type": "required",
       "links": [
         {
           "table_name": "donor",
@@ -74,8 +70,7 @@
     },
     {
       "name": "max_audit_flag",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "award",
@@ -88,9 +83,8 @@
       "type": "required"
     },
     {
-      "name": "cell_isolation_methods",
-      "datatype": "string",
-      "type": "repeated"
+      "name": "cell_isolation_method",
+      "datatype": "string"
     },
     {
       "name": "genetic_modifications",
@@ -99,8 +93,7 @@
     },
     {
       "name": "health_status",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "lab",
