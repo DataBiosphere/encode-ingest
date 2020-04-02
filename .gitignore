@@ -1,3 +1,4 @@
 target/
+!transformation/src/test/test-files/inputs/Target/
 .scalafmt.conf
 .idea
