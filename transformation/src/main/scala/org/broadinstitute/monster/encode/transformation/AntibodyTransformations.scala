@@ -28,7 +28,7 @@ object AntibodyTransformations {
       source = antibodyInput.read[String]("source"),
       clonality = antibodyInput.tryRead[String]("clonality"),
       hostOrganism = antibodyInput.read[String]("host_organism"),
-      target = mappedTargets,
+      targets = mappedTargets,
       award = antibodyInput.read[String]("award"),
       isotype = antibodyInput.tryRead[String]("isotype"),
       lab = antibodyInput.read[String]("lab"),
