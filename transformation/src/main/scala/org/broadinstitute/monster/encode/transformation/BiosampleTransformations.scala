@@ -19,13 +19,12 @@ object BiosampleTransformations {
       source = biosampleInput.tryRead[String]("source"),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
       derivedFromBiosampleId =
-        biosampleInput.tryRead[String]("library").map(CommonTransformations.transformId),
+        biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
       // TODO needs biosampleType join
       anatomicalSite = "site",
       // TODO needs biosampleType join
       biosampleType = "type",
-      samplePreservationState =
-        biosampleInput.tryRead[String]("preservation_method").fold("not reported")(identity),
+      samplePreservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
       donorId = biosampleInput.read[String]("donor"),
       auditLabels = auditLabels,

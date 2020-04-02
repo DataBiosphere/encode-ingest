@@ -46,8 +46,7 @@
     },
     {
       "name": "sample_preservation_state",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "see_also",
