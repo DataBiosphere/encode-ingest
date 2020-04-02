@@ -42,6 +42,7 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
     "donor",
     "antibody",
     "library",
+    "biosample",
     "alignment_file",
     "other_file",
     "sequence_file",
