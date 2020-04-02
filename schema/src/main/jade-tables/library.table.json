@@ -39,9 +39,13 @@
       "datatype": "string"
     },
     {
-      "name": "strand_specificity",
+      "name": "strand_specific",
       "datatype": "boolean",
       "type": "required"
+    },
+    {
+      "name": "strand_specificity",
+      "datatype": "string"
     },
     {
       "name": "treatments",

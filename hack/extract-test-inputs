@@ -7,17 +7,11 @@ declare -r REPO_ROOT=$(cd $(dirname ${SCRIPT_DIR}) >/dev/null 2>&1 && pwd)
 declare -r OUTPUT_DIR=${REPO_ROOT}/transformation/src/test/test-files/inputs
 
 declare -ra ACCESSIONS=(
-  ENCBS288EFZ
   ENCBS314ZRO
-  ENCBS433JOD
-  ENCBS504ZJS
-  ENCBS559QNR
-  ENCBS568FYY
-  ENCBS586UUR
-  ENCBS842EZN
   ENCBS849IVF
-  ENCBS865KGM
   ENCBS873XSG
+  ENCBS051RNA
+  ENCBS393JAH
 )
 
 function main () {
