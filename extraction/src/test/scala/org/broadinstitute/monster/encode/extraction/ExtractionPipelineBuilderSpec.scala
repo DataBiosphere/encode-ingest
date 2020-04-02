@@ -28,14 +28,6 @@ object ExtractionPipelineBuilderSpec {
     Str("accession") -> Str("1")
   )
 
-  // files
-  val fileParams = ("replicate_libraries", "1")
-
-  val fileOut = Obj(
-    Str("@id") -> Str("1"),
-    Str("step_run") -> Str("1")
-  )
-
   // replicates
   val replicateParams = ("library.accession", "1")
   val replicateIds = 1 to 2
@@ -68,13 +60,36 @@ object ExtractionPipelineBuilderSpec {
 
   // experiments
   val experimentParams = ("@id", "1")
-  val experimentOut = Obj(Str("@id") -> Str("1"))
+
+  val experimentOut = Obj(
+    Str("@id") -> Str("1"),
+    Str("files") -> Arr(Str("1")),
+    Str("contributing_files") -> Arr(Str("3"))
+  )
 
   // fcexperiments
   val fcExperimentParams = ("@id", "/functional-characterization-experiments/2")
 
   val fcExperimentOut = Obj(
-    Str("@id") -> Str("/functional-characterization-experiments/2")
+    Str("@id") -> Str("/functional-characterization-experiments/2"),
+    Str("files") -> Arr(Str("2")),
+    Str("contributing_files") -> Arr()
+  )
+
+  // files
+  val fileRequestResponse = Map[(String, String), Msg](
+    ("@id", "1") -> Obj(
+      Str("@id") -> Str("1"),
+      Str("step_run") -> Str("1")
+    ),
+    ("@id", "2") -> Obj(
+      Str("@id") -> Str("2"),
+      Str("step_run") -> Str("1")
+    ),
+    ("@id", "3") -> Obj(
+      Str("@id") -> Str("3"),
+      Str("step_run") -> Str("1")
+    )
   )
 
   // analysisStepRuns
@@ -97,24 +112,23 @@ object ExtractionPipelineBuilderSpec {
   val analysisStepParams = ("@id", "1")
   val analysisStepOut = Obj(Str("@id") -> Str("1"))
 
-  val responseMap = Map[(EncodeEntity, (String, String)), List[Msg]](
-    (EncodeEntity.Biosample, biosampleParams) -> List(biosampleOut),
-    (EncodeEntity.Donor, donorParams) -> List(donorOut),
-    (EncodeEntity.Library, libraryParams) -> List(libraryOut),
-    (EncodeEntity.Replicate, replicateParams) -> replicateOut,
-    (EncodeEntity.AntibodyLot, antibodyParams) -> List(antibodyOut),
-    (EncodeEntity.Target, targetParams) -> List(targetOut),
-    (EncodeEntity.Experiment, experimentParams) -> List(experimentOut),
-    (EncodeEntity.FunctionalCharacterizationExperiment, fcExperimentParams) -> List(
-      fcExperimentOut
-    ),
-    (EncodeEntity.AnalysisStepRun, analysisStepRunParams) -> List(analysisStepRunOut),
-    (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams) -> List(
-      analysisStepVersionOut
-    ),
-    (EncodeEntity.AnalysisStep, analysisStepParams) -> List(analysisStepOut),
-    (EncodeEntity.File, fileParams) -> List(fileOut)
-  )
+  val responseMap = Map[(EncodeEntity, (String, String), List[(String, String)]), List[Msg]](
+    (EncodeEntity.Biosample, biosampleParams, Nil) -> List(biosampleOut),
+    (EncodeEntity.Donor, donorParams, Nil) -> List(donorOut),
+    (EncodeEntity.Library, libraryParams, Nil) -> List(libraryOut),
+    (EncodeEntity.Replicate, replicateParams, Nil) -> replicateOut,
+    (EncodeEntity.AntibodyLot, antibodyParams, Nil) -> List(antibodyOut),
+    (EncodeEntity.Target, targetParams, Nil) -> List(targetOut),
+    (EncodeEntity.Experiment, experimentParams, Nil) -> List(experimentOut),
+    (EncodeEntity.FunctionalCharacterizationExperiment, fcExperimentParams, Nil) ->
+      List(fcExperimentOut),
+    (EncodeEntity.AnalysisStepRun, analysisStepRunParams, Nil) -> List(analysisStepRunOut),
+    (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams, Nil) ->
+      List(analysisStepVersionOut),
+    (EncodeEntity.AnalysisStep, analysisStepParams, Nil) -> List(analysisStepOut)
+  ) ++ fileRequestResponse.map {
+    case (k, v) => (EncodeEntity.File, k, ExtractionPipelineBuilder.NegativeFileFilters) -> List(v)
+  }
 
   val mockClient = new MockEncodeClient(responseMap)
 
@@ -179,75 +193,76 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
   override val testArgs = Args(outputDir = outputDir.pathAsString)
 
   override val builder =
-    new ExtractionPipelineBuilder(2L, getClient = () => mockClient)
+    new ExtractionPipelineBuilder(getClient = () => mockClient)
 
   behavior of "ExtractionPipelineBuilder"
 
   it should "query and write Biosample data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.Biosample, biosampleParams)
+      (EncodeEntity.Biosample, biosampleParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Biosample}/*.json") shouldBe Set(biosampleOut)
   }
 
   it should "query and write Donor data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.Donor, donorParams)
+      (EncodeEntity.Donor, donorParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Donor}/*.json") shouldBe Set(donorOut)
   }
 
   it should "query and write Library data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.Library, libraryParams)
+      (EncodeEntity.Library, libraryParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Library}/*.json") shouldBe Set(libraryOut)
   }
 
   it should "query and write Replicate data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.Replicate, replicateParams)
+      (EncodeEntity.Replicate, replicateParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Replicate}/*.json") shouldBe replicateOut.toSet
   }
 
   it should "query and write Antibody data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.AntibodyLot, antibodyParams)
+      (EncodeEntity.AntibodyLot, antibodyParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.AntibodyLot}/*.json") shouldBe Set(antibodyOut)
   }
 
   it should "query and write Target data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.Target, targetParams)
+      (EncodeEntity.Target, targetParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Target}/*.json") shouldBe Set(targetOut)
   }
 
   it should "query and write Experiment data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.Experiment, experimentParams)
+      (EncodeEntity.Experiment, experimentParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Experiment}/*.json") shouldBe Set(experimentOut)
   }
 
   it should "query and write FunctionalCharacterizationExperiment data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.FunctionalCharacterizationExperiment, fcExperimentParams)
+      (EncodeEntity.FunctionalCharacterizationExperiment, fcExperimentParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.FunctionalCharacterizationExperiment}/*.json") shouldBe
       Set(fcExperimentOut)
   }
 
   it should "query and write File data as expected" in {
-    mockClient.recordedRequests.toSet should contain((EncodeEntity.File, fileParams))
-    readMsgs(outputDir, s"${EncodeEntity.File}/*.json") shouldBe Set(fileOut)
+    mockClient.recordedRequests.toSet should contain allElementsOf fileRequestResponse.keySet
+      .map(p => (EncodeEntity.File, p, ExtractionPipelineBuilder.NegativeFileFilters))
+    readMsgs(outputDir, s"${EncodeEntity.File}/*.json") shouldBe fileRequestResponse.values.toSet
   }
 
   it should "query and write AnalysisStepRun data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.AnalysisStepRun, analysisStepRunParams)
+      (EncodeEntity.AnalysisStepRun, analysisStepRunParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.AnalysisStepRun}/*.json") shouldBe Set(
       analysisStepRunOut
@@ -256,7 +271,7 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
 
   it should "query and write AnalysisStepVersion data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams)
+      (EncodeEntity.AnalysisStepVersion, analysisStepVersionParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.AnalysisStepVersion}/*.json") shouldBe
       Set(analysisStepVersionOut)
@@ -264,7 +279,7 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
 
   it should "query and write AnalysisStep data as expected" in {
     mockClient.recordedRequests.toSet should contain(
-      (EncodeEntity.AnalysisStep, analysisStepParams)
+      (EncodeEntity.AnalysisStep, analysisStepParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.AnalysisStep}/*.json") shouldBe
       Set(analysisStepOut)

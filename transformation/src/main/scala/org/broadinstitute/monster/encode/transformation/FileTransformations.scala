@@ -84,8 +84,8 @@ object FileTransformations {
       val id = CommonTransformations.transformId(rawId)
 
       idsToType.get(id) match {
-        case Some(FileType.Alignment) => (Some(id), None, None)
-        case Some(FileType.Sequence)  => (None, Some(id), None)
+        case Some(FileType.Sequence)  => (Some(id), None, None)
+        case Some(FileType.Alignment) => (None, Some(id), None)
         case Some(FileType.Other)     => (None, None, Some(id))
         case None =>
           logger.warn(s"No type found for file '$rawId'")
@@ -147,8 +147,7 @@ object FileTransformations {
       pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       pairedEndIdentifier = pairedEndId,
       pairedWithSequenceFileId =
-        rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId),
-      cloudPath = None
+        rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
     )
   }
 
@@ -164,8 +163,10 @@ object FileTransformations {
   ): AlignmentFile = {
     val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val parentBranches =
-      splitFileReferences(rawFile.read[Array[String]]("derived_from"), idsToType)
+    val parentBranches = splitFileReferences(
+      rawFile.tryRead[Array[String]]("derived_from").getOrElse(Array.empty),
+      idsToType
+    )
     val modality = computeDataModality(rawFile)
 
     AlignmentFile(
@@ -197,8 +198,10 @@ object FileTransformations {
     idsToType: Map[String, FileType]
   ): OtherFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val parentBranches =
-      splitFileReferences(rawFile.read[Array[String]]("derived_from"), idsToType)
+    val parentBranches = splitFileReferences(
+      rawFile.tryRead[Array[String]]("derived_from").getOrElse(Array.empty),
+      idsToType
+    )
     val modality = computeDataModality(rawFile)
 
     OtherFile(

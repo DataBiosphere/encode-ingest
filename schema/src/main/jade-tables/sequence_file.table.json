@@ -98,10 +98,6 @@
           "column_name": "id"
         }
       ]
-    },
-    {
-      "name": "cloud_path",
-      "datatype": "fileref"
     }
   ]
 }

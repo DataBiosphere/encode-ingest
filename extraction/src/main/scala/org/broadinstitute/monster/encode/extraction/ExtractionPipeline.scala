@@ -7,6 +7,5 @@ import org.broadinstitute.monster.common.{PipelineBuilder, ScioApp}
 object ExtractionPipeline extends ScioApp[Args] {
 
   override val pipelineBuilder: PipelineBuilder[Args] =
-    // Batch size of 64 seems to work well in practice.
-    new ExtractionPipelineBuilder(64L, EncodeClient.apply)
+    new ExtractionPipelineBuilder(EncodeClient.apply)
 }
