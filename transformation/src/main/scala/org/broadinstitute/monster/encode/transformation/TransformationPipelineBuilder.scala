@@ -98,20 +98,48 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/other_file"
     )
 
-    // Experiments merge two different raw streams.
+    // Experiments merge two different raw streams,
+    // and join against both replicates and libraries.
     val experimentInputs = readRawEntities(EncodeEntity.Experiment)
-    val fcExperimentInputs =
-      readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment)
+    val fcExperimentInputs = readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment)
+    val replicateInputs = readRawEntities(EncodeEntity.Replicate)
+
+    val librariesByExperiment = {
+      val keyedReplicates = replicateInputs
+        .withName("Key replicates by library")
+        .keyBy(_.read[String]("library"))
+      val keyedLibraries = libraryInputs
+        .withName("Key libraries by ID")
+        .keyBy(_.read[String]("@id"))
+
+      keyedReplicates
+        .withName("Join replicates and libraries")
+        .leftOuterJoin(keyedLibraries)
+        .values
+        .flatMap {
+          case (replicate, maybeLibrary) =>
+            maybeLibrary.map(lib => replicate.read[String]("experiment") -> lib)
+        }
+        .groupByKey
+    }
+
     val experimentOutput = experimentInputs
       .withName("Merge experiments")
       .union(fcExperimentInputs)
+      .withName("Key experiments by ID")
+      .keyBy(_.read[String]("@id"))
+      .withName("Join experiments and libraries")
+      .leftOuterJoin(librariesByExperiment)
+      .values
       .withSideInputs(fileIdToType)
       .withName("Transform experiments")
-      .map { (rawExperiment, sideCtx) =>
-        ExperimentTransformations.transformExperiment(
-          rawExperiment,
-          sideCtx(fileIdToType)
-        )
+      .map {
+        case ((rawExperiment, rawLibraries), sideCtx) =>
+          ExperimentTransformations.transformExperiment(
+            rawExperiment,
+            rawLibraries.toIterable.flatten,
+            sideCtx(fileIdToType)
+          )
       }
       .toSCollection
     StorageIO.writeJsonLists(
