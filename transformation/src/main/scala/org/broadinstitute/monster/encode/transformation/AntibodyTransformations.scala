@@ -17,8 +17,8 @@ object AntibodyTransformations {
       .map(CommonTransformations.transformId)
       .flatMap { target =>
         val (front, back) = target.splitAt(target.lastIndexOf('-'))
-        if (back != "-human") None
-        else Some(front)
+        if (back == "-human") Some(front)
+        else None
       }
 
     Antibody(
