@@ -34,9 +34,10 @@ object ExperimentTransformations {
       award = rawExperiment.read[String]("award"),
       lab = rawExperiment.read[String]("lab"),
       submittedBy = rawExperiment.read[String]("submitted_by"),
+      // NOTE: Sorting the array is important here for reproducibility.
       biosampleIds = rawLibraries.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
-      }.toArray.distinct
+      }.toArray.sorted.distinct
     )
   }
 }
