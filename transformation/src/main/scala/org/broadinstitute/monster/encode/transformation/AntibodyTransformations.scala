@@ -13,7 +13,8 @@ object AntibodyTransformations {
 
     // Use regular expressions to remove everything but the actual target name. Remove any non-human targets.
     val mappedTargets = antibodyInput
-      .read[Array[String]]("targets")
+      .tryRead[Array[String]]("targets")
+      .getOrElse(Array.empty)
       .map(CommonTransformations.transformId)
       .flatMap { target =>
         val (front, back) = target.splitAt(target.lastIndexOf('-'))
