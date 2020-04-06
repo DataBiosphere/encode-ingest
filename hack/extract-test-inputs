@@ -12,6 +12,7 @@ declare -ra ACCESSIONS=(
   ENCBS873XSG
   ENCBS051RNA
   ENCBS393JAH
+  ENCBS630AAA
 )
 
 function main () {

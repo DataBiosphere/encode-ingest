@@ -23,8 +23,7 @@
     },
     {
       "name": "clonality",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "host_organism",
@@ -32,8 +31,9 @@
       "type": "required"
     },
     {
-      "name": "target",
-      "datatype": "string"
+      "name": "targets",
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "award",
@@ -51,8 +51,7 @@
     },
     {
       "name": "lot_id",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "product_id",
