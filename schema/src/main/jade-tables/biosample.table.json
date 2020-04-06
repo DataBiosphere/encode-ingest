@@ -78,11 +78,6 @@
       "type": "required"
     },
     {
-      "name": "biological_replicate_id",
-      "datatype": "integer",
-      "type": "required"
-    },
-    {
       "name": "cell_isolation_method",
       "datatype": "string"
     },
@@ -103,11 +98,6 @@
     {
       "name": "replication_type",
       "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "technical_replicate_id",
-      "datatype": "integer",
       "type": "required"
     },
     {
