@@ -30,16 +30,12 @@ object BiosampleTransformations {
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       award = biosampleInput.read[String]("award"),
-      // TODO needs replicates
-      biologicalReplicateId = 42,
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
       geneticModifications = biosampleInput.read[Array[String]]("applied_modifications"),
       healthStatus = biosampleInput.tryRead[String]("health_status"),
       lab = biosampleInput.read[String]("lab"),
       // TODO needs to join with experiments
       replicationType = "repType",
-      // TODO needs replicates
-      technicalReplicateId = 43,
       treatments = biosampleInput.read[Array[String]]("treatments"),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
       submittedBy = biosampleInput.read[String]("submitted_by")
