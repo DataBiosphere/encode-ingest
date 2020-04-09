@@ -17,19 +17,23 @@ object BiosampleTransformations {
     val biosample_id = CommonTransformations.readId(biosampleInput)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(biosampleInput)
 
-    val product_ids = joinedLibraries
+    var product_ids = joinedLibraries
       .flatMap(library => library.tryRead[String]("product_id"))
       .toSet[String]
-    val lot_ids = joinedLibraries
+    var lot_ids = joinedLibraries
       .flatMap(library => library.tryRead[String]("lot_id"))
       .toSet[String]
 
+    // check that there are not more than one unique product_id or lot_id.
+    // If there are multiple, default to None.
     if (product_ids.size > 1) {
+      product_ids = Set()
       logger.warn(
         s"Biosample '$biosample_id' has more than one product id in: [${product_ids.mkString(",")}]."
       )
     }
     if (product_ids.size > 1) {
+      lot_ids = Set()
       logger.warn(
         s"Biosample '$biosample_id' has more than one lot id in: [${lot_ids.mkString(",")}]."
       )
