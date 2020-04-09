@@ -153,7 +153,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .keyBy(_.read[String]("biosample"))
       .groupByKey
 
-    // Biosamples need replicates and experiments?
+    // Biosample transformation need Libraries, Experiments, and BiosampleTypes
     val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
     val biosampleOutput = biosampleInputs
       .withName("Key biosamples by ID")
