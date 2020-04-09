@@ -59,7 +59,7 @@ object BiosampleTransformations {
       } else {
         productIds.headOption
       },
-      lotId = if (productIds.size > 1) {
+      lotId = if (lotIds.size > 1) {
         logger.warn(s"Biosample '$biosampleId' has multiple lot ids: [${lotIds.mkString(",")}].")
         None
       } else {
