@@ -114,6 +114,14 @@
       "name": "submitted_by",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "product_id",
+      "datatype": "string"
+    },
+    {
+      "name": "lot_id",
+      "datatype": "string"
     }
   ]
 }

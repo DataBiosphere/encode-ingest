@@ -148,11 +148,25 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/experiment_activity"
     )
 
+    val librariesByBiosample = libraryInputs
+      .withName("Key libraries by biosample")
+      .keyBy(_.read[String]("biosample"))
+
     // Biosamples need replicates and experiments?
     val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
     val biosampleOutput = biosampleInputs
+      .withName("Key biosamples by ID")
+      .keyBy(_.read[String]("@id"))
+      .leftOuterJoin(librariesByBiosample)
+      .values
       .withName("Transform biosamples")
-      .map(BiosampleTransformations.transformBiosample)
+      .map {
+        case (biosample, joinedLibraries) =>
+          BiosampleTransformations.transformBiosample(
+            biosample,
+            joinedLibraries
+          )
+      }
     StorageIO.writeJsonLists(
       biosampleOutput,
       "Biosamples",
