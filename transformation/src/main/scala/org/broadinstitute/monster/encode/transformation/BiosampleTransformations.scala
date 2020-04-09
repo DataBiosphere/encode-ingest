@@ -13,7 +13,11 @@ object BiosampleTransformations {
   private val logger = LoggerFactory.getLogger(getClass)
 
   /** Transform a raw ENCODE biosample into our preferred schema. */
-  def transformBiosample(biosampleInput: Msg, joinedLibraries: Iterable[Msg]): Biosample = {
+  def transformBiosample(
+    biosampleInput: Msg,
+    joinedType: Msg,
+    joinedLibraries: Iterable[Msg]
+  ): Biosample = {
     val biosampleId = CommonTransformations.readId(biosampleInput)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(biosampleInput)
 
@@ -32,10 +36,8 @@ object BiosampleTransformations {
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
-      // TODO needs biosampleType join
-      anatomicalSite = "site",
-      // TODO needs biosampleType join
-      biosampleType = "type",
+      anatomicalSite = joinedType.read[String]("term_id"),
+      biosampleType = joinedType.read[String]("classification"),
       samplePreservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
       donorId = CommonTransformations.transformId(biosampleInput.read[String]("donor")),
