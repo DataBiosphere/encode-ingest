@@ -13,12 +13,17 @@ object ExtractionPipelineBuilderSpec {
   val biosampleOut = Obj(
     Str("@id") -> Str("1"),
     Str("donor") -> Str("1"),
-    Str("accession") -> Str("1")
+    Str("accession") -> Str("1"),
+    Str("biosample_ontology") -> Str("1")
   )
 
   // donors
   val donorParams = ("@id", "1")
   val donorOut = Obj(Str("@id") -> Str("1"))
+
+  // biosample types
+  val biosampleTypeParams = ("@id", "1")
+  val biosampleTypeOut = Obj(Str("@id") -> Str("1"))
 
   // libraries
   val libraryParams = ("biosample.accession", "1")
@@ -114,6 +119,7 @@ object ExtractionPipelineBuilderSpec {
 
   val responseMap = Map[(EncodeEntity, (String, String), List[(String, String)]), List[Msg]](
     (EncodeEntity.Biosample, biosampleParams, Nil) -> List(biosampleOut),
+    (EncodeEntity.BiosampleType, biosampleTypeParams, Nil) -> List(biosampleTypeOut),
     (EncodeEntity.Donor, donorParams, Nil) -> List(donorOut),
     (EncodeEntity.Library, libraryParams, Nil) -> List(libraryOut),
     (EncodeEntity.Replicate, replicateParams, Nil) -> replicateOut,
@@ -209,6 +215,13 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
       (EncodeEntity.Donor, donorParams, Nil)
     )
     readMsgs(outputDir, s"${EncodeEntity.Donor}/*.json") shouldBe Set(donorOut)
+  }
+
+  it should "query and write BiosampleType data as expected" in {
+    mockClient.recordedRequests.toSet should contain(
+      (EncodeEntity.BiosampleType, biosampleTypeParams, Nil)
+    )
+    readMsgs(outputDir, s"${EncodeEntity.BiosampleType}/*.json") shouldBe Set(biosampleTypeOut)
   }
 
   it should "query and write Library data as expected" in {

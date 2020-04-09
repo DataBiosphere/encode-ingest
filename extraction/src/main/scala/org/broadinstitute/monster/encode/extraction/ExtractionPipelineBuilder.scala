@@ -124,12 +124,19 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
-    // don't need to use donors apart from storing them, so we don't assign an output here
+    // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
       sourceField = "donor",
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.Donor,
+      targetField = "@id"
+    )
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "biosample_ontology",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.BiosampleType,
       targetField = "@id"
     )
 
