@@ -35,10 +35,6 @@ object BiosampleTransformations {
       )
     }
 
-    // TODO check outputs
-    val library_ids = joinedLibraries.flatMap(library => library.tryRead[String]("product_id"))
-    println(s"__________${library_ids.mkString(",")}____________")
-
     Biosample(
       id = CommonTransformations.readId(biosampleInput),
       crossReferences = biosampleInput.read[Array[String]]("dbxrefs"),
