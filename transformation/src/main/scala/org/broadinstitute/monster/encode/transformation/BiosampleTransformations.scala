@@ -14,30 +14,15 @@ object BiosampleTransformations {
 
   /** Transform a raw ENCODE biosample into our preferred schema. */
   def transformBiosample(biosampleInput: Msg, joinedLibraries: Iterable[Msg]): Biosample = {
-    val biosample_id = CommonTransformations.readId(biosampleInput)
+    val biosampleId = CommonTransformations.readId(biosampleInput)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(biosampleInput)
 
-    var product_ids = joinedLibraries
+    val productIds = joinedLibraries
       .flatMap(library => library.tryRead[String]("product_id"))
       .toSet[String]
-    var lot_ids = joinedLibraries
+    val lotIds = joinedLibraries
       .flatMap(library => library.tryRead[String]("lot_id"))
       .toSet[String]
-
-    // check that there are not more than one unique product_id or lot_id.
-    // If there are multiple, default to None.
-    if (product_ids.size > 1) {
-      product_ids = Set()
-      logger.warn(
-        s"Biosample '$biosample_id' has more than one product id in: [${product_ids.mkString(",")}]."
-      )
-    }
-    if (product_ids.size > 1) {
-      lot_ids = Set()
-      logger.warn(
-        s"Biosample '$biosample_id' has more than one lot id in: [${lot_ids.mkString(",")}]."
-      )
-    }
 
     Biosample(
       id = CommonTransformations.readId(biosampleInput),
@@ -66,8 +51,20 @@ object BiosampleTransformations {
       treatments = biosampleInput.read[Array[String]]("treatments"),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
       submittedBy = biosampleInput.read[String]("submitted_by"),
-      productId = product_ids.headOption,
-      lotId = lot_ids.headOption
+      productId = if (productIds.size > 1) {
+        logger.warn(
+          s"Biosample '$biosampleId' has multiple product ids: [${productIds.mkString(",")}]."
+        )
+        None
+      } else {
+        productIds.headOption
+      },
+      lotId = if (productIds.size > 1) {
+        logger.warn(s"Biosample '$biosampleId' has multiple lot ids: [${lotIds.mkString(",")}].")
+        None
+      } else {
+        lotIds.headOption
+      }
     )
   }
 }
