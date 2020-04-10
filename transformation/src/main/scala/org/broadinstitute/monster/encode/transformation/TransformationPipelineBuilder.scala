@@ -159,7 +159,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val biosamplesWithTypes = biosampleInputs
       .withName("Key biosamples by type")
       .keyBy(_.read[String]("biosample_ontology"))
-      .join(typesById)
+      .leftOuterJoin(typesById)
       .values
 
     val librariesByBiosample = libraryInputs

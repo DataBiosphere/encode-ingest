@@ -15,7 +15,7 @@ object BiosampleTransformations {
   /** Transform a raw ENCODE biosample into our preferred schema. */
   def transformBiosample(
     biosampleInput: Msg,
-    joinedType: Msg,
+    joinedType: Option[Msg],
     joinedLibraries: Iterable[Msg]
   ): Biosample = {
     val biosampleId = CommonTransformations.readId(biosampleInput)
@@ -28,6 +28,10 @@ object BiosampleTransformations {
       .flatMap(library => library.tryRead[String]("lot_id"))
       .toSet[String]
 
+    if (joinedType.isEmpty) {
+      logger.warn(s"Biosample '$biosampleId' has no associated type!")
+    }
+
     Biosample(
       id = CommonTransformations.readId(biosampleInput),
       crossReferences = biosampleInput.read[Array[String]]("dbxrefs"),
@@ -36,8 +40,8 @@ object BiosampleTransformations {
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
-      anatomicalSite = joinedType.read[String]("term_id"),
-      biosampleType = joinedType.read[String]("classification"),
+      anatomicalSite = joinedType.map(_.read[String]("term_id")),
+      biosampleType = joinedType.map(_.read[String]("classification")),
       samplePreservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
       donorId = CommonTransformations.transformId(biosampleInput.read[String]("donor")),
