@@ -36,13 +36,11 @@
     },
     {
       "name": "anatomical_site",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "biosample_type",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "sample_preservation_state",
