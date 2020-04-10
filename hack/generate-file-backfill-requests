@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+declare -r SCRIPT_DIR=$(cd $(dirname ${0}) >/dev/null 2>&1 && pwd)
+declare -r REPO_ROOT=$(cd $(dirname ${SCRIPT_DIR}) >/dev/null 2>&1 && pwd)
+
+declare -r VAULT_SECRET=secret/dsde/monster/prod/encode/explorer
+
+declare -r OUTPUT_BUCKET=gs://broad-encode-migration-storage
+declare -r OUTPUT_PATH=${OUTPUT_BUCKET}/explorer-backfill
+
+function get_secret () {
+  vault read -field=$1 ${VAULT_SECRET}
+}
+
+function main () {
+  trap "cd $(pwd)" EXIT
+  cd ${REPO_ROOT}
+
+  # FIXME: Change to run in da cloud
+  local -ra run_command=(
+    encode-explorer-file-backfill/run
+    # Point at the production explorer's CloudSQL instance.
+    --cloudSqlInstanceName=$(get_secret db_instance_id)
+    --cloudSqlDb=$(get_secret db_name)
+    --cloudSqlUsername=$(get_secret db_username)
+    --cloudSqlPassword=$(get_secret db_password)
+    # Write outputs to our migration bucket.
+    --outputPrefix=${OUTPUT_PATH}
+    # Run in the project used by the production explorer.
+    --runner=dataflow
+    --project=broad-gdr-encode
+    --region=us-central1
+    --tempLocation=${OUTPUT_BUCKET}/dataflow
+    --experiments=shuffle_mode=service
+    --workerMachineType=n1-standard-1
+    --autoscalingAlgorithm=NONE
+    --numWorkers=8
+    # Make sure we're using an account w/ permissions to read from Cloud SQL.
+    --serviceAccount=723041133044-compute@developer.gserviceaccount.com
+  )
+
+  # Clean up whatever's already at the output path
+  gsutil -m rm -r ${OUTPUT_PATH}
+  sbt "${run_command[*]}"
+}
+
+main
