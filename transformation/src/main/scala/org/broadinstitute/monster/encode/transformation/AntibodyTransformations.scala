@@ -13,7 +13,7 @@ object AntibodyTransformations {
 
     val humanTargetNames = joinedTargets
       .filter(_.read[String]("organism") == "/organisms/human/")
-      .map(_.read[String]("name"))
+      .map(_.read[String]("label"))
       .toArray
 
     Antibody(

@@ -62,13 +62,13 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .map((_, rawAntibody))
     }.flatten
       .keyBy(_._1) // key by target id
-      .join(targetsById)
+      .leftOuterJoin(targetsById)
       .values
       .groupBy(_._1._2.read[String]("@id")) // group by antibody id
       .values
       .map { expandedValues =>
         val antibody = expandedValues.head._1._2
-        val joinedTargets = expandedValues.map(_._2)
+        val joinedTargets = expandedValues.flatMap(_._2)
         AntibodyTransformations.transformAntibody(antibody, joinedTargets)
       }
 
