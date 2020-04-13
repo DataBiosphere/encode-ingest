@@ -36,17 +36,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .map(DonorTransformations.transformDonor)
     StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
 
-    // So can antibodies.
-    val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
-    val antibodyOutput = antibodyInputs
-      .withName("Transform antibodies")
-      .map(AntibodyTransformations.transformAntibody)
-    StorageIO.writeJsonLists(
-      antibodyOutput,
-      "Antibodies",
-      s"${args.outputPrefix}/antibody"
-    )
-
     // Libraries can also be processed in isolation
     val libraryInputs = readRawEntities(EncodeEntity.Library)
     val libraryOutput = libraryInputs
@@ -56,6 +45,37 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       libraryOutput,
       "Libraries",
       s"${args.outputPrefix}/library"
+    )
+
+    // The Antibody transformation needs information from the Target objects
+    val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
+    val targetInputs = readRawEntities(EncodeEntity.Target)
+    val targetsById = targetInputs
+      .withName("Key targets by id")
+      .keyBy(_.read[String]("@id"))
+
+    // join antibodies (currently a messy process) TODO: clean up
+    val antibodyOutput = antibodyInputs.map { rawAntibody =>
+      rawAntibody
+        .tryRead[Array[String]]("targets")
+        .getOrElse(Array.empty)
+        .map((_, rawAntibody))
+    }.flatten
+      .keyBy(_._1) // key by target id
+      .join(targetsById)
+      .values
+      .groupBy(_._1._2.read[String]("@id")) // group by antibody id
+      .values
+      .map { expandedValues =>
+        val antibody = expandedValues.head._1._2
+        val joinedTargets = expandedValues.map(_._2)
+        AntibodyTransformations.transformAntibody(antibody, joinedTargets)
+      }
+
+    StorageIO.writeJsonLists(
+      antibodyOutput,
+      "Antibodies",
+      s"${args.outputPrefix}/antibody"
     )
 
     // Files are more complicated.
