@@ -13,6 +13,8 @@ sealed trait EncodeEntity extends EnumEntry
 object EncodeEntity extends Enum[EncodeEntity] {
   case object Biosample extends EncodeEntity
 
+  case object BiosampleType extends EncodeEntity
+
   case object Donor extends EncodeEntity
 
   case object Experiment extends EncodeEntity

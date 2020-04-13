@@ -2,3 +2,7 @@ target/
 !transformation/src/test/test-files/inputs/Target/
 .scalafmt.conf
 .idea
+.metals/
+.bloop/
+project/metals.sbt
+

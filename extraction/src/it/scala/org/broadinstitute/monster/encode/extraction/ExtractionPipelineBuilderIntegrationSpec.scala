@@ -27,6 +27,7 @@ class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args]
   val analysisStepVersionPath = (outputDir.pathAsString + "/AnalysisStepVersion")
   val antibodyLotPath = (outputDir.pathAsString + "/AntibodyLot")
   val biosamplePath = (outputDir.pathAsString + "/Biosample")
+  val biosampleTypePath = (outputDir.pathAsString + "/BiosampleType")
   val donorPath = (outputDir.pathAsString + "/Donor")
   val experimentPath = (outputDir.pathAsString + "/Experiment")
   val filePath = (outputDir.pathAsString + "/File")
@@ -54,6 +55,9 @@ class ExtractionPipelineBuilderIntegrationSpec extends PipelineBuilderSpec[Args]
   }
   it should "successfully download Biosample files" in {
     biosamplePath.nonEmpty should be(true)
+  }
+  it should "successfully download BiosampleType files" in {
+    biosampleTypePath.nonEmpty should be(true)
   }
   it should "successfully download Donor files" in {
     donorPath.nonEmpty should be(true)
