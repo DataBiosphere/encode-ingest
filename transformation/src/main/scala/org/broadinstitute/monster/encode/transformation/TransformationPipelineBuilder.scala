@@ -39,26 +39,42 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     // The Antibody transformation needs information from the Target objects
     val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
     val targetInputs = readRawEntities(EncodeEntity.Target)
-    val targetsById = targetInputs
+    val keyedTargets = targetInputs
       .withName("Key targets by id")
       .keyBy(_.read[String]("@id"))
 
-    // join antibodies (currently a messy process) TODO: clean up
-    val antibodyOutput = antibodyInputs.map { rawAntibody =>
-      rawAntibody
-        .tryRead[Array[String]]("targets")
-        .getOrElse(Array.empty)
-        .map((_, rawAntibody))
+    // Get all of the (Antibody-id, Target-id) pairs
+    val antibodyTargetPairs = antibodyInputs.map { rawAntibody =>
+      rawAntibody.tryRead[Array[String]]("targets").getOrElse(Array.empty).map { targetId =>
+        rawAntibody.read[String]("@id") -> targetId
+      }
     }.flatten
-      .keyBy(_._1) // key by target id
-      .leftOuterJoin(targetsById)
+
+    // Join target objects to the Antibody-Target pairs
+    val targetsByAntibodyId = antibodyTargetPairs
+      .withName("Key antibody-target pairs by target id")
+      .keyBy(_._2)
+      .join(keyedTargets)
       .values
-      .groupBy(_._1._2.read[String]("@id")) // group by antibody id
+      .map {
+        case (antibodyTargetPair, target) =>
+          antibodyTargetPair._1 -> target
+      }
+      .groupByKey
+
+    // join Targets to Antibodies
+    val antibodyOutput = antibodyInputs
+      .withName("Key antibodies by ID")
+      .keyBy(_.read[String]("@id"))
+      .leftOuterJoin(targetsByAntibodyId)
       .values
-      .map { expandedValues =>
-        val antibody = expandedValues.head._1._2
-        val joinedTargets = expandedValues.flatMap(_._2)
-        AntibodyTransformations.transformAntibody(antibody, joinedTargets)
+      .withName("Transform Antibodies")
+      .map {
+        case (antibody, joinedTargets) =>
+          AntibodyTransformations.transformAntibody(
+            antibody,
+            joinedTargets.toIterable.flatten
+          )
       }
 
     StorageIO.writeJsonLists(
