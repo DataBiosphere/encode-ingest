@@ -11,7 +11,7 @@ object AntibodyTransformations {
   def transformAntibody(antibodyInput: Msg, joinedTargets: Iterable[Msg]): Antibody = {
     import org.broadinstitute.monster.common.msg.MsgOps
 
-    val humanTargetNames = joinedTargets
+    val targetNames = joinedTargets
       .filter(_.read[String]("organism") == "/organisms/human/")
       .map(_.read[String]("label"))
       .toArray
@@ -23,7 +23,7 @@ object AntibodyTransformations {
       source = antibodyInput.read[String]("source"),
       clonality = antibodyInput.tryRead[String]("clonality"),
       hostOrganism = antibodyInput.read[String]("host_organism"),
-      targets = humanTargetNames,
+      targets = targetNames,
       award = antibodyInput.read[String]("award"),
       isotype = antibodyInput.tryRead[String]("isotype"),
       lab = antibodyInput.read[String]("lab"),

@@ -36,17 +36,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .map(DonorTransformations.transformDonor)
     StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
 
-    // Libraries can also be processed in isolation
-    val libraryInputs = readRawEntities(EncodeEntity.Library)
-    val libraryOutput = libraryInputs
-      .withName("Transform libraries")
-      .map(LibraryTransformations.transformLibrary)
-    StorageIO.writeJsonLists(
-      libraryOutput,
-      "Libraries",
-      s"${args.outputPrefix}/library"
-    )
-
     // The Antibody transformation needs information from the Target objects
     val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
     val targetInputs = readRawEntities(EncodeEntity.Target)
@@ -76,6 +65,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       antibodyOutput,
       "Antibodies",
       s"${args.outputPrefix}/antibody"
+    )
+
+    // Libraries can also be processed in isolation
+    val libraryInputs = readRawEntities(EncodeEntity.Library)
+    val libraryOutput = libraryInputs
+      .withName("Transform libraries")
+      .map(LibraryTransformations.transformLibrary)
+    StorageIO.writeJsonLists(
+      libraryOutput,
+      "Libraries",
+      s"${args.outputPrefix}/library"
     )
 
     // Files are more complicated.
