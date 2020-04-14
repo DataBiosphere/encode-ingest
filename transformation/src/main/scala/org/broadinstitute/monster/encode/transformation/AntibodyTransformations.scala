@@ -8,19 +8,15 @@ import upack.Msg
 object AntibodyTransformations {
 
   /** Transform a raw ENCODE antibody into our preferred schema. */
-  def transformAntibody(antibodyInput: Msg): Antibody = {
+  def transformAntibody(antibodyInput: Msg, joinedTargets: Iterable[Msg]): Antibody = {
     import org.broadinstitute.monster.common.msg.MsgOps
 
-    // Use regular expressions to remove everything but the actual target name. Remove any non-human targets.
-    val mappedTargets = antibodyInput
-      .tryRead[Array[String]]("targets")
-      .getOrElse(Array.empty)
-      .map(CommonTransformations.transformId)
-      .flatMap { target =>
-        val (front, back) = target.splitAt(target.lastIndexOf('-'))
-        if (back == "-human") Some(front)
-        else None
-      }
+    val targetNames = joinedTargets
+      .filter(_.read[String]("organism") == "/organisms/human/")
+      .map(_.read[String]("label"))
+      .toArray
+      .sorted
+      .distinct
 
     Antibody(
       id = CommonTransformations.readId(antibodyInput),
@@ -29,7 +25,7 @@ object AntibodyTransformations {
       source = antibodyInput.read[String]("source"),
       clonality = antibodyInput.tryRead[String]("clonality"),
       hostOrganism = antibodyInput.read[String]("host_organism"),
-      targets = mappedTargets,
+      targets = targetNames,
       award = antibodyInput.read[String]("award"),
       isotype = antibodyInput.tryRead[String]("isotype"),
       lab = antibodyInput.read[String]("lab"),

@@ -36,11 +36,48 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .map(DonorTransformations.transformDonor)
     StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
 
-    // So can antibodies.
+    // The Antibody transformation needs information from the Target objects
     val antibodyInputs = readRawEntities(EncodeEntity.AntibodyLot)
+    val targetInputs = readRawEntities(EncodeEntity.Target)
+    val keyedTargets = targetInputs
+      .withName("Key targets by id")
+      .keyBy(_.read[String]("@id"))
+
+    val antibodyTargetPairs = antibodyInputs
+      .withName("Create an id pair for each antibody-target relationship")
+      .flatMap { rawAntibody =>
+        rawAntibody.tryRead[Array[String]]("targets").getOrElse(Array.empty).map { targetId =>
+          rawAntibody.read[String]("@id") -> targetId
+        }
+      }
+
+    // Join target objects to the Antibody-Target pairs
+    val targetsByAntibodyId = antibodyTargetPairs
+      .withName("Key antibody-target pairs by target id")
+      .keyBy(_._2)
+      .join(keyedTargets)
+      .values
+      .map {
+        case (antibodyTargetPair, target) =>
+          antibodyTargetPair._1 -> target
+      }
+      .groupByKey
+
+    // join Targets to Antibodies
     val antibodyOutput = antibodyInputs
-      .withName("Transform antibodies")
-      .map(AntibodyTransformations.transformAntibody)
+      .withName("Key antibodies by ID")
+      .keyBy(_.read[String]("@id"))
+      .leftOuterJoin(targetsByAntibodyId)
+      .values
+      .withName("Transform Antibodies")
+      .map {
+        case (antibody, joinedTargets) =>
+          AntibodyTransformations.transformAntibody(
+            antibody,
+            joinedTargets.toIterable.flatten
+          )
+      }
+
     StorageIO.writeJsonLists(
       antibodyOutput,
       "Antibodies",
