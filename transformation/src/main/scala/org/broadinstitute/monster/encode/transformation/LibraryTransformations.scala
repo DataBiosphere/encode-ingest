@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 
 import org.broadinstitute.monster.encode.jadeschema.table.Library
 import upack.Msg
+import org.broadinstitute.monster.encode.jadeschema.table.LibraryPrepActivity
 
 /** Transformation logic for ENCODE library objects. */
 object LibraryTransformations {
@@ -36,4 +37,17 @@ object LibraryTransformations {
       biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample"))
     )
   }
+
+  /** Transform a raw ENCODE library into our preferred library-prep schema. */
+  def transformLibraryPrep(libraryInput: Msg): LibraryPrepActivity = {
+    val id = CommonTransformations.readId(libraryInput)
+    LibraryPrepActivity(
+      id = id,
+      libraryMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),
+      libraryMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name"),
+      libraryId = id,
+      biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample"))
+    )
+  }
+
 }
