@@ -43,12 +43,13 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Key targets by id")
       .keyBy(_.read[String]("@id"))
 
-    // Get all of the (Antibody-id, Target-id) pairs
-    val antibodyTargetPairs = antibodyInputs.map { rawAntibody =>
-      rawAntibody.tryRead[Array[String]]("targets").getOrElse(Array.empty).map { targetId =>
-        rawAntibody.read[String]("@id") -> targetId
+    val antibodyTargetPairs = antibodyInputs
+      .withName("Create an id pair for each antibody-target relationship")
+      .flatMap { rawAntibody =>
+        rawAntibody.tryRead[Array[String]]("targets").getOrElse(Array.empty).map { targetId =>
+          rawAntibody.read[String]("@id") -> targetId
+        }
       }
-    }.flatten
 
     // Join target objects to the Antibody-Target pairs
     val targetsByAntibodyId = antibodyTargetPairs

@@ -15,6 +15,8 @@ object AntibodyTransformations {
       .filter(_.read[String]("organism") == "/organisms/human/")
       .map(_.read[String]("label"))
       .toArray
+      .sorted
+      .distinct
 
     Antibody(
       id = CommonTransformations.readId(antibodyInput),
