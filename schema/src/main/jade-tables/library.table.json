@@ -72,6 +72,14 @@
           "column_name": "id"
         }
       ]
+    },
+    {
+      "name": "prep_material",
+      "datatype": "string"
+    },
+    {
+      "name": "prep_material_name",
+      "datatype": "string"
     }
   ]
 }

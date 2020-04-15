@@ -89,6 +89,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val libraryOutput = libraryInputs
       .withName("Transform libraries")
       .map(LibraryTransformations.transformLibrary)
+
     StorageIO.writeJsonLists(
       libraryOutput,
       "Libraries",
