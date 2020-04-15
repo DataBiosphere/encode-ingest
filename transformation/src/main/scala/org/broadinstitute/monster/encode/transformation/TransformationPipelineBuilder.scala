@@ -160,7 +160,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .groupByKey
     }
 
-    val experimentOutput = experimentInputs
+    val assayOutput = experimentInputs
       .withName("Merge experiments")
       .union(fcExperimentInputs)
       .withName("Key experiments by ID")
@@ -172,7 +172,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Transform experiments")
       .map {
         case ((rawExperiment, rawLibraries), sideCtx) =>
-          ExperimentTransformations.transformExperiment(
+          AssayTransformations.transformExperiment(
             rawExperiment,
             rawLibraries.toIterable.flatten,
             sideCtx(fileIdToType)
@@ -180,9 +180,9 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       }
       .toSCollection
     StorageIO.writeJsonLists(
-      experimentOutput,
-      "Experiments",
-      s"${args.outputPrefix}/experiment_activity"
+      assayOutput,
+      "Assays",
+      s"${args.outputPrefix}/assay"
     )
 
     // Biosample transformation needs Libraries, Experiments, and BiosampleTypes
