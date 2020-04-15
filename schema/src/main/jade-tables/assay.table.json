@@ -1,5 +1,5 @@
 {
-  "name": "assay_activity",
+  "name": "assay",
   "columns": [
     {
       "name": "id",
@@ -17,14 +17,57 @@
       "type": "required"
     },
     {
-      "name": "time_started",
-      "datatype": "timestamp",
+      "name": "date_submitted",
+      "datatype": "date"
+    },
+    {
+      "name": "description",
+      "datatype": "string"
+    },
+    {
+      "name": "assay_category",
+      "datatype": "string",
       "type": "required"
     },
     {
-      "name": "time_ended",
-      "datatype": "timestamp",
+      "name": "assay_type",
+      "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "audit_labels",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "max_audit_flag",
+      "datatype": "string"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "biosample_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
     },
     {
       "name": "used_alignment_file_ids",
@@ -113,25 +156,6 @@
           "column_name": "id"
         }
       ]
-    },
-    {
-      "name": "reference_assembly",
-      "datatype": "string"
-    },
-    {
-      "name": "assay_category",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "assay_type",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
-      "name": "strand_specificity",
-      "datatype": "boolean",
-      "type": "required"
     }
   ]
 }
