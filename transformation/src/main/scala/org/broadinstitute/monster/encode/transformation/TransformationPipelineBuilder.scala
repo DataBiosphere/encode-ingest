@@ -89,19 +89,11 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val libraryOutput = libraryInputs
       .withName("Transform libraries")
       .map(LibraryTransformations.transformLibrary)
-    val libraryPrepOutput = libraryInputs
-      .withName("Create library prep entries")
-      .map(LibraryTransformations.transformLibraryPrep)
 
     StorageIO.writeJsonLists(
       libraryOutput,
       "Libraries",
       s"${args.outputPrefix}/library"
-    )
-    StorageIO.writeJsonLists(
-      libraryPrepOutput,
-      "Library Prep",
-      s"${args.outputPrefix}/library_prep_activity"
     )
 
     // Files are more complicated.

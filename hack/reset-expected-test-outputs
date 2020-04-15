@@ -16,6 +16,7 @@ function main () {
 
   # Concat all the output part-files, and move the result back into the
   # git repository.
+  rm -rf ${OUTPUT_DIR}/*
   for dir in ${tmp_out}/*; do
     local output_dir=${OUTPUT_DIR}/$(basename ${dir})
     mkdir -p ${output_dir}
