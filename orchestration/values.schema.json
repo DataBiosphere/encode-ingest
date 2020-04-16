@@ -33,7 +33,8 @@
         "schedule": { "type": "string" },
         "timezone": { "type": "string" }
       },
-      "required": ["enable", "schedule"]
-    }
+      "required": ["enable", "schedule"],
+      }
+    },
   "required": ["gcs", "serviceAccount", "volumes", "cron"]
 }
