@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "gcs": {
+      "type": "object",
+      "properties": {
+        "bucketName": { "type": "string" }
+      },
+      "required": ["bucketName"]
+    },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "k8sName": { "type": "string" },
+        "googleName": { "type": "string" }
+      },
+      "required": ["k8sName", "googleName"]
+    },
+    "volumes": {
+      "type": "object",
+      "properties": {
+        "storageClass": { "type": "string" },
+        "downloadSize": { "type": "string" },
+        "extractSize": { "type": "string" }
+      },
+      "required": ["storageClass", "downloadSize", "extractSize"]
+    },
+    "cron": {
+      "type": "object",
+      "properties": {
+        "enable": { "type": "boolean" },
+        "schedule": { "type": "string" },
+        "timezone": { "type": "string" }
+      },
+      "required": ["enable", "schedule"]
+    }
+  "required": ["gcs", "serviceAccount", "volumes", "cron"]
+}

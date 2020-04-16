@@ -1,0 +1,9 @@
+volumes:
+  storageClass: standard
+  downloadSize: 1Gi
+  extractSize: 10Gi
+cron:
+  enable: true
+  # Every Sunday at 3:30am
+  schedule: '30 3 * * Sun'
+  timezone: 'America/New_York'

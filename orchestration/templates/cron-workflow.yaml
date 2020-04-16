@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: encode-ingest
+spec:
+  suspend: {{ not .Values.cron.enable }}
+  schedule: {{ .Values.cron.schedule | quote }}
+  timezone: {{ .Values.cron.timezone | quote }}
+  concurrencyPolicy: Forbid
+  workflowSpec:
+    entrypoint: main
+    serviceAccountName: {{ .Values.serviceAccount.k8sName }}
+    podGC:
+      strategy: OnWorkflowSuccess
+    parallelism: {{ .Values.maxParallelism }}
+    templates:
+      - name: main
+        steps:
+          - - name: run-main-template
+              templateRef:
+                name: ingest-encode-archive
+                template: main
+              arguments:
+                parameters:
+                  - name: archive-path
+                    value: weekly_release/EncodeVariationRelease_00-latest_weekly.xml.gz ???
+                  - name: gcs-prefix
+                    value: '{{ template "argo.timestamp" }}'
