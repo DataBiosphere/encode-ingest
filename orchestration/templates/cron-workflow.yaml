@@ -18,11 +18,9 @@ spec:
         steps:
           - - name: run-main-template
               templateRef:
-                name: ingest-encode-archive
+                name: ingest-encode-data
                 template: main
               arguments:
                 parameters:
-                  - name: archive-path
-                    value: weekly_release/EncodeVariationRelease_00-latest_weekly.xml.gz ???
                   - name: gcs-prefix
-                    value: '{{ template "argo.timestamp" }}'
+                    value: '{{ template "argo.timestamp" }}' # need this?

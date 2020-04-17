@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ingest-clinvar-archive
+spec:
+  templates:
+    - name: main
+      inputs:
+        parameters:
+          - name: gcs-prefix
+      dag:
+        tasks:
+          # 1) Run the extraction pipeline in Dataflow
+          - name: run-extraction
+            templateRef:
+              name: run-extraction-pipeline
+              template: main
+            arguments:
+              parameters:
+                - name: gcs-bucket
+                  value: '{{ .Values.gcs.bucketName }}'
+                - name: gcs-prefix
+                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/raw'
+          # 2) Run the transformation pipeline on the extracted files
+          - name: run-transformation
+            dependencies: [run-extraction]
+            templateRef:
+              name: run-transformation-pipeline
+              template: main
+            arguments:
+              parameters:
+                - name: gcs-bucket
+                  value: '{{ .Values.gcs.bucketName }}'
+                - name: input-prefix
+                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/raw'
+                - name: output-prefix
+                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/processed'
