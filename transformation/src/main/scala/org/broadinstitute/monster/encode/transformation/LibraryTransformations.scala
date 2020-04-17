@@ -33,7 +33,10 @@ object LibraryTransformations {
       treatments = libraryInput.read[Array[String]]("treatments"),
       submittedBy = libraryInput.read[String]("submitted_by"),
       spikeIns = libraryInput.read[Array[String]]("spikeins_used"),
-      biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample"))
+      biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample")),
+      prepMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),
+      prepMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name")
     )
   }
+
 }
