@@ -23,4 +23,4 @@ spec:
               arguments:
                 parameters:
                   - name: gcs-prefix
-                    value: '{{ template "argo.timestamp" }}' # need this?
+                    value: '{{ template "argo.timestamp" }}'
