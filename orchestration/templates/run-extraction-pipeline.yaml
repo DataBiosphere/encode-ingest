@@ -17,8 +17,7 @@ spec:
         args:
           - --runner=dataflow
           {{- $bucket := "{{inputs.parameters.gcs-bucket}}" }}
-             - --inputPrefix=gs://{{ $bucket }}/{{ "{{inputs.parameters.input-prefix}}" }}
-          - --outputPrefix=gs://{{ $bucket }}/{{ "{{inputs.parameters.output-prefix}}" }}
+          - --outputDir=gs://{{ $bucket }}/{{ "{{inputs.parameters.output-prefix}}" }}
           - --project={{ .project }}
           - --region={{ .region }}
           - --tempLocation=gs://{{ .tmpBucketName }}/dataflow

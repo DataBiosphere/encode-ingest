@@ -17,15 +17,6 @@
       },
       "required": ["k8sName", "googleName"]
     },
-    "volumes": {
-      "type": "object",
-      "properties": {
-        "storageClass": { "type": "string" },
-        "downloadSize": { "type": "string" },
-        "extractSize": { "type": "string" }
-      },
-      "required": ["storageClass", "downloadSize", "extractSize"]
-    },
     "cron": {
       "type": "object",
       "properties": {
