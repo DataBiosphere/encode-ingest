@@ -18,8 +18,7 @@
     },
     {
       "name": "data_modality",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "audit_labels",
