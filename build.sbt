@@ -63,3 +63,11 @@ lazy val `encode-explorer-file-backfill` = project
       "org.postgresql" % "postgresql" % postgresDriverVersion
     )
   )
+
+lazy val `encode-orchestration-workflow` = project
+  .in(file("orchestration"))
+  .enablePlugins(MonsterHelmPlugin)
+  .settings(
+    helmChartOrganization := "DataBiosphere",
+    helmChartRepository := "encode-ingest"
+  )
