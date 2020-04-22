@@ -1,5 +1,6 @@
 target/
 !transformation/src/test/test-files/inputs/Target/
+!transformation/src/test/test-files/outputs-to-compare/
 .scalafmt.conf
 .idea
 .metals/
