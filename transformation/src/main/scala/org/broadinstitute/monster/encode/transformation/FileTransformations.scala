@@ -31,16 +31,18 @@ object FileTransformations {
   private val logger = LoggerFactory.getLogger(getClass)
 
   /** Divide a stream of raw files into branches, with one branch per file category. */
-  def partitionRawFiles(rawStream: SCollection[Msg]): FileBranches[SCollection, Msg] = {
+  def partitionRawFiles(
+    rawStream: SCollection[(Msg, Option[Msg])]
+  ): FileBranches[SCollection, (Msg, Option[Msg])] = {
     val Seq(sequence, alignment, other) = rawStream
       .withName("Split raw files by category")
       .partition(
-        3,
-        rawFile => {
-          val category = rawFile.read[String]("output_category")
-          if (category == SequencingCategory) 0
-          else if (category == AlignmentCategory) 1
-          else 2
+        3, {
+          case (rawFile, _) =>
+            val category = rawFile.read[String]("output_category")
+            if (category == SequencingCategory) 0
+            else if (category == AlignmentCategory) 1
+            else 2
         }
       )
 
@@ -52,10 +54,10 @@ object FileTransformations {
     * input in downstream processing.
     */
   def buildIdTypeMap(
-    branches: FileBranches[SCollection, Msg]
+    branches: FileBranches[SCollection, (Msg, Option[Msg])]
   ): SideInput[Map[String, FileType]] = {
-    def extractFileIdAndTagType(typ: FileType)(rawFile: Msg): (String, FileType) =
-      CommonTransformations.readId(rawFile) -> typ
+    def extractFileIdAndTagType(typ: FileType)(rawFile: (Msg, Option[Msg])): (String, FileType) =
+      CommonTransformations.readId(rawFile._1) -> typ
 
     val taggedIds = branches.sequence.transform("Tag file IDs with category") { sequenceBranch =>
       val sequenceIds = sequenceBranch.map(extractFileIdAndTagType(FileType.Sequence))
@@ -97,78 +99,85 @@ object FileTransformations {
   }
 
   /** Compute the data modality of a raw file. */
-  private def computeDataModality(rawFile: Msg): Option[String] =
-    if (rawFile.tryRead[String]("output_category").collect {
-      case _ => "Genomic_Assembly"
-    })
-
-    else
-      rawFile.tryRead[String]("assay_title").collect {
-        case "3' RACE"                 => "Transcriptomic"
-        case "4C"                      => "Epigenomic_3D Contact Maps"
-        case "5' RACE"                 => "Transcriptomic"
-        case "5' RLM RACE"             => "Transcriptomic"
-        case "5C"                      => "Epigenomic_3D Contact Maps"
-        case "ATAC-seq"                => "Epigenomic_DNAChromatinAccessibility"
-        case "Bru-seq"                 => "Transcriptomic_Unbiased"
-        case "BruChase-seq"            => "Transcriptomic_Unbiased"
-        case "BruUV-seq"               => "Transcriptomic_Unbiased"
-        case "CAGE"                    => "Transcriptomic_Unbiased"
-        case "ChIA-PET"                => "Epigenomic_3D Contact Maps"
-        case "Circulome-seq"           => "Genomic"
-        case "Clone-seq"               => "Proteomic"
-        case "genotyping array"        => "Genomic_Genotyping_Targeted"
-        case "Control ChIP-seq"        => "Epigenomic_DNABinding"
-        case "Control eCLIP"           => "Epigenomic_RNABinding"
-        case "CRISPR RNA-seq"          => "Transcriptomic_Unbiased"
-        case "CRISPRi RNA-seq"         => "Transcriptomic_Unbiased"
-        case "direct RNA-seq"          => "Transcriptomic_Unbiased"
-        case "DNAme array"             => "Epigenomic_DNAMethylation"
-        case "DNA-PET"                 => "Epigenomic_3D Contact Maps"
-        case "DNase-seq"               => "Epigenomic_DNAChromatinAccessibility"
-        case "FAIRE-seq"               => "Epigenomic_DNAChromatinAccessibility"
-        case "GM DNase-seq"            => "Epigenomic_DNAChromatinAccessibility"
-        case "genotype phasing by HiC" => "Genomic_Assembly"
-        case "genotyping HTS"          => "Genomic_Genotyping_Whole Genomic"
-        case "Hi-C"                    => "Epigenomic_3D Contact Maps"
-        case "Histone ChIP-seq"        => "Epigenomic_DNABinding_HistoneModificationLocation"
-        case "iCLIP"                   => "Epigenomic_RNABinding"
-        case "icSHAPE"                 => "Epigenomic_RNABinding"
-        case "long read RNA-seq"       => "Transcriptomic_Unbiased"
-        case "MeDIP-seq"               => "Epigenomic_DNAMethylation"
-        case "microRNA counts"         => "Transcriptomic_Unbiased"
-        case "microRNA-seq"            => "Transcriptomic_Unbiased"
-        case "MNase-seq"               => "Epigenomic_DNAChromatinAccessibility"
-        case "MRE-seq"                 => "Epigenomic_DNAMethylation"
-        case "PAS-seq"                 => "Transcriptomic_Unbiased"
-        case "PLAC-seq"                => "Epigenomic_DNAChromatinAccessibility"
-        case "polyA minus RNA-seq"     => "Transcriptomic_Unbiased"
-        case "polyA plus RNA-seq"      => "Transcriptomic_Unbiased"
-        case "PRO-cap"                 => "Transcriptomic"
-        case "PRO-seq"                 => "Transcriptomic"
-        case "MS-MS"                   => "Proteomic"
-        case "RAMPAGE"                 => "Transcriptomic_Unbiased"
-        case "Repli-chip"              => "Genomic"
-        case "Repli-seq"               => "Genomic"
-        case "RIP-chip"                => "Epigenomic_RNABinding"
-        case "RIP-seq"                 => "Epigenomic_RNABinding"
-        case "RNA Bind-n-Seq"          => "Epigenomic_RNABinding"
-        case "RNA microarray"          => "Transcriptomic_Targeted"
-        case "RNA-PET"                 => "Transcriptomic_Unbiased"
-        case "RRBS"                    => "Epigenomic_DNAMethylation"
-        case "shRNA RNA-seq"           => "Transcriptomic_Unbiased"
-        case "scRNA-seq"               => "Transcriptomic_Unbiased"
-        case "single-cell ATAC-seq"    => "Epigenomic_DNAChromatinAccessibility"
-        case "snATAC-seq"              => "Epigenomic_DNAChromatinAccessibility"
-        case "siRNA RNA-seq"           => "Transcriptomic_Unbiased"
-        case "small RNA-seq"           => "Transcriptomic_Unbiased"
-        case "Switchgear"              => "Epigenomic_RNABinding"
-        case "TAB-seq"                 => "Epigenomic_DNAMethylation"
-        case "TF ChIP-seq"             => "Epigenomic_DNABinding_TranscriptomeFactorLocation"
-        case "total RNA-seq"           => "Transcriptomic_Unbiased"
-        case "WGS"                     => "Genomic_Genotyping_Whole Genomic"
-        case "WGBS"                    => "Epigenomic_DNAMethylation"
+  private def computeDataModality(rawFile: Msg, rawExperiment: Option[Msg]): Option[String] = {
+    val dataModality =
+      if (rawFile.tryRead[String]("output_category").contains("reference")) {
+        Some("Genomic_Assembly")
+      } else {
+        rawExperiment.flatMap(e => e.tryRead[String]("assay_title")).collect {
+          case "3' RACE"                 => "Transcriptomic"
+          case "4C"                      => "Epigenomic_3D Contact Maps"
+          case "5' RACE"                 => "Transcriptomic"
+          case "5' RLM RACE"             => "Transcriptomic"
+          case "5C"                      => "Epigenomic_3D Contact Maps"
+          case "ATAC-seq"                => "Epigenomic_DNAChromatinAccessibility"
+          case "Bru-seq"                 => "Transcriptomic_Unbiased"
+          case "BruChase-seq"            => "Transcriptomic_Unbiased"
+          case "BruUV-seq"               => "Transcriptomic_Unbiased"
+          case "CAGE"                    => "Transcriptomic_Unbiased"
+          case "ChIA-PET"                => "Epigenomic_3D Contact Maps"
+          case "Circulome-seq"           => "Genomic"
+          case "Clone-seq"               => "Proteomic"
+          case "genotyping array"        => "Genomic_Genotyping_Targeted"
+          case "Control ChIP-seq"        => "Epigenomic_DNABinding"
+          case "Control eCLIP"           => "Epigenomic_RNABinding"
+          case "CRISPR RNA-seq"          => "Transcriptomic_Unbiased"
+          case "CRISPRi RNA-seq"         => "Transcriptomic_Unbiased"
+          case "direct RNA-seq"          => "Transcriptomic_Unbiased"
+          case "DNAme array"             => "Epigenomic_DNAMethylation"
+          case "DNA-PET"                 => "Epigenomic_3D Contact Maps"
+          case "DNase-seq"               => "Epigenomic_DNAChromatinAccessibility"
+          case "FAIRE-seq"               => "Epigenomic_DNAChromatinAccessibility"
+          case "GM DNase-seq"            => "Epigenomic_DNAChromatinAccessibility"
+          case "genotype phasing by HiC" => "Genomic_Assembly"
+          case "genotyping HTS"          => "Genomic_Genotyping_Whole Genomic"
+          case "Hi-C"                    => "Epigenomic_3D Contact Maps"
+          case "Histone ChIP-seq"        => "Epigenomic_DNABinding_HistoneModificationLocation"
+          case "iCLIP"                   => "Epigenomic_RNABinding"
+          case "icSHAPE"                 => "Epigenomic_RNABinding"
+          case "long read RNA-seq"       => "Transcriptomic_Unbiased"
+          case "MeDIP-seq"               => "Epigenomic_DNAMethylation"
+          case "microRNA counts"         => "Transcriptomic_Unbiased"
+          case "microRNA-seq"            => "Transcriptomic_Unbiased"
+          case "MNase-seq"               => "Epigenomic_DNAChromatinAccessibility"
+          case "MRE-seq"                 => "Epigenomic_DNAMethylation"
+          case "PAS-seq"                 => "Transcriptomic_Unbiased"
+          case "PLAC-seq"                => "Epigenomic_DNAChromatinAccessibility"
+          case "polyA minus RNA-seq"     => "Transcriptomic_Unbiased"
+          case "polyA plus RNA-seq"      => "Transcriptomic_Unbiased"
+          case "PRO-cap"                 => "Transcriptomic"
+          case "PRO-seq"                 => "Transcriptomic"
+          case "MS-MS"                   => "Proteomic"
+          case "RAMPAGE"                 => "Transcriptomic_Unbiased"
+          case "Repli-chip"              => "Genomic"
+          case "Repli-seq"               => "Genomic"
+          case "RIP-chip"                => "Epigenomic_RNABinding"
+          case "RIP-seq"                 => "Epigenomic_RNABinding"
+          case "RNA Bind-n-Seq"          => "Epigenomic_RNABinding"
+          case "RNA microarray"          => "Transcriptomic_Targeted"
+          case "RNA-PET"                 => "Transcriptomic_Unbiased"
+          case "RRBS"                    => "Epigenomic_DNAMethylation"
+          case "shRNA RNA-seq"           => "Transcriptomic_Unbiased"
+          case "scRNA-seq"               => "Transcriptomic_Unbiased"
+          case "single-cell ATAC-seq"    => "Epigenomic_DNAChromatinAccessibility"
+          case "snATAC-seq"              => "Epigenomic_DNAChromatinAccessibility"
+          case "siRNA RNA-seq"           => "Transcriptomic_Unbiased"
+          case "small RNA-seq"           => "Transcriptomic_Unbiased"
+          case "Switchgear"              => "Epigenomic_RNABinding"
+          case "TAB-seq"                 => "Epigenomic_DNAMethylation"
+          case "TF ChIP-seq"             => "Epigenomic_DNABinding_TranscriptomeFactorLocation"
+          case "total RNA-seq"           => "Transcriptomic_Unbiased"
+          case "WGS"                     => "Genomic_Genotyping_Whole Genomic"
+          case "WGBS"                    => "Epigenomic_DNAMethylation"
+        }
       }
+    if (dataModality.isEmpty) {
+      logger.warn(
+        s"No Data Modality found for assay_title in file $rawFile for experiment $rawExperiment"
+      )
+    }
+    dataModality
+  }
 
   /** 'run_type' value indicating a paired run in ENCODE. */
   private val PairedEndType = "paired-ended"
@@ -181,7 +190,7 @@ object FileTransformations {
     */
   def transformSequenceFile(rawFile: Msg, rawExperiment: Option[Msg]): SequenceFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val modality = computeDataModality(rawFile)
+    val modality = computeDataModality(rawFile, rawExperiment)
     val id = CommonTransformations.readId(rawFile)
 
     val pairedEndId = rawFile.tryRead[String]("paired_end") match {
@@ -235,7 +244,7 @@ object FileTransformations {
       rawFile.tryRead[Array[String]]("derived_from").getOrElse(Array.empty),
       idsToType
     )
-    val modality = computeDataModality(rawFile)
+    val modality = computeDataModality(rawFile, rawExperiment)
 
     AlignmentFile(
       id = id,
@@ -271,7 +280,7 @@ object FileTransformations {
       rawFile.tryRead[Array[String]]("derived_from").getOrElse(Array.empty),
       idsToType
     )
-    val modality = computeDataModality(rawFile)
+    val modality = computeDataModality(rawFile, rawExperiment)
 
     OtherFile(
       id = CommonTransformations.readId(rawFile),
