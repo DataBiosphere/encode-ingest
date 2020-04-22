@@ -98,25 +98,47 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Files are more complicated.
     val fileInputs = readRawEntities(EncodeEntity.File)
+
+    // Experiments merge two different raw streams
+    val experimentInputs = readRawEntities(EncodeEntity.Experiment)
+    val fcExperimentInputs = readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment)
+
+    val experimentsById = experimentInputs
+      .withName("Merge experiments")
+      .union(fcExperimentInputs)
+      .withName("Key experiments by ID")
+      .keyBy(_.read[String]("@id"))
+
+    val fileWithExperiments = fileInputs
+      .withName("Key files by experiments")
+      .keyBy(_.read[String]("dataset"))
+      .leftOuterJoin(experimentsById)
+      .values
+
     // Split the file stream by output category.
-    val fileBranches = FileTransformations.partitionRawFiles(fileInputs)
+    val fileBranches = FileTransformations.partitionRawFiles(fileWithExperiments)
     val fileIdToType = FileTransformations.buildIdTypeMap(fileBranches)
 
     val sequenceFileOutput = fileBranches.sequence
       .withName("Transform sequence files")
-      .map(FileTransformations.transformSequenceFile)
+      .map {
+        case (rawFile, rawExperiment) =>
+          FileTransformations.transformSequenceFile(rawFile, rawExperiment)
+      }
     val alignmentFileOutput = fileBranches.alignment
       .withSideInputs(fileIdToType)
       .withName("Transform alignment files")
-      .map { (rawFile, sideCtx) =>
-        FileTransformations.transformAlignmentFile(rawFile, sideCtx(fileIdToType))
+      .map {
+        case ((rawFile, rawExperiment), sideCtx) =>
+          FileTransformations.transformAlignmentFile(rawFile, sideCtx(fileIdToType), rawExperiment)
       }
       .toSCollection
     val otherFileOutput = fileBranches.other
       .withSideInputs(fileIdToType)
       .withName("Transform other files")
-      .map { (rawFile, sideCtx) =>
-        FileTransformations.transformOtherFile(rawFile, sideCtx(fileIdToType))
+      .map {
+        case ((rawFile, rawExperiment), sideCtx) =>
+          FileTransformations.transformOtherFile(rawFile, sideCtx(fileIdToType), rawExperiment)
       }
       .toSCollection
 
@@ -136,10 +158,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/other_file"
     )
 
-    // Experiments merge two different raw streams,
-    // and join against both replicates and libraries.
-    val experimentInputs = readRawEntities(EncodeEntity.Experiment)
-    val fcExperimentInputs = readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment)
+    // Experiments join against both replicates and libraries
     val replicateInputs = readRawEntities(EncodeEntity.Replicate)
 
     val librariesByExperiment = {
@@ -161,11 +180,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .groupByKey
     }
 
-    val assayOutput = experimentInputs
-      .withName("Merge experiments")
-      .union(fcExperimentInputs)
-      .withName("Key experiments by ID")
-      .keyBy(_.read[String]("@id"))
+    val assayOutput = experimentsById
       .withName("Join experiments and libraries")
       .leftOuterJoin(librariesByExperiment)
       .values
