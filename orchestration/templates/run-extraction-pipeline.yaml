@@ -1,0 +1,37 @@
+{{- $version := default "latest" .Chart.AppVersion }}
+  {{- with .Values.dataflow }}
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: run-extraction-pipeline
+spec:
+  templates:
+    - name: main
+      inputs:
+        parameters:
+          - name: gcs-bucket
+          - name: output-prefix
+      container:
+        image: us.gcr.io/broad-dsp-gcr-public/encode-extraction:{{ $version }}
+        command: []
+        args:
+          - --runner=dataflow
+          {{- $bucket := "{{inputs.parameters.gcs-bucket}}" }}
+          - --outputDir=gs://{{ $bucket }}/{{ "{{inputs.parameters.output-prefix}}" }}
+          - --project={{ .project }}
+          - --region={{ .region }}
+          - --tempLocation=gs://{{ .tmpBucketName }}/dataflow
+          - --subnetwork=regions/{{ .region }}/subnetworks/{{ .subnetName }}
+          - --serviceAccount={{ .workerAccount }}
+          - --workerMachineType={{ .workerMachineType }}
+          {{- with .autoscaling }}
+          - --autoscalingAlgorithm=THROUGHPUT_BASED
+          - --numWorkers={{ .minWorkers }}
+          - --maxNumWorkers={{ .maxWorkers }}
+          {{- end }}
+          {{- if .useFlexRS }}
+          - --flexRSGoal=COST_OPTIMIZED
+          {{- else }}
+          - --experiments=shuffle_mode=service
+          {{- end }}
+  {{- end }}

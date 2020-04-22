@@ -1,0 +1,12 @@
+apiVersion: v2
+name: encode-ingest
+description: Top-level orchestration workflow for Encode
+
+type: application
+# TODO: This needs to auto-update on every merge
+version: 0.0.0
+dependencies:
+  - name: argo-templates
+    version: ~0.0.1
+    repository: https://broadinstitute.github.io/monster-helm
+    alias: argoTemplates
