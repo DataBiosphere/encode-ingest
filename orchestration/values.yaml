@@ -10,3 +10,18 @@ dataflow:
     minWorkers: 4
     maxWorkers: 8
   useFlexRS: false
+volumes:
+  storageClass: standard
+argoTemplates:
+  createPVC:
+    create: true
+    name: create-pvc
+  deletePVC:
+    create: true
+    name: delete-pvc
+  downloadS3File:
+    create: true
+    name: download-s3-file
+  copyToGCS:
+    create: true
+    name: gsutil-upload

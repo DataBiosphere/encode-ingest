@@ -55,7 +55,14 @@
       "required": ["project", "region", "tmpBucketName",
         "subnetName", "workerAccount", "workerMachineType",
         "autoscaling", "useFlexRS", "pipelineVersion"]
-      }
     },
-  "required": ["gcs", "serviceAccount", "volumes", "cron", "dataflow"]
+    "volumes": {
+      "type": "object",
+      "properties": {
+        "storageClass": { "type": "string" }
+      },
+      "required": ["storageClass"]
+    }
+  },
+  "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes"]
 }

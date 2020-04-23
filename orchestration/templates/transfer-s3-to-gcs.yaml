@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: transfer-s3-to-gcs
+spec:
+  templates:
+    - name: main
+      inputs:
+        parameters:
+          - name: s3-bucket
+          - name: s3-path
+          - name: gcs-bucket
+          - name: gcs-path
+          - name: file-size
+      dag:
+        tasks:
+          - name: generate-volume
+            templateRef:
+              name: {{ .Values.argoTemplates.generatePVC.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: name-prefix
+                  value: s3-download
+                - name: size
+                  value: '{{ "{{inputs.parameters.file-size}}" }}'
+                - name: storage-class
+                  value: '{{ .Values.volumes.storageClass }}'
+          {{- $downloadPvc := "{{tasks.generate-volume.outputs.parameters.pvc-name}}" }}
+          {{- $localPath := "tmp" }}
+          - name: download-file
+            dependencies: [generate-volume]
+            templateRef:
+              name: {{ .Values.argoTemplates.downloadS3File.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: pvc-name
+                  value: '{{ $downloadPvc }}'
+                - name: s3-bucket
+                  value: '{{ "{{inputs.parameters.s3-bucket}}" }}'
+                - name: s3-path
+                  value: '{{ "{{inputs.parameters.s3-path}}" }}'
+                - name: local-path
+                  value: {{ $localPath }}
+                - name: memory
+                  value: '1Gi'
+                - name: cpu
+                  value: '1000m'
+          - name: upload-file
+            dependencies: [download-file]
+            templateRef:
+              name: {{ .Values.argoTemplates.copyToGCS.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: pvc-name
+                  value: '{{ $downloadPvc }}'
+                - name: local-path
+                  value: {{ $localPath }}
+                - name: gcs-bucket
+                  value: '{{ "{{inputs.parameters.gcs-bucket}}" }}'
+                - name: gcs-path
+                  value: '{{ "{{inputs.parameters.gcs-path}}" }}'
+                - name: memory
+                  value: '1Gi'
+                - name: cpu
+                  value: '1000m'
+          - name: delete-volume
+            dependencies: [upload-file]
+            templateRef:
+              name: {{ .Values.argoTemplates.deletePVC.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: pvc-name
+                  value: '{{ $downloadPvc }}'
+
