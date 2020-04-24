@@ -13,7 +13,7 @@ dataflow:
 volumes:
   storageClass: standard
 argoTemplates:
-  createPVC:
+  generatePVC:
     create: true
     name: create-pvc
   deletePVC:
