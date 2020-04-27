@@ -1,6 +1,0 @@
-dependencies:
-- name: argo-templates
-  repository: https://broadinstitute.github.io/monster-helm
-  version: 0.0.3-M0
-digest: sha256:aa3335bba82359d7dd025a5ce2b4f434a9a40e2bc3406c049a4604ed2929c4f9
-generated: "2020-04-23T17:05:56.685598-04:00"

@@ -6,4 +6,5 @@ target/
 .metals/
 .bloop/
 project/metals.sbt
+Chart.lock
 
