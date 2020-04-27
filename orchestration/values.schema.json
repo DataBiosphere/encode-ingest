@@ -61,7 +61,14 @@
         "storageClass": { "type": "string" }
       },
       "required": ["storageClass"]
+    },
+    "aws": {
+      "type": "object",
+      "properties": {
+        "credentialsSecretName": { "type": "string" }
+      },
+      "required": ["credentialsSecretName"]
     }
   },
-  "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes"]
+  "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes", "aws"]
 }

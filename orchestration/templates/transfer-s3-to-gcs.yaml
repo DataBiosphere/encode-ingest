@@ -47,6 +47,8 @@ spec:
                   value: '1Gi'
                 - name: cpu
                   value: '1000m'
+                - name: s3-access-secret
+                  value: {{ .Values.aws.credentialsSecretName }}
           - name: upload-file
             dependencies: [download-file]
             templateRef:
