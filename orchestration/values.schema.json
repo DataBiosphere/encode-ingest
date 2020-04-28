@@ -49,13 +49,26 @@
           },
           "required": ["minWorkers", "maxWorkers"]
         },
-        "useFlexRS": { "type": "boolean" },
-        "pipelineVersion": { "type": "string" }
+        "useFlexRS": { "type": "boolean" }
       },
       "required": ["project", "region", "tmpBucketName",
         "subnetName", "workerAccount", "workerMachineType",
-        "autoscaling", "useFlexRS", "pipelineVersion"]
-      }
+        "autoscaling", "useFlexRS"]
     },
-  "required": ["gcs", "serviceAccount", "volumes", "cron", "dataflow"]
+    "volumes": {
+      "type": "object",
+      "properties": {
+        "storageClass": { "type": "string" }
+      },
+      "required": ["storageClass"]
+    },
+    "aws": {
+      "type": "object",
+      "properties": {
+        "credentialsSecretName": { "type": "string" }
+      },
+      "required": ["credentialsSecretName"]
+    }
+  },
+  "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes", "aws"]
 }

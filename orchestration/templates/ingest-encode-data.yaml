@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: ingest-clinvar-archive
+  name: ingest-encode-data
 spec:
   templates:
     - name: main
@@ -19,7 +19,7 @@ spec:
               parameters:
                 - name: gcs-bucket
                   value: '{{ .Values.gcs.bucketName }}'
-                - name: gcs-prefix
+                - name: output-prefix
                   value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/raw'
           # 2) Run the transformation pipeline on the extracted files
           - name: run-transformation
