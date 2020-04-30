@@ -52,8 +52,6 @@ object BiosampleTransformations {
       geneticModifications = biosampleInput.read[Array[String]]("applied_modifications"),
       healthStatus = biosampleInput.tryRead[String]("health_status"),
       lab = biosampleInput.read[String]("lab"),
-      // TODO needs to join with experiments
-      replicationType = "repType",
       treatments = biosampleInput.read[Array[String]]("treatments"),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
       submittedBy = biosampleInput.read[String]("submitted_by"),
