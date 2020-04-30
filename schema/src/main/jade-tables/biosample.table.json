@@ -93,11 +93,6 @@
       "type": "required"
     },
     {
-      "name": "replication_type",
-      "datatype": "string",
-      "type": "required"
-    },
-    {
       "name": "treatments",
       "datatype": "string",
       "type": "repeated"
