@@ -13,6 +13,9 @@ spec:
     podGC:
       strategy: OnWorkflowSuccess
     parallelism: {{ .Values.maxParallelism }}
+    {{- if .Values.smokeTest.enable }}
+    onExit: send-slack-notification
+    {{- end }}
     templates:
       - name: main
         steps:
@@ -25,11 +28,6 @@ spec:
                   - name: gcs-prefix
                     value: '{{ template "argo.timestamp" }}'
       {{- if .Values.smokeTest.enable }}
-      - name: notify-if-failed
-        steps:
-          - - name: notify
-              template: send-slack-notification
-              when: '{{ "{{workflow.status}} != Succeeded" }}'
       - name: send-slack-notification
         container:
           image: curlimages/curl:7.70.0
