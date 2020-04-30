@@ -12,7 +12,7 @@ object AntibodyTransformations {
     import org.broadinstitute.monster.common.msg.MsgOps
 
     val targetNames = joinedTargets
-      .filter(_.read[String]("organism") == "/organisms/human/")
+      .filter(_.tryRead[String]("organism").contains("/organisms/human/"))
       .map(_.read[String]("label"))
       .toArray
       .sorted

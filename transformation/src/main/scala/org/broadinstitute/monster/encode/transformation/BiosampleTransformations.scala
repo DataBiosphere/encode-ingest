@@ -44,7 +44,7 @@ object BiosampleTransformations {
       biosampleType = joinedType.map(_.read[String]("classification")),
       samplePreservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
-      donorId = CommonTransformations.transformId(biosampleInput.read[String]("donor")),
+      donorId = biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       award = biosampleInput.read[String]("award"),
