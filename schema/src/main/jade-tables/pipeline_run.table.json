@@ -1,0 +1,14 @@
+{
+  "name": "pipeline_run",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "name",
+      "datatype": "string"
+    }
+  ]
+}
