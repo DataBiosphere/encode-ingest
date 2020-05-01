@@ -180,6 +180,36 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .groupByKey
     }
 
+    // Get analysis step objects
+    val analysisStepRuns = readRawEntities(EncodeEntity.AnalysisStepRun)
+    val analysisStepVersionsById = readRawEntities(EncodeEntity.AnalysisStepVersion)
+      .withName("Key analysis step versions by ID")
+      .keyBy(_.read[String]("@id"))
+    val analysisStepsById = readRawEntities(EncodeEntity.AnalysisStep)
+      .withName("Key analysis steps by ID")
+      .keyBy(_.read[String]("@id"))
+
+    // The step run transformation needs AnalysisStepRuns, AnalysisStepVersions, and AnalysisSteps
+    val stepRunOutput = analysisStepRuns
+      .withName("Key step runs by analysis step version")
+      .keyBy(_.read[String]("analysis_step_version"))
+      .join(analysisStepVersionsById)
+      .values
+      .withName("Key step runs by analysis step")
+      .keyBy(_._2.read[String]("analysis_step"))
+      .join(analysisStepsById)
+      .values
+      .withName("Transform step runs")
+      .map {
+        case ((stepRun, stepVersion), step) =>
+          StepRunTransformations.transformStepRun(stepRun, stepVersion, step)
+      }
+    StorageIO.writeJsonLists(
+      stepRunOutput,
+      "Assays",
+      s"${args.outputPrefix}/assay"
+    )
+
     val assayOutput = experimentsById
       .withName("Join experiments and libraries")
       .leftOuterJoin(librariesByExperiment)
