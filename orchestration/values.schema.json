@@ -68,7 +68,22 @@
         "credentialsSecretName": { "type": "string" }
       },
       "required": ["credentialsSecretName"]
+    },
+    "smokeTest": {
+      "type": "object",
+       "properties": {
+         "enable": { "type": "boolean" },
+         "slackUrl": {
+           "type": "object",
+           "properties": {
+             "secretName": { "type": "string" },
+             "secretKey": { "type": "string" }
+           },
+           "required": ["secretName", "secretKey"]
+          }
+       },
+       "required": ["enable"]
     }
   },
-  "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes", "aws"]
+  "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes", "aws", "smokeTest"]
 }
