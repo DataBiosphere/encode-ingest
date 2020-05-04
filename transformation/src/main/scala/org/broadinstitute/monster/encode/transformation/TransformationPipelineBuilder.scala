@@ -188,9 +188,10 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val analysisStepsById = readRawEntities(EncodeEntity.AnalysisStep)
       .withName("Key analysis steps by ID")
       .keyBy(_.read[String]("@id"))
+    // TODO use fileWithExperiments instead of fileInputs
     val filesByStepRun = fileInputs
       .withName("Key files by step run ID")
-      .keyBy(_.read[String]("step_run"))
+      .keyBy(_.tryRead[String]("step_run").getOrElse("")) // TODO make this less hacky
       .groupByKey
 
     // The step run transformation needs AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files
