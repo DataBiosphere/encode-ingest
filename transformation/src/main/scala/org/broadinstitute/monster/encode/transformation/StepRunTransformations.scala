@@ -15,9 +15,20 @@ object StepRunTransformations {
     rawGeneratedFiles: Iterable[Msg],
     fileIdToTypeMap: Map[String, FileType]
   ): StepRun = {
-    // TODO determine actual pipeline runs: join experiment or get experiment id from file inputs
-    val pipelineIds = rawStep.read[Array[String]]("pipelines")
 
+    // generate the pipeline run id
+    val experimentIds = rawGeneratedFiles.toArray
+      .map(_.read[String]("dataset"))
+      .distinct
+      .map(CommonTransformations.transformId)
+    val pipelineIds =
+      rawStep.read[Array[String]]("pipelines").map(CommonTransformations.transformId)
+    val pipelineRunId: Option[String] =
+      if (pipelineIds.length == 1 && experimentIds.length == 1)
+        Some(pipelineIds.head + "-" + experimentIds.head)
+      else None // TODO log if None
+
+    // branch files
     val generatedFileArray = rawGeneratedFiles.toArray
     val generatedFileBranches = FileTransformations.splitFileReferences(
       generatedFileArray.map(_.read[String]("@id")),
@@ -31,13 +42,13 @@ object StepRunTransformations {
     StepRun(
       id = CommonTransformations.readId(rawStepRun),
       version = rawStepVersion.read[String]("name"),
-      pipelineRunId = if (pipelineIds.length <= 1) pipelineIds.headOption else None,
+      pipelineRunId = pipelineRunId,
       usedAlignmentFileIds = usedFileBranches.alignment.sorted,
-      usedOtherFileIds = usedFileBranches.other.sorted,
       usedSequenceFileIds = usedFileBranches.sequence.sorted,
+      usedOtherFileIds = usedFileBranches.other.sorted,
       generatedAlignmentFileIds = generatedFileBranches.alignment.sorted,
-      generatedOtherFileIds = generatedFileBranches.other.sorted,
-      generatedSequenceFileIds = generatedFileBranches.sequence.sorted
-    ) // TODO re-order file fields to match assay order
+      generatedSequenceFileIds = generatedFileBranches.sequence.sorted,
+      generatedOtherFileIds = generatedFileBranches.other.sorted
+    )
   }
 }

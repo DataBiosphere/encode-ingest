@@ -188,14 +188,14 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val analysisStepsById = readRawEntities(EncodeEntity.AnalysisStep)
       .withName("Key analysis steps by ID")
       .keyBy(_.read[String]("@id"))
-    // TODO use fileWithExperiments instead of fileInputs
     val filesByStepRun = fileInputs
       .withName("Key files by step run ID")
       .keyBy(_.tryRead[String]("step_run").getOrElse("")) // TODO make this less hacky
       .groupByKey
 
-    // The step run transformation needs AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files
-    val stepRunOutput = analysisStepRuns
+    // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, Files and Experiments.
+    // They will be used in both the StepRun and PipelineRun transformations.
+    val joinedStepRuns = analysisStepRuns
       .withName("Key step runs by analysis step version")
       .keyBy(_.read[String]("analysis_step_version"))
       .join(analysisStepVersionsById)
@@ -210,17 +210,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .values
       .withSideInputs(fileIdToType)
       .withName("Transform step runs")
-      .map {
-        case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
-          StepRunTransformations.transformStepRun(
-            stepRun,
-            stepVersion,
-            step,
-            generatedFiles.toIterable.flatten,
-            sideCtx(fileIdToType)
-          )
-      }
-      .toSCollection
+
+    val stepRunOutput = joinedStepRuns.map {
+      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+        StepRunTransformations.transformStepRun(
+          stepRun,
+          stepVersion,
+          step,
+          generatedFiles.toIterable.flatten,
+          sideCtx(fileIdToType)
+        )
+    }.toSCollection
     StorageIO.writeJsonLists(
       stepRunOutput,
       "Step Runs",
