@@ -25,3 +25,5 @@ argoTemplates:
   copyToGCS:
     create: true
     name: gsutil-upload
+smokeTest:
+  enable: false
