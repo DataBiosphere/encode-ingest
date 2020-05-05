@@ -7,6 +7,10 @@ import com.spotify.scio.values.SCollection
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
+import org.broadinstitute.monster.encode.transformation.PipelineRunTransformations.{
+  getExperimentId,
+  getPipelineId
+}
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -225,6 +229,33 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       stepRunOutput,
       "Step Runs",
       s"${args.outputPrefix}/step_run"
+    )
+
+    // Transform PipelineRuns
+    val pipelinesById = readRawEntities(EncodeEntity.Pipeline)
+      .withName("Key pipelines by ID")
+      .keyBy(_.read[String]("@id"))
+
+    val pipelineRunOut = joinedStepRuns.flatMap {
+      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+        val stepRunId = CommonTransformations.readId(stepRun)
+        val pipelineId = getPipelineId(step, stepRunId)
+        val experimentId = getExperimentId(generatedFiles.toIterable.flatten, stepRunId)
+        if (pipelineId.isEmpty || experimentId.isEmpty) None
+        else Some((pipelineId.head, experimentId.head))
+    }.toSCollection.distinct
+      .withName("Key pipeline-experiment ID tuples by pipeline ID")
+      .keyBy(_._1)
+      .join(pipelinesById)
+      .values
+      .map {
+        case (pipelineExperimentIdPair, pipeline) =>
+          PipelineRunTransformations.transformPipelineRun(pipeline, pipelineExperimentIdPair._2)
+      }
+    StorageIO.writeJsonLists(
+      pipelineRunOut,
+      "Pipeline Runs",
+      s"${args.outputPrefix}/pipeline_run"
     )
 
     val assayOutput = experimentsById

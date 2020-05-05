@@ -15,18 +15,13 @@ object StepRunTransformations {
     rawGeneratedFiles: Iterable[Msg],
     fileIdToTypeMap: Map[String, FileType]
   ): StepRun = {
+    // TODO decide if arg names should change
 
-    // generate the pipeline run id
-    val experimentIds = rawGeneratedFiles.toArray
-      .map(_.read[String]("dataset"))
-      .distinct
-      .map(CommonTransformations.transformId)
-    val pipelineIds =
-      rawStep.read[Array[String]]("pipelines").map(CommonTransformations.transformId)
-    val pipelineRunId: Option[String] =
-      if (pipelineIds.length == 1 && experimentIds.length == 1)
-        Some(pipelineIds.head + "-" + experimentIds.head)
-      else None // TODO log if None
+    // get pipeline run id
+    val stepRunId = CommonTransformations.readId(rawStepRun)
+    val pipelineId = PipelineRunTransformations.getPipelineId(rawStep, stepRunId)
+    val experimentId = PipelineRunTransformations.getExperimentId(rawGeneratedFiles, stepRunId)
+    val pipelineRunId = PipelineRunTransformations.transformPipelineRunId(pipelineId, experimentId)
 
     // branch files
     val generatedFileArray = rawGeneratedFiles.toArray
@@ -36,11 +31,11 @@ object StepRunTransformations {
     )
     val usedFileIds = generatedFileArray
       .flatMap(_.read[Array[String]]("derived_from"))
-      .distinct // TODO check that this is the correct way to get the used files
+      .distinct
     val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
 
     StepRun(
-      id = CommonTransformations.readId(rawStepRun),
+      id = stepRunId,
       version = rawStepVersion.read[String]("name"),
       pipelineRunId = pipelineRunId,
       usedAlignmentFileIds = usedFileBranches.alignment.sorted,

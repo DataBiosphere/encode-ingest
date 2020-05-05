@@ -1,5 +1,5 @@
 {
-  "name": "pipeline",
+  "name": "pipeline_run",
   "columns": [
     {
       "name": "id",
@@ -7,8 +7,9 @@
       "type": "primary_key"
     },
     {
-      "name": "name",
-      "datatype": "string"
+      "name": "pipeline_name",
+      "datatype": "string",
+      "type": "required"
     }
   ]
 }
