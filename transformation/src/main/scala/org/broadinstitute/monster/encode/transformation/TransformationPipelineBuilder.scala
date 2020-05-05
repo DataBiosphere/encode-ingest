@@ -2,15 +2,10 @@ package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
-
-import com.spotify.scio.values.SCollection
+import com.spotify.scio.values.{SCollection, SideInputContext}
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
-import org.broadinstitute.monster.encode.transformation.PipelineRunTransformations.{
-  getExperimentId,
-  getPipelineId
-}
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -194,12 +189,19 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .keyBy(_.read[String]("@id"))
     val filesByStepRun = fileInputs
       .withName("Key files by step run ID")
-      .keyBy(_.tryRead[String]("step_run").getOrElse("")) // TODO make this less hacky
+      .keyBy(_.tryRead[String]("step_run").getOrElse(""))
       .groupByKey
 
-    // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, Files and Experiments.
+    // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files.
     // They will be used in both the StepRun and PipelineRun transformations.
-    val joinedStepRuns = analysisStepRuns
+    case class StepRunInfo(
+      stepRun: Msg,
+      stepVersion: Msg,
+      step: Msg,
+      generatedFiles: Iterable[Msg],
+      fileIdToTypeMap: Map[String, FileType]
+    )
+    val stepRunInfo = analysisStepRuns
       .withName("Key step runs by analysis step version")
       .keyBy(_.read[String]("analysis_step_version"))
       .join(analysisStepVersionsById)
@@ -214,43 +216,42 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .values
       .withSideInputs(fileIdToType)
       .withName("Transform step runs")
+      .map {
+        case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+          StepRunInfo(stepRun, stepVersion, step, generatedFiles.toIterable.flatten, sideCtx(fileIdToType))
+      }.toSCollection
 
-//    val processedJoinedStepRuns = joinedStepRuns.map {
-//      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
-//        val flattenedFiles = generatedFiles.toIterable.flatten
-//        val pipelineRunId = PipelineRunTransformations.transformPipelineRunId(stepRun, step, flattenedFiles)
-//        (stepRun, stepVersion, pipelineRunId, generatedFiles, sideCtx)
-//    }
-
-    val stepRunOutput = joinedStepRuns.map {
-      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+    // Transform step runs
+    val stepRunOutput = stepRunInfo.map {
+      case StepRunInfo(stepRun, stepVersion, step, generatedFiles, fileIdToTypeMap) =>
         StepRunTransformations.transformStepRun(
           stepRun,
           stepVersion,
           step,
-          generatedFiles.toIterable.flatten,
-          sideCtx(fileIdToType)
+          generatedFiles,
+          fileIdToTypeMap
         )
-    }.toSCollection
+    }
     StorageIO.writeJsonLists(
       stepRunOutput,
       "Step Runs",
       s"${args.outputPrefix}/step_run"
     )
 
-    // Transform PipelineRuns
+    // Transform pipeline runs
     val pipelinesById = readRawEntities(EncodeEntity.Pipeline)
       .withName("Key pipelines by ID")
       .keyBy(_.read[String]("@id"))
 
-    val pipelineRunOut = joinedStepRuns.flatMap {
-      case ((((stepRun, _), step), generatedFiles), _) =>
+    val pipelineRunOut = stepRunInfo.flatMap {
+      case StepRunInfo(stepRun, _, step, generatedFiles, _) =>
         val stepRunId = CommonTransformations.readId(stepRun)
-        val pipelineId = getPipelineId(step, stepRunId)
-        val experimentId = getExperimentId(generatedFiles.toIterable.flatten, stepRunId)
+        val pipelineId = PipelineRunTransformations.getPipelineId(step)
+        val experimentId =
+          PipelineRunTransformations.getExperimentId(generatedFiles, stepRunId)
         if (pipelineId.isEmpty || experimentId.isEmpty) None
         else Some((pipelineId.head, experimentId.head))
-    }.toSCollection.distinct
+    }.distinct
       .withName("Key pipeline-experiment ID tuples by pipeline ID")
       .keyBy(_._1)
       .join(pipelinesById)

@@ -13,7 +13,7 @@ object PipelineRunTransformations {
   /** Transform a raw ENCODE pipeline into our preferred schema. */
   def transformPipelineRun(rawPipeline: Msg, experimentId: String): PipelineRun = {
     val pipelineId = rawPipeline.read[String]("@id")
-    val pipelineRunId = buildPipelineRunId(pipelineId, experimentId)
+    val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
 
     PipelineRun(
       id = pipelineRunId,
@@ -21,18 +21,27 @@ object PipelineRunTransformations {
     )
   }
 
-  def getPipelineId(step: Msg, stepRunId: String): Option[String] = {
+  /**
+    * Get the pipeline ID associated with a step.
+    * Return None and log a warning if there is an unexpected number of IDs.
+    */
+  def getPipelineId(step: Msg): Option[String] = {
     val pipelineIds = step.read[Array[String]]("pipelines")
     if (pipelineIds.toSet.size == 1) {
       Some(pipelineIds.head)
     } else {
+      val stepId = CommonTransformations.readId(step)
       logger.warn(
-        s"Step run $stepRunId does not have exactly one pipeline: [${pipelineIds.mkString(",")}]"
+        s"Step $stepId does not have exactly one pipeline: [${pipelineIds.mkString(",")}]"
       )
       None
     }
   }
 
+  /**
+    * Get the experiment ID associated with a set of files.
+    * Return None and log a warning if there is an unexpected number of IDs.
+    */
   def getExperimentId(files: Iterable[Msg], stepRunId: String): Option[String] = {
     val experimentIds = files.toArray.map(_.read[String]("dataset"))
     if (experimentIds.toSet.size == 1) {
@@ -45,15 +54,7 @@ object PipelineRunTransformations {
     }
   }
 
-  // TODO add javadoc to all 4 methods
-  // TODO see if this method is actually used
-  def transformPipelineRunId(
-    pipelineId: Option[String],
-    experimentId: Option[String]
-  ): Option[String] =
-    if (pipelineId.isEmpty || experimentId.isEmpty) None
-    else Some(buildPipelineRunId(pipelineId.head, experimentId.head))
-
-  def buildPipelineRunId(pipelineId: String, experimentId: String): String =
+  /** Combine a pipeline ID and experiment ID to generate an ID for a pipeline run. */
+  def getPipelineRunId(pipelineId: String, experimentId: String): String =
     s"${CommonTransformations.transformId(pipelineId)}-${CommonTransformations.transformId(experimentId)}"
 }

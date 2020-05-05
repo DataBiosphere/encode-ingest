@@ -15,13 +15,14 @@ object StepRunTransformations {
     rawGeneratedFiles: Iterable[Msg],
     fileIdToTypeMap: Map[String, FileType]
   ): StepRun = {
-    // TODO decide if arg names should change
 
     // get pipeline run id
     val stepRunId = CommonTransformations.readId(rawStepRun)
-    val pipelineId = PipelineRunTransformations.getPipelineId(rawStep, stepRunId)
+    val pipelineId = PipelineRunTransformations.getPipelineId(rawStep)
     val experimentId = PipelineRunTransformations.getExperimentId(rawGeneratedFiles, stepRunId)
-    val pipelineRunId = PipelineRunTransformations.transformPipelineRunId(pipelineId, experimentId)
+    val pipelineRunId =
+      if (pipelineId.isEmpty || experimentId.isEmpty) None
+      else Some(PipelineRunTransformations.getPipelineRunId(pipelineId.head, experimentId.head))
 
     // branch files
     val generatedFileArray = rawGeneratedFiles.toArray
