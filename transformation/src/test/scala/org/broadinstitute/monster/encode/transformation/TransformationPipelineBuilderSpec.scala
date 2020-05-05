@@ -47,7 +47,8 @@ class TransformationPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
     "other_file",
     "sequence_file",
     "assay",
-    "step_run"
+    "step_run",
+    "pipeline_run"
   )
 
   outputDirs.foreach {

@@ -24,7 +24,7 @@ object PipelineRunTransformations {
   def getPipelineId(step: Msg, stepRunId: String): Option[String] = {
     val pipelineIds = step.read[Array[String]]("pipelines")
     if (pipelineIds.toSet.size == 1) {
-      Some(CommonTransformations.transformId(pipelineIds.head))
+      Some(pipelineIds.head)
     } else {
       logger.warn(
         s"Step run $stepRunId does not have exactly one pipeline: [${pipelineIds.mkString(",")}]"
@@ -36,7 +36,7 @@ object PipelineRunTransformations {
   def getExperimentId(files: Iterable[Msg], stepRunId: String): Option[String] = {
     val experimentIds = files.toArray.map(_.read[String]("dataset"))
     if (experimentIds.toSet.size == 1) {
-      Some(CommonTransformations.transformId(experimentIds.head))
+      Some(experimentIds.head)
     } else {
       logger.warn(
         s"Step run $stepRunId does not have exactly one experiment: [${experimentIds.mkString(",")}]"
@@ -55,5 +55,5 @@ object PipelineRunTransformations {
     else Some(buildPipelineRunId(pipelineId.head, experimentId.head))
 
   def buildPipelineRunId(pipelineId: String, experimentId: String): String =
-    s"$pipelineId-$experimentId"
+    s"${CommonTransformations.transformId(pipelineId)}-${CommonTransformations.transformId(experimentId)}"
 }

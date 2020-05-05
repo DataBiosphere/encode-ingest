@@ -215,6 +215,13 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withSideInputs(fileIdToType)
       .withName("Transform step runs")
 
+//    val processedJoinedStepRuns = joinedStepRuns.map {
+//      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+//        val flattenedFiles = generatedFiles.toIterable.flatten
+//        val pipelineRunId = PipelineRunTransformations.transformPipelineRunId(stepRun, step, flattenedFiles)
+//        (stepRun, stepVersion, pipelineRunId, generatedFiles, sideCtx)
+//    }
+
     val stepRunOutput = joinedStepRuns.map {
       case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
         StepRunTransformations.transformStepRun(
@@ -237,7 +244,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .keyBy(_.read[String]("@id"))
 
     val pipelineRunOut = joinedStepRuns.flatMap {
-      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+      case ((((stepRun, _), step), generatedFiles), _) =>
         val stepRunId = CommonTransformations.readId(stepRun)
         val pipelineId = getPipelineId(step, stepRunId)
         val experimentId = getExperimentId(generatedFiles.toIterable.flatten, stepRunId)
@@ -249,8 +256,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .join(pipelinesById)
       .values
       .map {
-        case (pipelineExperimentIdPair, pipeline) =>
-          PipelineRunTransformations.transformPipelineRun(pipeline, pipelineExperimentIdPair._2)
+        case ((_, experimentID), pipeline) =>
+          PipelineRunTransformations.transformPipelineRun(pipeline, experimentID)
       }
     StorageIO.writeJsonLists(
       pipelineRunOut,
