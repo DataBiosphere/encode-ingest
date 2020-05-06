@@ -239,20 +239,34 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     val pipelineRunOut = stepRunInfo.flatMap {
       case (((stepRun, _), step), generatedFiles) =>
-        PipelineRunTransformations.getPipelineExperimentIdPair(
-          step,
-          generatedFiles.toIterable.flatten,
-          CommonTransformations.readId(stepRun)
-        )
-    }.distinct
-      .withName("Key pipeline-experiment ID tuples by pipeline ID")
-      .keyBy(_._1)
-      .join(pipelinesById)
-      .values
+        val filesIterable = generatedFiles.toIterable.flatten
+        for {
+          idPair <- PipelineRunTransformations.getPipelineExperimentIdPair(
+            step,
+            filesIterable,
+            CommonTransformations.readId(stepRun)
+          )
+        } yield (idPair, filesIterable)
+    }.groupBy(_._1)
+      .withName("Key pipeline run tuples by pipeline ID")
       .map {
-        case ((_, experimentID), pipeline) =>
-          PipelineRunTransformations.transformPipelineRun(pipeline, experimentID)
+        case ((pipelineId, experimentId), stepRunGroup) =>
+          pipelineId -> ((experimentId, stepRunGroup.flatMap(_._2)))
       }
+      .join(pipelinesById)
+      .values // tuple of the format ((experimentId, generatedFiles), pipeline)
+      .withSideInputs(fileIdToType)
+      .withName("Transform pipeline runs")
+      .map {
+        case (((experimentId, generatedFiles), pipeline), sideCtx) =>
+          PipelineRunTransformations.transformPipelineRun(
+            pipeline,
+            experimentId,
+            generatedFiles,
+            sideCtx(fileIdToType)
+          )
+      }
+      .toSCollection
     StorageIO.writeJsonLists(
       pipelineRunOut,
       "Pipeline Runs",

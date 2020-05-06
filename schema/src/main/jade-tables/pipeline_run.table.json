@@ -26,6 +26,72 @@
           "column_name": "id"
         }
       ]
+    },
+    {
+      "name": "used_alignment_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "alignment_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "used_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "used_other_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "other_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_alignment_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "alignment_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_other_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "other_file",
+          "column_name": "id"
+        }
+      ]
     }
   ]
 }

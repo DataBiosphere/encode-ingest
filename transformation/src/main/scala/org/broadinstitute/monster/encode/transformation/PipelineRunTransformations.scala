@@ -11,15 +11,37 @@ object PipelineRunTransformations {
   private val logger = LoggerFactory.getLogger(getClass)
 
   /** Transform a raw ENCODE pipeline into our preferred schema. */
-  def transformPipelineRun(rawPipeline: Msg, experimentId: String): PipelineRun = {
+  def transformPipelineRun(
+    rawPipeline: Msg,
+    experimentId: String,
+    rawGeneratedFiles: Iterable[Msg],
+    fileIdToTypeMap: Map[String, FileType]
+  ): PipelineRun = {
     val pipelineId = rawPipeline.read[String]("@id")
     val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
+
+    // branch files
+    val generatedFileArray = rawGeneratedFiles.toArray
+    val generatedFileBranches = FileTransformations.splitFileReferences(
+      generatedFileArray.map(_.read[String]("@id")),
+      fileIdToTypeMap
+    )
+    val usedFileIds = generatedFileArray
+      .flatMap(_.read[Array[String]]("derived_from"))
+      .distinct
+    val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
 
     PipelineRun(
       id = pipelineRunId,
       pipeline = pipelineId,
       pipelineName = rawPipeline.read[String]("title"),
-      assayId = CommonTransformations.transformId(experimentId)
+      assayId = CommonTransformations.transformId(experimentId),
+      usedAlignmentFileIds = usedFileBranches.alignment.sorted,
+      usedSequenceFileIds = usedFileBranches.sequence.sorted,
+      usedOtherFileIds = usedFileBranches.other.sorted,
+      generatedAlignmentFileIds = generatedFileBranches.alignment.sorted,
+      generatedSequenceFileIds = generatedFileBranches.sequence.sorted,
+      generatedOtherFileIds = generatedFileBranches.other.sorted
     )
   }
 
@@ -56,6 +78,10 @@ object PipelineRunTransformations {
     }
   }
 
+  /**
+    * Get the pipeline ID and experiment ID associated with a set of files.
+    * Return None if there is an unexpected number of IDs for either the experiment or pipeline.
+    */
   def getPipelineExperimentIdPair(
     step: Msg,
     files: Iterable[Msg],
