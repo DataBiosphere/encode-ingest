@@ -18,11 +18,15 @@ object StepRunTransformations {
 
     // get pipeline run id
     val stepRunId = CommonTransformations.readId(rawStepRun)
-    val pipelineId = PipelineRunTransformations.getPipelineId(rawStep)
-    val experimentId = PipelineRunTransformations.getExperimentId(rawGeneratedFiles, stepRunId)
-    val pipelineRunId =
-      if (pipelineId.isEmpty || experimentId.isEmpty) None
-      else Some(PipelineRunTransformations.getPipelineRunId(pipelineId.head, experimentId.head))
+    val pipelineRunId = for {
+      idPair <- PipelineRunTransformations.getPipelineExperimentIdPair(
+        rawStep,
+        rawGeneratedFiles,
+        stepRunId
+      )
+    } yield {
+      PipelineRunTransformations.getPipelineRunId(idPair._1, idPair._2)
+    }
 
     // branch files
     val generatedFileArray = rawGeneratedFiles.toArray

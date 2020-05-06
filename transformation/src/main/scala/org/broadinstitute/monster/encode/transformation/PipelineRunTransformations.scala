@@ -54,6 +54,18 @@ object PipelineRunTransformations {
     }
   }
 
+  def getPipelineExperimentIdPair(
+    step: Msg,
+    files: Iterable[Msg],
+    stepRunId: String
+  ): Option[(String, String)] =
+    for {
+      pipelineId <- getPipelineId(step)
+      experimentId <- getExperimentId(files, stepRunId)
+    } yield {
+      (pipelineId, experimentId)
+    }
+
   /** Combine a pipeline ID and experiment ID to generate an ID for a pipeline run. */
   def getPipelineRunId(pipelineId: String, experimentId: String): String =
     s"${CommonTransformations.transformId(pipelineId)}-${CommonTransformations.transformId(experimentId)}"
