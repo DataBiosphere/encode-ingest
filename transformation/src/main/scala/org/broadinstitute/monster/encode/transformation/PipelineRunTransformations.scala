@@ -17,7 +17,9 @@ object PipelineRunTransformations {
 
     PipelineRun(
       id = pipelineRunId,
-      pipelineName = rawPipeline.read[String]("title")
+      pipeline = pipelineId,
+      pipelineName = rawPipeline.read[String]("title"),
+      assayId = experimentId
     )
   }
 

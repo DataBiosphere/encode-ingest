@@ -7,9 +7,25 @@
       "type": "primary_key"
     },
     {
+      "name": "pipeline",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
       "name": "pipeline_name",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "assay_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "assay",
+          "column_name": "id"
+        }
+      ]
     }
   ]
 }
