@@ -191,8 +191,9 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Key files by step run ID")
       .flatMap { file =>
         for (stepRunId <- file.tryRead[String]("step_run"))
-          yield stepRunId-> file
-      }.groupByKey
+          yield stepRunId -> file
+      }
+      .groupByKey
 
     // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files.
     // They will be used in both the StepRun and PipelineRun transformations.
