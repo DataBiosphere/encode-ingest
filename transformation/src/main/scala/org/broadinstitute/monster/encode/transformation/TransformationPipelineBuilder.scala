@@ -2,7 +2,7 @@ package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
-import com.spotify.scio.values.{SCollection, SideInputContext}
+import com.spotify.scio.values.{SCollection}
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
@@ -194,13 +194,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files.
     // They will be used in both the StepRun and PipelineRun transformations.
-    case class StepRunInfo(
-      stepRun: Msg,
-      stepVersion: Msg,
-      step: Msg,
-      generatedFiles: Iterable[Msg],
-      fileIdToTypeMap: Map[String, FileType]
-    )
     val stepRunInfo = analysisStepRuns
       .withName("Key step runs by analysis step version")
       .keyBy(_.read[String]("analysis_step_version"))
@@ -216,22 +209,18 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .values
       .withSideInputs(fileIdToType)
       .withName("Transform step runs")
-      .map {
-        case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
-          StepRunInfo(stepRun, stepVersion, step, generatedFiles.toIterable.flatten, sideCtx(fileIdToType))
-      }.toSCollection
 
     // Transform step runs
     val stepRunOutput = stepRunInfo.map {
-      case StepRunInfo(stepRun, stepVersion, step, generatedFiles, fileIdToTypeMap) =>
+      case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
         StepRunTransformations.transformStepRun(
           stepRun,
           stepVersion,
           step,
-          generatedFiles,
-          fileIdToTypeMap
+          generatedFiles.toIterable.flatten,
+          sideCtx(fileIdToType)
         )
-    }
+    }.toSCollection
     StorageIO.writeJsonLists(
       stepRunOutput,
       "Step Runs",
@@ -244,14 +233,14 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .keyBy(_.read[String]("@id"))
 
     val pipelineRunOut = stepRunInfo.flatMap {
-      case StepRunInfo(stepRun, _, step, generatedFiles, _) =>
+      case ((((stepRun, _), step), generatedFiles), _) =>
         val stepRunId = CommonTransformations.readId(stepRun)
         val pipelineId = PipelineRunTransformations.getPipelineId(step)
         val experimentId =
-          PipelineRunTransformations.getExperimentId(generatedFiles, stepRunId)
+          PipelineRunTransformations.getExperimentId(generatedFiles.toIterable.flatten, stepRunId)
         if (pipelineId.isEmpty || experimentId.isEmpty) None
         else Some((pipelineId.head, experimentId.head))
-    }.distinct
+    }.toSCollection.distinct
       .withName("Key pipeline-experiment ID tuples by pipeline ID")
       .keyBy(_._1)
       .join(pipelinesById)
