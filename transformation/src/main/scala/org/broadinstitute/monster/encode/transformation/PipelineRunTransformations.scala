@@ -21,14 +21,14 @@ object PipelineRunTransformations {
     val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
 
     // branch files
-    val generatedFileArray = rawGeneratedFiles.toArray
-    val generatedFileBranches = FileTransformations.splitFileReferences(
-      generatedFileArray.map(_.read[String]("@id")),
-      fileIdToTypeMap
-    )
-    val usedFileIds = generatedFileArray
+    val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toArray
+    val generatedFileBranches =
+      FileTransformations.splitFileReferences(generatedFileIds, fileIdToTypeMap)
+    val usedFileIds = rawGeneratedFiles
       .flatMap(_.read[Array[String]]("derived_from"))
+      .toArray
       .distinct
+      .diff(generatedFileIds)
     val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
 
     PipelineRun(
