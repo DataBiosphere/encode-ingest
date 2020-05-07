@@ -2,7 +2,6 @@ package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.coders.Coder
-
 import com.spotify.scio.values.SCollection
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
@@ -179,6 +178,100 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         }
         .groupByKey
     }
+
+    // Get analysis step objects
+    val analysisStepRuns = readRawEntities(EncodeEntity.AnalysisStepRun)
+    val analysisStepVersionsById = readRawEntities(EncodeEntity.AnalysisStepVersion)
+      .withName("Key analysis step versions by ID")
+      .keyBy(_.read[String]("@id"))
+    val analysisStepsById = readRawEntities(EncodeEntity.AnalysisStep)
+      .withName("Key analysis steps by ID")
+      .keyBy(_.read[String]("@id"))
+    val filesByStepRun = fileInputs
+      .withName("Key files by step run ID")
+      .flatMap { file =>
+        for (stepRunId <- file.tryRead[String]("step_run"))
+          yield stepRunId -> file
+      }
+      .groupByKey
+
+    // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files.
+    // They will be used in both the StepRun and PipelineRun transformations.
+    val stepRunInfo = analysisStepRuns
+      .withName("Key step runs by analysis step version")
+      .keyBy(_.read[String]("analysis_step_version"))
+      .join(analysisStepVersionsById)
+      .values // tuple of the format (stepRun, stepVersion)
+      .withName("Key step runs by analysis step")
+      .keyBy(_._2.read[String]("analysis_step"))
+      .join(analysisStepsById)
+      .values // tuple of the format ((stepRun, stepVersion), step)
+      .withName("Key step runs by step run ID")
+      .keyBy(_._1._1.read[String]("@id"))
+      .leftOuterJoin(filesByStepRun)
+      .values // tuple of the format ((stepRun, stepVersion), step), generatedFiles)
+
+    // Transform step runs
+    val stepRunOutput = stepRunInfo
+      .withSideInputs(fileIdToType)
+      .withName("Transform step runs")
+      .map {
+        case ((((stepRun, stepVersion), step), generatedFiles), sideCtx) =>
+          StepRunTransformations.transformStepRun(
+            stepRun,
+            stepVersion,
+            step,
+            generatedFiles.toIterable.flatten,
+            sideCtx(fileIdToType)
+          )
+      }
+      .toSCollection
+    StorageIO.writeJsonLists(
+      stepRunOutput,
+      "Step Runs",
+      s"${args.outputPrefix}/step_run"
+    )
+
+    // Transform pipeline runs
+    val pipelinesById = readRawEntities(EncodeEntity.Pipeline)
+      .withName("Key pipelines by ID")
+      .keyBy(_.read[String]("@id"))
+
+    val pipelineRunOut = stepRunInfo.flatMap {
+      case (((stepRun, _), step), generatedFiles) =>
+        val filesIterable = generatedFiles.toIterable.flatten
+        for {
+          idPair <- PipelineRunTransformations.getPipelineExperimentIdPair(
+            step,
+            filesIterable,
+            CommonTransformations.readId(stepRun)
+          )
+        } yield (idPair, filesIterable)
+    }.groupBy(_._1)
+      .withName("Key pipeline run tuples by pipeline ID")
+      .map {
+        case ((pipelineId, experimentId), stepRunGroup) =>
+          pipelineId -> ((experimentId, stepRunGroup.flatMap(_._2)))
+      }
+      .join(pipelinesById)
+      .values // tuple of the format ((experimentId, generatedFiles), pipeline)
+      .withSideInputs(fileIdToType)
+      .withName("Transform pipeline runs")
+      .map {
+        case (((experimentId, generatedFiles), pipeline), sideCtx) =>
+          PipelineRunTransformations.transformPipelineRun(
+            pipeline,
+            experimentId,
+            generatedFiles,
+            sideCtx(fileIdToType)
+          )
+      }
+      .toSCollection
+    StorageIO.writeJsonLists(
+      pipelineRunOut,
+      "Pipeline Runs",
+      s"${args.outputPrefix}/pipeline_run"
+    )
 
     val assayOutput = experimentsById
       .withName("Join experiments and libraries")

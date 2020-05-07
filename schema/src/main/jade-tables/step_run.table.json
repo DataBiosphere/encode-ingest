@@ -1,5 +1,5 @@
 {
-  "name": "pipeline_activity",
+  "name": "step_run",
   "columns": [
     {
       "name": "id",
@@ -7,24 +7,19 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "version",
       "datatype": "string",
-      "type": "repeated"
-    },
-    {
-      "name": "time_created",
-      "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "time_started",
-      "datatype": "timestamp",
-      "type": "required"
-    },
-    {
-      "name": "time_ended",
-      "datatype": "timestamp",
-      "type": "required"
+      "name": "pipeline_run_id",
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "pipeline_run",
+          "column_name": "id"
+        }
+      ]
     },
     {
       "name": "used_alignment_file_ids",
@@ -91,11 +86,6 @@
           "column_name": "id"
         }
       ]
-    },
-    {
-      "name": "step_runs",
-      "datatype": "string",
-      "type": "repeated"
     }
   ]
 }

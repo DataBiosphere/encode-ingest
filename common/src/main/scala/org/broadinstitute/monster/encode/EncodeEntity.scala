@@ -39,5 +39,7 @@ object EncodeEntity extends Enum[EncodeEntity] {
 
   case object AnalysisStepRun extends EncodeEntity
 
+  case object Pipeline extends EncodeEntity
+
   override def values: immutable.IndexedSeq[EncodeEntity] = findValues
 }

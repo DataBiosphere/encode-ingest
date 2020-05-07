@@ -235,11 +235,19 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       targetField = "@id"
     )
 
-    extractLinkedEntities(
+    val analysisSteps = extractLinkedEntities(
       sourceEntityType = EncodeEntity.AnalysisStepVersion,
       sourceField = "analysis_step",
       sourceEntities = analysisStepVersions,
       targetEntityType = EncodeEntity.AnalysisStep,
+      targetField = "@id"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.AnalysisStep,
+      sourceField = "pipelines",
+      sourceEntities = analysisSteps,
+      targetEntityType = EncodeEntity.Pipeline,
       targetField = "@id"
     )
 
