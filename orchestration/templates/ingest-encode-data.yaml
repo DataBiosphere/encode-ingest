@@ -51,16 +51,16 @@ spec:
                 - name: gcs-prefix
                   value: '{{ "{{inputs.parameters.gcs-prefix}}" }}'
                 - name: staging-bq-project
-                  value: '{{ .Values.bigquery.stagingData.project }}' # TODO define this value
+                  value: '{{ .Values.bigquery.stagingData.project }}'
                 - name: staging-bq-dataset
                   value: {{ $datasetName }}
                 {{- with .Values.bigquery.jadeData }}
                 - name: jade-bq-project
-                  value: '{{ .project }}' # TODO define this value
+                  value: '{{ .project }}'
                 - name: jade-bq-dataset
                   value: '{{ .dataset }}'
                 {{- end }}
-                {{- with .Values.repo }} # TODO define these values
+                {{- with .Values.repo }}
                 - name: url
                   value: '{{ .url }}'
                 - name: dataset-id

@@ -15,15 +15,12 @@ spec:
           - name: staging-bq-dataset
           - name: jade-bq-project
           - name: jade-bq-dataset
-#          - name: url
-#          - name: dataset-id
-#          - name: timeout
-#          - name: sa-secret
-#          - name: sa-secret-key
       dag:
         tasks:
           # 1) diff table
           - name: diff-table
+            # WHEN the smoke test is not being run
+            when: '{{ not .Values.smokeTest.enable }}'
             templateRef:
               name: {{ .Values.argoTemplates.diffBQTable.name }}
               template: main
