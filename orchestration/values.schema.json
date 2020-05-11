@@ -107,24 +107,6 @@
         }
       },
       "required": ["stagingData", "jadeData"]
-    },
-    "repo" : {
-      "type": "object",
-      "properties": {
-        "url": {"type":  "string"},
-        "datasetId": {"type": "string"},
-        "profileId": {"type": "string"},
-        "pollTimeout": {"type":  "integer"},
-        "accessKey": {
-          "type": "object",
-          "properties": {
-            "secretName": {"type": "string"},
-            "secretKey": {"type": "string"}
-          },
-          "required": ["secretName", "secretKey"]
-        }
-      },
-      "required": ["url", "datasetId", "profileId", "pollTimeout", "accessKey"]
     }
   },
   "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes", "aws", "smokeTest"]

@@ -60,18 +60,6 @@ spec:
                 - name: jade-bq-dataset
                   value: '{{ .dataset }}'
                 {{- end }}
-                {{- with .Values.repo }}
-                - name: url
-                  value: '{{ .url }}'
-                - name: dataset-id
-                  value: '{{ .datasetId }}'
-                - name: timeout
-                  value: '{{ .pollTimeout }}'
-                - name: sa-secret
-                  value: '{{ .accessKey.secretName }}'
-                - name: sa-secret-key
-                  value: '{{ .accessKey.secretKey }}'
-                {{- end }}
             withItems:
               - alignment_file
               - antibody

@@ -30,6 +30,3 @@ smokeTest:
 bigquery:
   jadeData:
     dataset: datarepo_broad_dsp_encode
-repo:
-  # 24 hours -> 86400 seconds
-  pollTimeout: 86400
