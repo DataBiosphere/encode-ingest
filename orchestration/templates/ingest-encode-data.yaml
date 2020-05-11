@@ -35,3 +35,51 @@ spec:
                   value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/raw'
                 - name: output-prefix
                   value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/processed'
+          {{- $datasetName := printf "%s_%s" .Values.bigquery.stagingData.datasetPrefix (include "argo.timestamp" .) }}
+          # 3) Diff generated data against existing data
+          - name: process-tables
+            dependencies: [run-transformation]
+            templateRef:
+              name: process-table
+              template: main
+            arguments:
+              parameters:
+                - name: table-name
+                  value: '{{ "{{item}}" }}'
+                - name: gcs-bucket
+                  value: '{{ .Values.gcs.bucketName }}'
+                - name: gcs-prefix
+                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}'
+                - name: staging-bq-project
+                  value: '{{ .Values.bigquery.stagingData.project }}' # TODO define this value
+                - name: staging-bq-dataset
+                  value: {{ $datasetName }}
+                {{- with .Values.bigquery.jadeData }}
+                - name: jade-bq-project
+                  value: '{{ .project }}' # TODO define this value
+                - name: jade-bq-dataset
+                  value: '{{ .dataset }}'
+                {{- end }}
+                {{- with .Values.repo }} # TODO define these values
+                - name: url
+                  value: '{{ .url }}'
+                - name: dataset-id
+                  value: '{{ .datasetId }}'
+                - name: timeout
+                  value: '{{ .pollTimeout }}'
+                - name: sa-secret
+                  value: '{{ .accessKey.secretName }}'
+                - name: sa-secret-key
+                  value: '{{ .accessKey.secretKey }}'
+                {{- end }}
+            withItems:
+              - alignment_file
+              - antibody
+              - assay
+              - biosample
+              - donor
+              - library
+              - other_file
+              - pipeline_run
+              - sequence_file
+              - step_run

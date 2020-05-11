@@ -27,3 +27,9 @@ argoTemplates:
     name: gsutil-upload
 smokeTest:
   enable: false
+bigquery:
+  jadeData:
+    dataset: datarepo_broad_dsp_encode # TODO: check that this is correct
+repo:
+  # 24 hours -> 86400 seconds
+  pollTimeout: 86400
