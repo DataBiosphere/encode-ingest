@@ -39,6 +39,8 @@ spec:
           # 3) Diff generated data against existing data
           - name: process-tables
             dependencies: [run-transformation]
+            # WHEN the smoke test is not being run
+            when: '{{ not .Values.smokeTest.enable }}'
             templateRef:
               name: process-table
               template: main

@@ -25,8 +25,12 @@ argoTemplates:
   copyToGCS:
     create: true
     name: gsutil-upload
+  diffBQTable:
+    create: true
+    name: diff-table
+    schemaImageName: us.gcr.io/broad-dsp-gcr-public/encode-schema
 smokeTest:
   enable: false
 bigquery:
   jadeData:
-    dataset: datarepo_broad_dsp_encode
+    dataset: broad_dsp_encode
