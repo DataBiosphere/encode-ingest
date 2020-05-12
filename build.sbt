@@ -1,3 +1,4 @@
+import _root_.io.circe.Json
 import org.broadinstitute.monster.sbt.model.JadeIdentifier
 
 val enumeratumVersion = "1.5.15"
@@ -69,5 +70,15 @@ lazy val `encode-orchestration-workflow` = project
   .enablePlugins(MonsterHelmPlugin)
   .settings(
     helmChartOrganization := "DataBiosphere",
-    helmChartRepository := "encode-ingest"
+    helmChartRepository := "encode-ingest",
+    helmInjectVersionValues := { (baseValues, version) =>
+      val schemaVersionValues = Json.obj(
+        "argoTemplates" -> Json.obj(
+          "diffBQTable" -> Json.obj(
+            "schemaImageVersion" -> Json.fromString(version)
+          )
+        )
+      )
+      baseValues.deepMerge(schemaVersionValues)
+    }
   )
