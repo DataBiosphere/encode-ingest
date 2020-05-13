@@ -83,6 +83,30 @@
           }
        },
        "required": ["enable"]
+    },
+    "bigquery": {
+      "type": "object",
+      "properties": {
+        "stagingData": {
+          "type": "object",
+          "properties": {
+            "project": { "type": "string" },
+            "datasetPrefix": {"type": "string"},
+            "description": {"type": "string"},
+            "expiration": {"type": "string"}
+          },
+          "required": ["project", "datasetPrefix", "description", "expiration"]
+        },
+        "jadeData": {
+          "type": "object",
+          "properties": {
+            "project": { "type": "string" },
+            "dataset": { "type": "string" }
+          },
+          "required": ["project", "dataset"]
+        }
+      },
+      "required": ["stagingData", "jadeData"]
     }
   },
   "required": ["gcs", "serviceAccount", "cron", "dataflow", "volumes", "aws", "smokeTest"]
