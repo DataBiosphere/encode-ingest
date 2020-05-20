@@ -23,6 +23,7 @@ spec:
 
           # Ingest the processed tabular data.
           - name: ingest-metadata
+            dependencies: [process-metadata]
             templateRef:
               name: ingest-processed-data
               template: main

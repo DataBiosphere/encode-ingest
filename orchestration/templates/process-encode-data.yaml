@@ -49,6 +49,7 @@ spec:
         image: us.gcr.io/broad-dsp-gcr-public/encode-extraction:{{ $version }}
         command: []
         args:
+          {{- with .Values.dataflow }}
           - --runner=dataflow
           - --outputDir=gs://{{ $bucket }}/{{ $outputPrefix }}
           - --project={{ .project }}
@@ -83,6 +84,7 @@ spec:
         image: us.gcr.io/broad-dsp-gcr-public/encode-transformation-pipeline:{{ $version }}
         command: []
         args:
+          {{- with .Values.dataflow }}
           - --runner=dataflow
           - --inputPrefix=gs://{{ $bucket }}/{{ $inputPrefix }}
           - --outputPrefix=gs://{{ $bucket }}/{{ $outputPrefix }}

@@ -29,6 +29,9 @@ argoTemplates:
     create: true
     name: diff-table
     schemaImageName: us.gcr.io/broad-dsp-gcr-public/encode-schema
+  createBQDataset:
+    create: true
+    name: create-bq-dataset
 smokeTest:
   enable: false
 bigquery:
