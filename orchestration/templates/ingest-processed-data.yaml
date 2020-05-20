@@ -1,0 +1,103 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ingest-processed-data
+spec:
+  templates:
+    ##
+    ## Entrypoint for ingesting the tabular outputs of processed ENCODE metadata.
+    ##
+    ## Idempotent; will not re-ingest or re-delete rows if the state already matches
+    ## in the Jade repository.
+    ##
+    - name: main
+      inputs:
+        parameters:
+          - name: gcs-prefix
+          {{- $gcsPrefix := "{{inputs.parameters.gcs-prefix}}" }}
+      # Limit to processing 1 table at a time to avoid lock failures in Jade.
+      parallelism: 1
+      dag:
+        tasks:
+          {{- $datasetName := printf "%s_%s" .Values.bigquery.stagingData.datasetPrefix $gcsPrefix }}
+          - name: create-dataset
+            templateRef:
+              name: {{ .Values.argoTemplates.createBQDataset.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: dataset-name
+                  value: {{ $datasetName }}
+                {{- with .Values.bigquery.stagingData }}
+                - name: bq-project
+                  value: '{{ .project }}'
+                - name: dataset-description
+                  value: '{{ .description }}'
+                - name: dataset-expiration
+                  value: '{{ .expiration }}'
+                {{- end }}
+
+          - name: process-tables
+            dependencies: [create-dataset]
+            withItems:
+              - alignment_file
+              - antibody
+              - assay
+              - biosample
+              - donor
+              - library
+              - other_file
+              - pipeline_run
+              - sequence_file
+              - step_run
+            template: process-table
+            arguments:
+              parameters:
+                - name: dataset-name
+                  value: '{{ $datasetName }}'
+                - name: gcs-prefix
+                  value: '{{ $gcsPrefix }}'
+                - name: table-name
+                  value: '{{ "{{item}}" }}'
+
+    ##
+    ## Update the Jade state of a single table to match the data staged in GCS.
+    ##
+    - name: process-table
+      inputs:
+        parameters:
+          - name: dataset-name
+          {{- $datasetName := "{{inputs.parameters.dataset-name}}" }}
+          - name: table-name
+          {{- $tableName := "{{inputs.parameters.table-name}}" }}
+          - name: gcs-prefix
+          {{- $gcsPrefix := "{{inputs.parameters.gcs-prefix}}" }}
+      dag:
+        tasks:
+          # Diff staged data against previously-ingested state.
+          - name: diff-table
+            templateRef:
+              name: {{ .Values.argoTemplates.diffBQTable.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: table-name
+                  value: '{{ $tableName }}'
+                - name: gcs-bucket
+                  value: '{{ .Values.gcs.bucketName }}'
+                - name: input-prefix
+                  value: '{{ printf "%s/processed/%s" $gcsPrefix $tableName }}'
+                - name: old-ids-output-prefix
+                  value: '{{ printf "%s/old-ids/%s" $gcsPrefix $tableName }}'
+                - name: new-rows-output-prefix
+                  value: '{{ printf "%s/new-rows/%s" $gcsPrefix $tableName }}'
+                - name: staging-bq-project
+                  value: '{{ .Values.bigquery.stagingData.project }}'
+                - name: staging-bq-dataset
+                  value: '{{ $datasetName }}'
+                - name: jade-bq-project
+                  value: '{{ .Values.bigquery.jadeData.project }}'
+                - name: jade-bq-dataset
+                  value: '{{ .Values.bigquery.jadeData.dataset }}'
+            {{- $shouldAppend := "{{tasks.diff-table.outputs.parameters.rows-to-append-count}} > 0" }}
+            {{- $shouldDelete := "{{tasks.diff-table.outputs.parameters.ids-to-delete-count}} > 0" }}
