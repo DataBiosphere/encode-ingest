@@ -36,4 +36,4 @@ smokeTest:
   enable: false
 bigquery:
   jadeData:
-    dataset: broad_dsp_encode
+    dataset: datarepo_broad_dsp_encode
