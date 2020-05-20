@@ -50,7 +50,6 @@ spec:
         image: us.gcr.io/broad-dsp-gcr-public/encode-extraction:{{ $version }}
         command: []
         args:
-          {{- with .Values.dataflow }}
           - --runner=dataflow
           - --outputDir=gs://{{ $bucket }}/{{ $outputPrefix }}
           - --project={{ .project }}
