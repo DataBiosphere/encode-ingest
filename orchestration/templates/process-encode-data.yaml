@@ -36,6 +36,7 @@ spec:
     {{- /* Version used for both Dataflow docker images. */}}
     {{- $version := default "latest" .Chart.AppVersion }}
     {{- $bucket := .Values.gcs.bucketName }}
+    {{- with .Values.dataflow }}
     ##
     ## Template used to launch a Dataflow processing job that pulls
     ## all relevant metadata from the ENCODE API.
@@ -84,7 +85,6 @@ spec:
         image: us.gcr.io/broad-dsp-gcr-public/encode-transformation-pipeline:{{ $version }}
         command: []
         args:
-          {{- with .Values.dataflow }}
           - --runner=dataflow
           - --inputPrefix=gs://{{ $bucket }}/{{ $inputPrefix }}
           - --outputPrefix=gs://{{ $bucket }}/{{ $outputPrefix }}
@@ -104,3 +104,4 @@ spec:
           {{- else }}
           - --experiments=shuffle_mode=service
           {{- end }}
+      {{- end }}
