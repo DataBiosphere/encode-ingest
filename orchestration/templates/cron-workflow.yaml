@@ -13,7 +13,8 @@ spec:
     podGC:
       strategy: OnWorkflowSuccess
     parallelism: {{ .Values.maxParallelism }}
-    {{- if .Values.smokeTest.enable }}
+    {{- $smokeTest := .Values.smokeTest.enable }}
+    {{- if $smokeTest }}
     onExit: send-slack-notification
     {{- end }}
     templates:
@@ -21,13 +22,13 @@ spec:
         steps:
           - - name: run-main-template
               templateRef:
-                name: ingest-encode-data
+                name: {{ if $smokeTest }}process-encode-data{{ else }}ingest-encode-data{{ end }}
                 template: main
               arguments:
                 parameters:
                   - name: gcs-prefix
                     value: '{{ template "argo.timestamp" }}'
-      {{- if .Values.smokeTest.enable }}
+      {{- if $smokeTest }}
       - name: send-slack-notification
         container:
           image: curlimages/curl:7.70.0

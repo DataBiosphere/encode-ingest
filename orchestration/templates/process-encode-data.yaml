@@ -1,0 +1,106 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: process-encode-data
+spec:
+  templates:
+    ##
+    ## Entrypoint for processing the current state of the ENCODE archive.
+    ##
+    ## Extracts all metadata from the archive's REST API, then transforms
+    ## it to match our target schema.
+    ##
+    - name: main
+      inputs:
+        parameters:
+          - name: gcs-prefix
+          {{- $gcsPrefix := "{{inputs.parameters.gcs-prefix}}" }}
+      dag:
+        tasks:
+          - name: run-extraction
+            template: run-extraction-pipeline
+            arguments:
+              parameters:
+                - name: output-prefix
+                  value: '{{ printf "%s/raw" $gcsPrefix }}'
+          - name: run-transformation
+            dependencies: [run-extraction]
+            template: run-transformation-pipeline
+            arguments:
+              parameters:
+                - name: input-prefix
+                  value: '{{ printf "%s/raw" $gcsPrefix }}'
+                - name: output-prefix
+                  value: '{{ printf "%s/processed" $gcsPrefix }}'
+
+    {{- /* Version used for both Dataflow docker images. */}}
+    {{- $version := default "latest" .Chart.AppVersion }}
+    {{- $bucket := .Values.gcs.bucketName }}
+    {{- with .Values.dataflow }}
+    ##
+    ## Template used to launch a Dataflow processing job that pulls
+    ## all relevant metadata from the ENCODE API.
+    ##
+    - name: run-extraction-pipeline
+      inputs:
+        parameters:
+          - name: output-prefix
+          {{- $outputPrefix := "{{inputs.parameters.output-prefix}}" }}
+      container:
+        image: us.gcr.io/broad-dsp-gcr-public/encode-extraction:{{ $version }}
+        command: []
+        args:
+          - --runner=dataflow
+          - --outputDir=gs://{{ $bucket }}/{{ $outputPrefix }}
+          - --project={{ .project }}
+          - --region={{ .region }}
+          - --tempLocation=gs://{{ .tmpBucketName }}/dataflow
+          - --subnetwork=regions/{{ .region }}/subnetworks/{{ .subnetName }}
+          - --serviceAccount={{ .workerAccount }}
+          - --workerMachineType={{ .workerMachineType }}
+          {{- with .autoscaling }}
+          - --autoscalingAlgorithm=THROUGHPUT_BASED
+          - --numWorkers={{ .minWorkers }}
+          - --maxNumWorkers={{ .maxWorkers }}
+          {{- end }}
+          {{- if .useFlexRS }}
+          - --flexRSGoal=COST_OPTIMIZED
+          {{- else }}
+          - --experiments=shuffle_mode=service
+          {{- end }}
+
+    ##
+    ## Template used to launch a Dataflow processing job that transforms
+    ## extracted metadata into our target schema.
+    ##
+    - name: run-transformation-pipeline
+      inputs:
+        parameters:
+          - name: input-prefix
+          {{- $inputPrefix := "{{inputs.parameters.input-prefix}}" }}
+          - name: output-prefix
+          {{- $outputPrefix := "{{inputs.parameters.output-prefix}}" }}
+      container:
+        image: us.gcr.io/broad-dsp-gcr-public/encode-transformation-pipeline:{{ $version }}
+        command: []
+        args:
+          - --runner=dataflow
+          - --inputPrefix=gs://{{ $bucket }}/{{ $inputPrefix }}
+          - --outputPrefix=gs://{{ $bucket }}/{{ $outputPrefix }}
+          - --project={{ .project }}
+          - --region={{ .region }}
+          - --tempLocation=gs://{{ .tmpBucketName }}/dataflow
+          - --subnetwork=regions/{{ .region }}/subnetworks/{{ .subnetName }}
+          - --serviceAccount={{ .workerAccount }}
+          - --workerMachineType={{ .workerMachineType }}
+          {{- with .autoscaling }}
+          - --autoscalingAlgorithm=THROUGHPUT_BASED
+          - --numWorkers={{ .minWorkers }}
+          - --maxNumWorkers={{ .maxWorkers }}
+          {{- end }}
+          {{- if .useFlexRS }}
+          - --flexRSGoal=COST_OPTIMIZED
+          {{- else }}
+          - --experiments=shuffle_mode=service
+          {{- end }}
+      {{- end }}

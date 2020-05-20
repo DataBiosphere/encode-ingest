@@ -8,68 +8,26 @@ spec:
       inputs:
         parameters:
           - name: gcs-prefix
+          {{- $gcsPrefix := "{{inputs.parameters.gcs-prefix}}" }}
       dag:
         tasks:
-          # 1) Run the extraction pipeline in Dataflow
-          - name: run-extraction
+          # Pull and process the metadata currently stored in ENCODE.
+          - name: process-metadata
             templateRef:
-              name: run-extraction-pipeline
+              name: process-encode-data
               template: main
             arguments:
               parameters:
-                - name: gcs-bucket
-                  value: '{{ .Values.gcs.bucketName }}'
-                - name: output-prefix
-                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/raw'
-          # 2) Run the transformation pipeline on the extracted files
-          - name: run-transformation
-            dependencies: [run-extraction]
-            templateRef:
-              name: run-transformation-pipeline
-              template: main
-            arguments:
-              parameters:
-                - name: gcs-bucket
-                  value: '{{ .Values.gcs.bucketName }}'
-                - name: input-prefix
-                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/raw'
-                - name: output-prefix
-                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}/processed'
-          {{- $datasetName := printf "%s_%s" .Values.bigquery.stagingData.datasetPrefix (include "argo.timestamp" .) }}
-          # 3) Diff generated data against existing data
-          - name: process-tables
-            dependencies: [run-transformation]
-            # WHEN the smoke test is not being run
-            when: '{{ not .Values.smokeTest.enable }}'
-            templateRef:
-              name: process-table
-              template: main
-            arguments:
-              parameters:
-                - name: table-name
-                  value: '{{ "{{item}}" }}'
-                - name: gcs-bucket
-                  value: '{{ .Values.gcs.bucketName }}'
                 - name: gcs-prefix
-                  value: '{{ "{{inputs.parameters.gcs-prefix}}" }}'
-                - name: staging-bq-project
-                  value: '{{ .Values.bigquery.stagingData.project }}'
-                - name: staging-bq-dataset
-                  value: {{ $datasetName }}
-                {{- with .Values.bigquery.jadeData }}
-                - name: jade-bq-project
-                  value: '{{ .project }}'
-                - name: jade-bq-dataset
-                  value: '{{ .dataset }}'
-                {{- end }}
-            withItems:
-              - alignment_file
-              - antibody
-              - assay
-              - biosample
-              - donor
-              - library
-              - other_file
-              - pipeline_run
-              - sequence_file
-              - step_run
+                  value: '{{ $gcsPrefix }}'
+
+          # Ingest the processed tabular data.
+          - name: ingest-metadata
+            dependencies: [process-metadata]
+            templateRef:
+              name: ingest-processed-data
+              template: main
+            arguments:
+              parameters:
+                - name: gcs-prefix
+                  value: '{{ $gcsPrefix }}'
