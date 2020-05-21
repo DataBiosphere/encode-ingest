@@ -1,5 +1,4 @@
 import _root_.io.circe.Json
-import org.broadinstitute.monster.sbt.model.JadeIdentifier
 
 val enumeratumVersion = "1.5.15"
 val okhttpVersion = "4.4.1"
@@ -41,10 +40,6 @@ lazy val `encode-schema` = project
   .in(file("schema"))
   .enablePlugins(MonsterJadeDatasetPlugin)
   .settings(
-    jadeDatasetName := JadeIdentifier
-      .fromString("broad_dsp_encode")
-      .fold(sys.error, identity),
-    jadeDatasetDescription := "Mirror of ENCODE, maintained by Broad's Data Sciences Platform",
     jadeTablePackage := "org.broadinstitute.monster.encode.jadeschema.table",
     jadeStructPackage := "org.broadinstitute.monster.encode.jadeschema.struct"
   )
