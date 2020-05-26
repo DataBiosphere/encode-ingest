@@ -1,0 +1,25 @@
+gcs:
+  bucketName: bucket
+serviceAccount:
+  k8sName: account
+  googleName: account@goog
+cron:
+  schedule: '@daily'
+dataflow:
+  project: project
+  tmpBucketName: buckety
+  subnetName: net
+  workerAccount: dataflow@goog
+  useFlexRS: true
+bigquery:
+  stagingData:
+    project: project
+    datasetPrefix: monster_staging_data
+    description: The coolest dataset
+    expiration: '1' # Gotta go fast
+  jadeData:
+    project: jade-data
+aws:
+  credentialsSecretName: shhhhh
+smokeTest:
+  enable: false
