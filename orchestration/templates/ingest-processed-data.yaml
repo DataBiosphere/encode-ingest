@@ -19,6 +19,7 @@ spec:
       parallelism: 1
       dag:
         tasks:
+          # Create a dataset to store intermediate outputs of ETL jobs.
           {{- $datasetName := printf "%s_%s" .Values.bigquery.stagingData.datasetPrefix $gcsPrefix }}
           - name: create-dataset
             templateRef:
@@ -37,6 +38,7 @@ spec:
                   value: '{{ .expiration }}'
                 {{- end }}
 
+          # Loop over all tables, syncing state in Jade to match data staged in GCS.
           - name: process-tables
             dependencies: [create-dataset]
             withItems:
@@ -75,6 +77,8 @@ spec:
       dag:
         tasks:
           # Diff staged data against previously-ingested state.
+          {{- $newRowsPrefix := printf "%s/new-rows/%s" $gcsPrefix $tableName }}
+          {{- $oldIdsPrefix := printf "%s/old-ids/%s" $gcsPrefix $tableName }}
           - name: diff-table
             templateRef:
               name: {{ .Values.argoTemplates.diffBQTable.name }}
@@ -88,9 +92,9 @@ spec:
                 - name: input-prefix
                   value: '{{ printf "%s/processed/%s" $gcsPrefix $tableName }}'
                 - name: old-ids-output-prefix
-                  value: '{{ printf "%s/old-ids/%s" $gcsPrefix $tableName }}'
+                  value: '{{ $oldIdsPrefix }}'
                 - name: new-rows-output-prefix
-                  value: '{{ printf "%s/new-rows/%s" $gcsPrefix $tableName }}'
+                  value: '{{ $newRowsPrefix }}'
                 - name: staging-bq-project
                   value: '{{ .Values.bigquery.stagingData.project }}'
                 - name: staging-bq-dataset
@@ -101,3 +105,59 @@ spec:
                   value: '{{ .Values.bigquery.jadeData.dataset }}'
             {{- $shouldAppend := "{{tasks.diff-table.outputs.parameters.rows-to-append-count}} > 0" }}
             {{- $shouldDelete := "{{tasks.diff-table.outputs.parameters.ids-to-delete-count}} > 0" }}
+
+          # Soft-delete IDs of outdated rows.
+          - name: soft-delete-table
+            dependencies: [diff-table]
+            when: '{{ $shouldDelete }}'
+            templateRef:
+              name: {{ .Values.argoTemplates.softDeleteTable.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: table-name
+                  value: '{{ $tableName }}'
+                - name: gcs-prefix
+                  value: '{{ $oldIdsPrefix }}'
+                - name: gcs-bucket
+                  value: '{{ .Values.gcs.bucketName }}'
+                {{- with .Values.repo }}
+                - name: url
+                  value: '{{ .url }}'
+                - name: dataset-id
+                  value: '{{ .datasetId }}'
+                - name: timeout
+                  value: '{{ .pollTimeout }}'
+                - name: sa-secret
+                  value: '{{ .accessKey.secretName }}'
+                - name: sa-secret-key
+                  value: '{{ .accessKey.secretKey }}'
+                {{- end }}
+
+          # Append rows with new data.
+          - name: ingest-table
+            dependencies: [diff-table, soft-delete-table]
+            when: '{{ $shouldAppend }}'
+            templateRef:
+              name:  {{ .Values.argoTemplates.ingestTable.name }}
+              template: main
+            arguments:
+              parameters:
+                - name: table-name
+                  value: '{{ $tableName }}'
+                - name: gcs-bucket
+                  value: '{{ .Values.gcs.bucketName }}'
+                - name: gcs-prefix
+                  value: '{{ $newRowsPrefix }}'
+                {{- with .Values.repo }}
+                - name: url
+                  value: '{{ .url }}'
+                - name: dataset-id
+                  value: '{{ .datasetId }}'
+                - name: timeout
+                  value: '{{ .pollTimeout }}'
+                - name: sa-secret
+                  value: '{{ .accessKey.secretName }}'
+                - name: sa-secret-key
+                  value: '{{ .accessKey.secretKey }}'
+                {{- end }}
