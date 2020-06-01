@@ -1,7 +1,7 @@
 package org.broadinstitute.monster.encode.transformation
 
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
-import org.broadinstitute.monster.EncodeTransformationPipelineBuildInfo
+import org.broadinstitute.monster.buildinfo.EncodeTransformationPipelineBuildInfo
 
 @AppName("Encode transformation pipeline")
 @AppVersion(EncodeTransformationPipelineBuildInfo.version)

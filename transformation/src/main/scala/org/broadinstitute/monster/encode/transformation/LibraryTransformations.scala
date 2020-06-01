@@ -21,7 +21,7 @@ object LibraryTransformations {
 
     Library(
       id = CommonTransformations.readId(libraryInput),
-      crossReferences = libraryInput.read[Array[String]]("dbxrefs"),
+      crossReferences = libraryInput.read[List[String]]("dbxrefs"),
       timeCreated = libraryInput.read[OffsetDateTime]("date_created"),
       award = libraryInput.read[String]("award"),
       lab = libraryInput.read[String]("lab"),
@@ -30,9 +30,9 @@ object LibraryTransformations {
       sizeRange = libraryInput.tryRead[String]("size_range"),
       strandSpecific = specificity.isDefined,
       strandSpecificity = specificity.filterNot(_ == specificityPlaceholder),
-      treatments = libraryInput.read[Array[String]]("treatments"),
+      treatments = libraryInput.read[List[String]]("treatments"),
       submittedBy = libraryInput.read[String]("submitted_by"),
-      spikeIns = libraryInput.read[Array[String]]("spikeins_used"),
+      spikeIns = libraryInput.read[List[String]]("spikeins_used"),
       biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample")),
       prepMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),
       prepMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name")

@@ -79,9 +79,9 @@ object FileTransformations {
     * pointers to nonexistent rows.
     */
   def splitFileReferences(
-    references: Array[String],
+    references: List[String],
     idsToType: Map[String, FileType]
-  ): FileBranches[Array, String] = {
+  ): FileBranches[List, String] = {
     val (seq, align, other) = references.map { rawId =>
       val id = CommonTransformations.transformId(rawId)
 
@@ -205,7 +205,7 @@ object FileTransformations {
 
     SequenceFile(
       id = id,
-      crossReferences = rawFile.read[Array[String]]("dbxrefs"),
+      crossReferences = rawFile.read[List[String]]("dbxrefs"),
       timeCreated = rawFile.read[OffsetDateTime]("date_created"),
       lab = rawFile.read[String]("lab"),
       dataModality = modality,
@@ -215,7 +215,7 @@ object FileTransformations {
       fileFormat = rawFile.read[String]("file_format"),
       fileFormatType = rawFile.tryRead[String]("file_format_type"),
       platform = rawFile.tryRead[String]("platform"),
-      qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
+      qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       libraryId = rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
       readCount = rawFile.tryRead[Long]("read_count"),
@@ -241,14 +241,14 @@ object FileTransformations {
     val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val parentBranches = splitFileReferences(
-      rawFile.tryRead[Array[String]]("derived_from").getOrElse(Array.empty),
+      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
       idsToType
     )
     val modality = computeDataModality(rawFile, rawExperiment)
 
     AlignmentFile(
       id = id,
-      crossReferences = rawFile.read[Array[String]]("dbxrefs"),
+      crossReferences = rawFile.read[List[String]]("dbxrefs"),
       timeCreated = rawFile.read[OffsetDateTime]("date_created"),
       dataModality = modality,
       auditLabels = auditLabels,
@@ -257,7 +257,7 @@ object FileTransformations {
       fileFormat = rawFile.read[String]("file_format"),
       lab = rawFile.read[String]("lab"),
       platform = rawFile.tryRead[String]("platform"),
-      qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
+      qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
       derivedFromAlignmentFileIds = parentBranches.alignment,
@@ -277,14 +277,14 @@ object FileTransformations {
   ): OtherFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val parentBranches = splitFileReferences(
-      rawFile.tryRead[Array[String]]("derived_from").getOrElse(Array.empty),
+      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
       idsToType
     )
     val modality = computeDataModality(rawFile, rawExperiment)
 
     OtherFile(
       id = CommonTransformations.readId(rawFile),
-      crossReferences = rawFile.read[Array[String]]("dbxrefs"),
+      crossReferences = rawFile.read[List[String]]("dbxrefs"),
       timeCreated = rawFile.read[OffsetDateTime]("date_created"),
       dataModality = modality,
       auditLabels = auditLabels,
@@ -294,7 +294,7 @@ object FileTransformations {
       fileFormatType = rawFile.tryRead[String]("file_format_type"),
       lab = rawFile.read[String]("lab"),
       platform = rawFile.tryRead[String]("platform"),
-      qualityMetrics = rawFile.read[Array[String]]("quality_metrics"),
+      qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
       derivedFromAlignmentFileIds = parentBranches.alignment,

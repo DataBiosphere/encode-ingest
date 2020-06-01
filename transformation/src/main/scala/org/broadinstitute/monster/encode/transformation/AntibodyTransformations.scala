@@ -14,13 +14,13 @@ object AntibodyTransformations {
     val targetNames = joinedTargets
       .filter(_.tryRead[String]("organism").contains("/organisms/human/"))
       .map(_.read[String]("label"))
-      .toArray
+      .toList
       .sorted
       .distinct
 
     Antibody(
       id = CommonTransformations.readId(antibodyInput),
-      crossReferences = antibodyInput.read[Array[String]]("dbxrefs"),
+      crossReferences = antibodyInput.read[List[String]]("dbxrefs"),
       timeCreated = antibodyInput.read[OffsetDateTime]("date_created"),
       source = antibodyInput.read[String]("source"),
       clonality = antibodyInput.tryRead[String]("clonality"),
@@ -31,7 +31,7 @@ object AntibodyTransformations {
       lab = antibodyInput.read[String]("lab"),
       lotId = antibodyInput.tryRead[String]("lot_id"),
       productId = antibodyInput.read[String]("product_id"),
-      purificationMethods = antibodyInput.read[Array[String]]("purifications")
+      purificationMethods = antibodyInput.read[List[String]]("purifications")
     )
   }
 }

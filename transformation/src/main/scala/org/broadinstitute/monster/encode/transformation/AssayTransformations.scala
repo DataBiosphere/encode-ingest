@@ -18,24 +18,24 @@ object AssayTransformations {
 
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawExperiment)
     val usedFileBranches = FileTransformations.splitFileReferences(
-      rawExperiment.read[Array[String]]("contributing_files"),
+      rawExperiment.read[List[String]]("contributing_files"),
       fileIdToTypeMap
     )
     val generatedFileBranches = FileTransformations.splitFileReferences(
-      rawExperiment.read[Array[String]]("files"),
+      rawExperiment.read[List[String]]("files"),
       fileIdToTypeMap
     )
 
-    val libraryArray = rawLibraries.toArray
+    val libraryArray = rawLibraries.toList
 
     Assay(
       id = id,
-      crossReferences = rawExperiment.read[Array[String]]("dbxrefs"),
+      crossReferences = rawExperiment.read[List[String]]("dbxrefs"),
       timeCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
       // TODO: This is dangerous, should we make it optional / an array?
-      assayCategory = rawExperiment.read[Array[String]]("assay_slims").head,
+      assayCategory = rawExperiment.read[List[String]]("assay_slims").head,
       assayType = rawExperiment.read[String]("assay_term_id"),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,

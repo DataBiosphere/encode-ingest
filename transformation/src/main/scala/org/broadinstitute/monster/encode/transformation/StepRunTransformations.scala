@@ -29,7 +29,7 @@ object StepRunTransformations {
     }
 
     // branch files
-    val generatedFileArray = rawGeneratedFiles.toArray
+    val generatedFileArray = rawGeneratedFiles.toList
     val generatedFileBranches = FileTransformations.splitFileReferences(
       generatedFileArray.map(_.read[String]("@id")),
       fileIdToTypeMap

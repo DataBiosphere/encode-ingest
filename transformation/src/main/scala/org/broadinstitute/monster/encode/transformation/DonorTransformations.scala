@@ -25,7 +25,7 @@ object DonorTransformations {
 
     Donor(
       id = CommonTransformations.readId(donorInput),
-      crossReferences = donorInput.read[Array[String]]("dbxrefs"),
+      crossReferences = donorInput.read[List[String]]("dbxrefs"),
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),
       ageMin = ageMin,
       ageMax = ageMax,
@@ -37,7 +37,7 @@ object DonorTransformations {
       lab = donorInput.read[String]("lab"),
       lifeStage = donorInput.tryRead[String]("life_stage"),
       parentDonorIds = donorInput
-        .read[Array[String]]("parents")
+        .read[List[String]]("parents")
         .map(CommonTransformations.transformId),
       twinDonorId = donorInput
         .tryRead[String]("twin")
