@@ -32,8 +32,17 @@ argoTemplates:
   createBQDataset:
     create: true
     name: create-bq-dataset
+  softDeleteTable:
+    create: true
+    name: soft-delete-table
+  ingestTable:
+    create: true
+    name: ingest-table
 smokeTest:
   enable: false
 bigquery:
   jadeData:
     dataset: datarepo_broad_dsp_encode
+repo:
+  # 24 hours -> 86400 seconds
+  pollTimeout: 86400
