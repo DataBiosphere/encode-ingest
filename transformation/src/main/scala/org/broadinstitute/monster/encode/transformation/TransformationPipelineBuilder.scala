@@ -1,7 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
-import com.spotify.scio.coders.Coder
 import com.spotify.scio.values.SCollection
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
@@ -9,8 +8,6 @@ import org.broadinstitute.monster.encode.EncodeEntity
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
-  /** (De)serializer for the upack messages we read from storage. */
-  implicit val msgCoder: Coder[Msg] = Coder.beam(new UpackMsgCoder)
 
   /**
     * Schedule all the steps for the Encode transformation in the given pipeline context.

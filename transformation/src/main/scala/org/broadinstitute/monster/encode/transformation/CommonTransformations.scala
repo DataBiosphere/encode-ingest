@@ -48,8 +48,8 @@ object CommonTransformations {
     *   1. A color label for the max audit level present
     *   2. The set of unique audit categories present
     */
-  def summarizeAudits(rawObject: Msg): (Option[String], Array[String]) =
-    rawObject.tryRead[Msg]("audit").fold((Option.empty[String], Array.empty[String])) { audits =>
+  def summarizeAudits(rawObject: Msg): (Option[String], List[String]) =
+    rawObject.tryRead[Msg]("audit").fold((Option.empty[String], List.empty[String])) { audits =>
       // ENCODE's audits are grouped by severity, but they also include
       // that label within each record, so it's fine to simplify and strip
       // away the grouping.
@@ -70,6 +70,6 @@ object CommonTransformations {
         case _  => "white"
       }
 
-      (Some(levelColor), labels.toArray)
+      (Some(levelColor), labels.toList.sorted)
     }
 }

@@ -3,7 +3,7 @@ package org.broadinstitute.monster.encode.extraction
 import caseapp.{AppName, AppVersion, HelpMessage, ProgName}
 import caseapp.core.Error.MalformedValue
 import caseapp.core.argparser.{ArgParser, SimpleArgParser}
-import org.broadinstitute.monster.EncodeExtractionBuildInfo
+import org.broadinstitute.monster.buildinfo.EncodeExtractionBuildInfo
 
 /**
   * Command-line arguments for the ETL workflow.

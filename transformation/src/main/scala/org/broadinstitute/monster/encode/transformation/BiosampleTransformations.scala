@@ -34,7 +34,7 @@ object BiosampleTransformations {
 
     Biosample(
       id = CommonTransformations.readId(biosampleInput),
-      crossReferences = biosampleInput.read[Array[String]]("dbxrefs"),
+      crossReferences = biosampleInput.read[List[String]]("dbxrefs"),
       timeCreated = biosampleInput.read[OffsetDateTime]("date_created"),
       source = biosampleInput.tryRead[String]("source"),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
@@ -49,10 +49,10 @@ object BiosampleTransformations {
       maxAuditFlag = auditLevel,
       award = biosampleInput.read[String]("award"),
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
-      geneticModifications = biosampleInput.read[Array[String]]("applied_modifications"),
+      geneticModifications = biosampleInput.read[List[String]]("applied_modifications"),
       healthStatus = biosampleInput.tryRead[String]("health_status"),
       lab = biosampleInput.read[String]("lab"),
-      treatments = biosampleInput.read[Array[String]]("treatments"),
+      treatments = biosampleInput.read[List[String]]("treatments"),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
       submittedBy = biosampleInput.read[String]("submitted_by"),
       productId = if (productIds.size > 1) {
