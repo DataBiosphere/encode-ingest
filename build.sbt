@@ -41,6 +41,7 @@ lazy val `encode-schema` = project
   .enablePlugins(MonsterJadeDatasetPlugin)
   .settings(
     jadeTablePackage := "org.broadinstitute.monster.encode.jadeschema.table",
+    jadeTableFragmentPackage := "org.broadinstitute.monster.encode.jadeschema.fragment",
     jadeStructPackage := "org.broadinstitute.monster.encode.jadeschema.struct"
   )
 
