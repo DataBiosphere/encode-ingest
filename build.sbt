@@ -12,7 +12,9 @@ lazy val `encode-ingest` = project
     `encode-common`,
     `encode-extraction`,
     `encode-schema`,
-    `encode-transformation-pipeline`
+    `encode-transformation-pipeline`,
+    `encode-explorer-file-backfill`,
+    `encode-orchestration-workflow`
   )
   .settings(publish / skip := true)
 

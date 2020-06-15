@@ -2,7 +2,7 @@ package org.broadinstitute.monster.encode.backfill
 
 import caseapp.AppName
 import caseapp.AppVersion
-import org.broadinstitute.monster.EncodeExplorerFileBackfillBuildInfo
+import org.broadinstitute.monster.buildinfo.EncodeExplorerFileBackfillBuildInfo
 import caseapp.ProgName
 import caseapp.HelpMessage
 
