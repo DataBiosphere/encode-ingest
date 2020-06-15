@@ -26,3 +26,10 @@ smokeTest:
   slackUrl:
     secretName: shh
     secretKey: erl
+repo:
+  url: http://repo!
+  datasetId: a
+  profileId: b
+  accessKey:
+    secretName: s
+    secretKey: k

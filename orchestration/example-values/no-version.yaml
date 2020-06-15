@@ -23,3 +23,11 @@ aws:
   credentialsSecretName: shhhhh
 smokeTest:
   enable: false
+repo:
+  url: http://repo!
+  datasetId: a
+  profileId: b
+  accessKey:
+    secretName: s
+    secretKey: k
+
