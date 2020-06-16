@@ -9,7 +9,6 @@ dataflow:
   autoscaling:
     minWorkers: 4
     maxWorkers: 8
-  useFlexRS: false
 volumes:
   storageClass: standard
 argoTemplates:

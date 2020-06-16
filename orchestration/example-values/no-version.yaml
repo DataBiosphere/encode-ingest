@@ -10,7 +10,6 @@ dataflow:
   tmpBucketName: buckety
   subnetName: net
   workerAccount: dataflow@goog
-  useFlexRS: true
 bigquery:
   stagingData:
     project: project

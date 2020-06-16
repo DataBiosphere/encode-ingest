@@ -63,11 +63,7 @@ spec:
           - --numWorkers={{ .minWorkers }}
           - --maxNumWorkers={{ .maxWorkers }}
           {{- end }}
-          {{- if .useFlexRS }}
-          - --flexRSGoal=COST_OPTIMIZED
-          {{- else }}
           - --experiments=shuffle_mode=service
-          {{- end }}
 
     ##
     ## Template used to launch a Dataflow processing job that transforms
@@ -98,9 +94,5 @@ spec:
           - --numWorkers={{ .minWorkers }}
           - --maxNumWorkers={{ .maxWorkers }}
           {{- end }}
-          {{- if .useFlexRS }}
-          - --flexRSGoal=COST_OPTIMIZED
-          {{- else }}
           - --experiments=shuffle_mode=service
-          {{- end }}
       {{- end }}
