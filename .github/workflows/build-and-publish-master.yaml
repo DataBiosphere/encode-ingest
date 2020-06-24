@@ -16,9 +16,9 @@ jobs:
       - name: Check formatting
         run: sbt scalafmtCheckAll
       - name: Compile
-        run: sbt Compile/compile Test/compile IntegrationTest/compile
+        run: sbt Compile/compile Test/compile
       - name: Test
-        run: sbt "set ThisBuild/coverageEnabled := true" test IntegrationTest/test coverageAggregate
+        run: sbt "set ThisBuild/coverageEnabled := true" test coverageAggregate
       - name: Publish coverage
         uses: codecov/codecov-action@v1
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
