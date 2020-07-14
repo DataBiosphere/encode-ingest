@@ -8,6 +8,7 @@ found under [`schema/`](./schema). The schema is purposefully very different
 from the source ENCODE schema: it is sample-centric (instead of experiment-centric),
 merges & splits ENCODE entities as needed, and does not attempt to capture all
 of the information published in the source data.
+![Data model](./images/data-model.jpg)
 
 ## Pipeline Architecture
 The ingest pipeline is orchestrated through Argo, with most data processing logic
