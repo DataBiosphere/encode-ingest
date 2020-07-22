@@ -8,15 +8,14 @@ import sys
 dataset_id = sys.argv[1]
 profile_id = sys.argv[2]
 is_production = (sys.argv[3] == 'prod')
+control_file_paths = sys.argv[4].split(',')
 timeout = 30 # 30 seconds
-control_file_prefix = 'gs://broad-encode-migration-storage/explorer-backfill'
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
 
 # dynamically generated values
-jade_base_url = '' if is_production else 'https://jade.datarepo-dev.broadinstitute.org/'
+jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_production else 'https://jade.datarepo-dev.broadinstitute.org/'
 authed_session = AuthorizedSession(credentials)
-control_file_names = ['test1', 'test2'] # TODO read names from bucket
 
 def submit_job(dataset_id: str, **kwargs):
     response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{dataset_id}/files/bulk', json=kwargs)
@@ -32,7 +31,6 @@ def check_job_status(job_id: str):
     else:
         raise HTTPError("Bad response, got code of: {}".format(response.status_code))
 
-
 def is_done(job_id: str) -> bool:
     # if "running" then we want to keep polling, so false
     # if "succeeded" then we want to stop polling, so true
@@ -47,6 +45,6 @@ def is_success(job_id: str):
     else:
         raise ValueError("Job ran but did not succeed.")
 
-for file_name in control_file_names:
+for path in control_file_paths:
     # use the file name as the load tag
     max_failures = 1 # TODO set to the number of lines in control file
