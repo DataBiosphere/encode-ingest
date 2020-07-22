@@ -4,20 +4,22 @@ from google.auth.transport.requests import AuthorizedSession
 from requests.exceptions import HTTPError
 import sys
 
-# read arguments
+# arguments & generated values
 dataset_id = sys.argv[1]
-jade_base_url = sys.argv[2]
+profile_id = sys.argv[2]
+is_production = (sys.argv[3] == 'prod')
+jade_base_url = '' if is_production else 'https://jade.datarepo-dev.broadinstitute.org/'
 
+# static values
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
-
-base_url = None # default to dev
-timeout = None # need to set value
 control_file_prefix = 'gs://broad-encode-migration-storage/explorer-backfill'
-control_file = control_file_prefix + "" # update to use file names
-max_failures = 1 # TODO: update - set to total file count (# lines in control file)
-profile_id = None # repo -> profile_id value (figure out where to get this?)
+timeout = 30 # 30 seconds
+
+# dynamically generated values (should be moved inside for loop)
+control_file = control_file_prefix + "" # update to use file names that have been read in from bucket
 load_tag = None # generate for each
+max_failures = 1 # set to the number of lines in control file
 
 authed_session = AuthorizedSession(credentials)
 
