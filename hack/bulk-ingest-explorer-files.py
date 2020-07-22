@@ -4,24 +4,19 @@ from google.auth.transport.requests import AuthorizedSession
 from requests.exceptions import HTTPError
 import sys
 
-# arguments & generated values
+# arguments & static values
 dataset_id = sys.argv[1]
 profile_id = sys.argv[2]
 is_production = (sys.argv[3] == 'prod')
-jade_base_url = '' if is_production else 'https://jade.datarepo-dev.broadinstitute.org/'
-
-# static values
+timeout = 30 # 30 seconds
+control_file_prefix = 'gs://broad-encode-migration-storage/explorer-backfill'
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
-control_file_prefix = 'gs://broad-encode-migration-storage/explorer-backfill'
-timeout = 30 # 30 seconds
 
-# dynamically generated values (should be moved inside for loop)
-control_file = control_file_prefix + "" # update to use file names that have been read in from bucket
-load_tag = None # generate for each
-max_failures = 1 # set to the number of lines in control file
-
+# dynamically generated values
+jade_base_url = '' if is_production else 'https://jade.datarepo-dev.broadinstitute.org/'
 authed_session = AuthorizedSession(credentials)
+control_file_names = ['test1', 'test2'] # TODO read names from bucket
 
 def submit_job(dataset_id: str, **kwargs):
     response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{dataset_id}/files/bulk', json=kwargs)
@@ -52,6 +47,6 @@ def is_success(job_id: str):
     else:
         raise ValueError("Job ran but did not succeed.")
 
-# TODO query status until done
-
-# print(submit_job(dataset_id, profileId=profile_id, loadControlFile=control_file, loadTag=load_tag, maxFailedFileLoads=max_failures))
+for file_name in control_file_names:
+    # use the file name as the load tag
+    max_failures = 1 # TODO set to the number of lines in control file
