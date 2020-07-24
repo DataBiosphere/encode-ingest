@@ -15,6 +15,7 @@ jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_pro
     else 'https://jade.datarepo-dev.broadinstitute.org/'
 authed_session = AuthorizedSession(credentials)
 
+use_temp_dataset = dataset_id is None
 default_dataset_schema = {
     "assets": [],
     "relationships": [],
@@ -62,6 +63,7 @@ def get_counts(job_id: str) -> Counts:
 
 # Create a new jade dataset. If successful, return the id of the job.
 # The kwargs should include the defaultProfileId, name, and schema to use in dataset creation.
+# TODO figure out how to get / return the dataset id
 def create_dataset(**kwargs):
     response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets', json=kwargs)
     if response.ok:
@@ -69,10 +71,18 @@ def create_dataset(**kwargs):
     else:
         raise HTTPError(f'Bad response, got code of: {response.status_code}')
 
+# Create a new jade dataset. If successful, return the id of the job.
+def delete_dataset(id: str):
+    response = authed_session.delete(f'/api/repository/v1/datasets/{id}')
+    if response.ok:
+        return response.json()['id']
+    else:
+        raise HTTPError(f'Bad response, got code of: {response.status_code}')
+
 
 # create a new dataset with default values if no dataset id was specified
-if dataset_id is not None:
-    create_dataset(name=default_dataset_name, defaultProfileId=profile_id, schema=default_dataset_schema)
+if use_temp_dataset:
+    dataset_id = create_dataset(name=default_dataset_name, defaultProfileId=profile_id, schema=default_dataset_schema)
 
 # submit the bulk file ingest job for each
 job_ids = []
@@ -92,10 +102,11 @@ for control_file_path in control_file_paths:
 # polling.poll(lambda: is_done(job_id), step=10, step_function=step_function, timeout=720)
 
 # print out the final results
-# counts = get_counts(job_id)
-# print(f'Bulk load for {job_id} failed on {counts.failed} files ({counts.not_tried} not tried, {counts.succeeded} successful)')
+for job_id in job_ids:
+    counts = get_counts(job_id)
+    print(f'Bulk load for {job_id} failed on {counts.failed} files ({counts.not_tried} not tried, {counts.succeeded} successful)')
 
-# TODO: if a dummy dataset was used, delete it
-
+if use_temp_dataset:
+    delete_dataset(dataset_id)
 
 
