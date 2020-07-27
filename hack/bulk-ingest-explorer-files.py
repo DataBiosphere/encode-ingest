@@ -6,24 +6,31 @@ import sys
 import re
 import time
 
-# arguments & static values
+# This script bulk-ingests files from a google bucket, with the following arguments:
+# - A profileID (associated with the billing account)
+# - The environment to use (dev/prod), will default to dev
+# - A comma-separated list of google bucket paths for control files (json files which list source and target paths)
+# - An optional dataset id (if none is provided, a temporary dataset will be used and deleted afterwards)
+
+# read in arguments
 profile_id = sys.argv[1]
 is_production = (sys.argv[2] == 'prod') # default to dev
 control_file_paths = sys.argv[3].split(',')
-dataset_id = None #sys.argv[4] # TODO use argparse to treat this as an optional arg
+dataset_id = sys.argv[4] if sys.argv[4:] else None # optional
+
+# define hard-coded values
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
 jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_production \
     else 'https://jade.datarepo-dev.broadinstitute.org/'
 authed_session = AuthorizedSession(credentials)
-
 use_temp_dataset = dataset_id is None
+default_dataset_name = 'encode-explorer-ingest-test'
 default_dataset_schema = {
     "assets": [],
     "relationships": [],
     "tables": []
 }
-default_dataset_name = 'encode-explorer-ingest-test'
 
 # submit a bulk file ingest request. If successful, return the id of the job.
 def submit_job(dataset_id: str, **kwargs):
@@ -112,10 +119,14 @@ for job_id in job_ids:
 if use_temp_dataset:
     delete_dataset(dataset_id)
 
-# Open questions:
-# - do I need to set max-failures value when submitting the job? (not sure what the default value is)
-# - where do I get the profile id (for testing, for example) do I have one myself? can I get it from google auth?
-
 # To Do:
+# - figure out: do I need to set max-failures value when submitting the job? (not sure what the default value is)
 # - dataset id as an optional argument (using the argparse library)
 # - set up asynch monitoring
+# - set up a bucket with a subset of file ingest requests
+
+# To Test:
+# - Are the args read in correctly? - done!
+# - Is the dataset created and deleted successfully?
+# - Is the bulk ingest launched and monitored well? Does it succeed?
+# - Can the dataset still be deleted after the bulk ingest succeeds?
