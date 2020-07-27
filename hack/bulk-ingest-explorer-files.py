@@ -3,12 +3,14 @@ import google.auth
 from google.auth.transport.requests import AuthorizedSession
 from requests.exceptions import HTTPError
 import sys
+import re
+import time
 
 # arguments & static values
 profile_id = sys.argv[1]
 is_production = (sys.argv[2] == 'prod') # default to dev
 control_file_paths = sys.argv[3].split(',')
-dataset_id = sys.argv[4] # TODO use argparse to treat this as an optional arg
+dataset_id = None #sys.argv[4] # TODO use argparse to treat this as an optional arg
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
 jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_production \
@@ -79,6 +81,14 @@ def delete_dataset(id: str):
     else:
         raise HTTPError(f'Bad response, got code of: {response.status_code}')
 
+# Monitor the job status until it's done, then print the final status and time taken
+def monitor_job(job_id: str):
+    start_time = time.clock()
+    # check status every 10 seconds and stop after 2 hours have passed if still not complete
+    polling.poll(lambda: is_done(job_id), step=10, timeout=720)
+    time_elapsed = time.clock() = start_time
+    print(f'Job {job_id} finished in {time_elapsed} seconds.')
+
 
 # create a new dataset with default values if no dataset id was specified
 if use_temp_dataset:
@@ -87,19 +97,12 @@ if use_temp_dataset:
 # submit the bulk file ingest job for each
 job_ids = []
 for control_file_path in control_file_paths:
-    # submit bulk file ingest job (need to set max failures?, use the file name as the load tag?)
-    load_tag = "" # TODO decide how to set this
+    # generate the load tag from the file name (ex. "part-00000-of-00020")
+    load_tag = re.search('/(part.*).json', control_file_path).group(1)
     job_id = submit_job(dataset_id, profileId=profile_id, loadControlFile=control_file_path, loadTag=load_tag)
     job_ids.append(job_id)
-
-# check the job status until it's finished
-# while not all jobs are done,
-#  - Wait some period of time (5 minutes?)
-#  - Check whether the entire job finished
-#  - Get the counts of file statuses for each (does this work before the job is done? Or only after?)
-
-# check status every 10 seconds and stop after 2 hours have passed if still not complete
-# polling.poll(lambda: is_done(job_id), step=10, step_function=step_function, timeout=720)
+    # poll the job until it's done (eventually need to make this launch as an async task)
+    monitor_job(job_id)
 
 # print out the final results
 for job_id in job_ids:
@@ -109,4 +112,10 @@ for job_id in job_ids:
 if use_temp_dataset:
     delete_dataset(dataset_id)
 
+# Open questions:
+# - do I need to set max-failures value when submitting the job? (not sure what the default value is)
+# - where do I get the profile id (for testing, for example) do I have one myself? can I get it from google auth?
 
+# To Do:
+# - dataset id as an optional argument (using the argparse library)
+# - set up asynch monitoring
