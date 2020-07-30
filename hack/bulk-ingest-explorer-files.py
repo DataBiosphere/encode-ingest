@@ -3,9 +3,10 @@ import google.auth
 from google.auth.transport.requests import AuthorizedSession
 from requests.exceptions import HTTPError
 from polling import poll
+from time import perf_counter
 import sys
 import re
-import time
+
 
 # This script bulk-ingests files from a google bucket, with the following arguments:
 # - A profileID (associated with the billing account)
@@ -19,12 +20,11 @@ is_production = (sys.argv[2] == 'prod') # default to dev
 control_file_path = sys.argv[3]
 dataset_id = sys.argv[4] if sys.argv[4:] else None # optional
 
-# define hard-coded values
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
+authed_session = AuthorizedSession(credentials)
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
 jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_production \
     else 'https://jade.datarepo-dev.broadinstitute.org/'
-authed_session = AuthorizedSession(credentials)
 
 # define the name and schema of a temporary dataset (if no dataset id is provided)
 # datasets must have at least one table with at least one column
@@ -57,7 +57,10 @@ def check_job_status(job_id: str):
 # Check whether the given job is done.
 def is_done(job_id: str) -> bool:
     status = check_job_status(job_id)
-    return status in ["succeeded", "failed"]
+    is_done = status in ["succeeded", "failed"]
+    if is_done:
+        print(f"Job {status}.")
+    return is_done
 
 
 def get_job_result(job_id: str):
@@ -65,7 +68,7 @@ def get_job_result(job_id: str):
     if response.ok:
         return response.json()
     else:
-        raise HTTPError(f'Bad response, got code of: {response.status_code}')
+        raise HTTPError(f'Failed to get the result. Got response : {response.json()}')
 
 # check that the response is okay, then poll the status until it finishes
 # return the final result of the job
@@ -100,11 +103,12 @@ def delete_dataset(dataset_id: str):
 # submit a bulk file ingest request. If successful, return the id of the job.
 def request_bulk_file_ingest(dataset_id: str, **kwargs):
     print("\nSubmitting the bulk file ingest request")
-    start_time = time.clock()
+    start_time = perf_counter()
     response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{dataset_id}/files/bulk', json=kwargs)
+    print(f"Response: {response.json()}")
     result = wait_for_result(response)
-    time_elapsed = time.clock() - start_time
-    print(f'Bulk file ingest (jobId: {job_id}) finished in {time_elapsed} seconds.')
+    time_elapsed = perf_counter() - start_time
+    print(f"Bulk file ingest (jobId: {response.json()['id']}) finished in {time_elapsed} seconds.")
     # get the total number of files in each status type (succeeded, failed, not tried).
     counts = Counts(succeeded=result['succeededFiles'], failed=result['failedFiles'], not_tried=result['notTriedFiles'])
     print(f'Bulk file ingest failed on {counts.failed} files ({counts.not_tried} not tried, {counts.succeeded} successful)')
@@ -112,27 +116,23 @@ def request_bulk_file_ingest(dataset_id: str, **kwargs):
 
 # create a new dataset with default values if no dataset id was specified
 if use_temp_dataset:
-    dataset_id = create_dataset(name=default_dataset_name, defaultProfileId=profile_id, schema=default_dataset_schema)
+    dataset_id = create_dataset(name=test_dataset_name, defaultProfileId=profile_id, schema=test_dataset_schema)
     print(f"Created dataset with ID: {dataset_id}")
 
-# generate the load tag from the control file name (ex. "part-00000-of-00020")
-load_tag = re.search('/(part.*).json', control_file_path).group(1) # TODO update this to not rely on part files
+# generate the load tag from the control file name
+load_tag_regex = r'.*/([^/]*).json' # match the part after the last "/" but before ".json"
+load_tag = re.search(load_tag_regex, control_file_path).group(1)
 
 # submit the bulk file ingest job
-request_bulk_file_ingest(dataset_id, profileId=profile_id, loadControlFile=control_file_path, loadTag=load_tag)
+request_bulk_file_ingest(
+    dataset_id,
+    profileId=profile_id,
+    loadControlFile=control_file_path,
+    loadTag=load_tag,
+    maxFailedFileLoads=1000000
+)
 
 # delete dataset, if a temporary dataset was created
 if use_temp_dataset:
     delete_dataset(dataset_id)
     print(f"Deleted dataset with ID: {dataset_id}")
-
-# To Do: TODO remove this
-# - figure out: do I need to set max-failures value when submitting the job? (not sure what the default value is)
-# - set up a bucket with a subset of file ingest requests
-
-# To Test:
-# - Are the args read in correctly? - done!
-# - Is the dataset created and polled correctly? - done!
-# - Is the dataset deleted correctly? - done!
-# - Is the bulk ingest launched and monitored well? Does it succeed?
-# - Can the dataset still be deleted after the bulk ingest succeeds?
