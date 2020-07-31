@@ -10,7 +10,7 @@ from time import perf_counter
 
 # This script bulk-ingests files from a google bucket, with the following arguments:
 # - A profileID (associated with the billing account)
-# - The environment to use (dev/prod), will default to dev
+# - The base url to use for the jade api (determines whether jade dev or prod will be used)
 # - The google bucket path of control file (a json file which lists source and target paths)
 # - An optional dataset id (if none is provided, a temporary dataset will be used and deleted afterwards)
 
