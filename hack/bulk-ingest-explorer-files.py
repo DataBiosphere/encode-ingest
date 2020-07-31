@@ -59,12 +59,11 @@ def is_done(job_id: str) -> bool:
 # return the final result of the job
 def wait_for_result(response):
     if response.ok:
-        print('Waiting for the job to finish...')
         job_id = response.json()['id']
+        print(f'Waiting for job (ID: {job_id}) to finish...')
         # check every 10 seconds until the job is finished (wait up to 48 hours)
         poll(lambda: is_done(job_id), step=10, timeout=172800)
         result = get_job_result(job_id)
-        print(f'Result: {result}')
         return result
     else:
         raise HTTPError(f'Failed with response : {response.json()}')
@@ -106,15 +105,13 @@ def request_bulk_file_ingest(target_dataset_id: str, load_tag: str, profile_id: 
     # launch the job and wait for it to finish
     start_time = perf_counter()
     response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{target_dataset_id}/files/bulk', json=args)
-    job_id = response.json()['id']
-    print(f'Job ID: {job_id}')
     result = wait_for_result(response)
     time_elapsed = perf_counter() - start_time
 
     # print result information
     print(f'Bulk file ingest finished in {time_elapsed} seconds.')
     counts = Counts(succeeded=result['succeededFiles'], failed=result['failedFiles'], not_tried=result['notTriedFiles'])
-    print(f'Bulk file ingest failed on {counts.failed} files ({counts.not_tried} not tried, {counts.succeeded} successful)')
+    print(f'File result counts: {counts.failed} failed, {counts.not_tried} not tried, {counts.succeeded} succeeded')
 
 
 # create a temporary dataset if none was provided
