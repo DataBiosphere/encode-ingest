@@ -16,20 +16,18 @@ from time import perf_counter
 
 # read in arguments
 profile_id = sys.argv[1]
-is_production = (sys.argv[2] == 'prod') # default to dev
+base_url = sys.argv[2]
 control_file_path = sys.argv[3]
 dataset_id = sys.argv[4] if sys.argv[4:] else None # optional
 
 credentials, project = google.auth.default(scopes=['openid', 'email', 'profile'])
 authed_session = AuthorizedSession(credentials)
 Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
-jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_production \
-    else 'https://jade.datarepo-dev.broadinstitute.org/'
 
 
 # Get the status of the given job: either 'running', 'succeeded', or 'failed' using the retrieveJob endpoint.
 def check_job_status(job_id: str):
-    response = authed_session.get(f'{jade_base_url}/api/repository/v1/jobs/{job_id}')
+    response = authed_session.get(f'{base_url}/api/repository/v1/jobs/{job_id}')
     if response.ok:
         return response.json()['job_status']
     else:
@@ -38,7 +36,7 @@ def check_job_status(job_id: str):
 
 # Get the result of a given job using the retrieveJobResult endpoint.
 def get_job_result(job_id: str):
-    response = authed_session.get(f'{jade_base_url}/api/repository/v1/jobs/{job_id}/result')
+    response = authed_session.get(f'{base_url}/api/repository/v1/jobs/{job_id}/result')
     if response.ok:
         return response.json()
     else:
@@ -78,7 +76,7 @@ def create_temp_dataset(profile_id: str):
         'defaultProfileId': profile_id,
         'schema': {'tables': [{'name': 'test_table_name', 'columns': [{'name': 'test_column', 'datatype': 'STRING'}]}]}
     }
-    response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets', json=args)
+    response = authed_session.post(f'{base_url}/api/repository/v1/datasets', json=args)
     result = wait_for_result(response)
     result_dataset_id = result['id']
     print(f'Created dataset with ID: {result_dataset_id}')
@@ -88,7 +86,7 @@ def create_temp_dataset(profile_id: str):
 # Delete the temporary jade dataset.
 def delete_dataset(target_dataset_id: str):
     print('\nDeleting the temporary dataset.')
-    response = authed_session.delete(f'{jade_base_url}/api/repository/v1/datasets/{target_dataset_id}')
+    response = authed_session.delete(f'{base_url}/api/repository/v1/datasets/{target_dataset_id}')
     wait_for_result(response)
     print(f'Deleted dataset with ID: {target_dataset_id}')
 
@@ -104,7 +102,7 @@ def request_bulk_file_ingest(target_dataset_id: str, load_tag: str, profile_id: 
     }
     # launch the job and wait for it to finish
     start_time = perf_counter()
-    response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{target_dataset_id}/files/bulk', json=args)
+    response = authed_session.post(f'{base_url}/api/repository/v1/datasets/{target_dataset_id}/files/bulk', json=args)
     result = wait_for_result(response)
     time_elapsed = perf_counter() - start_time
 
