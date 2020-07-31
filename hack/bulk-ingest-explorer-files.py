@@ -74,7 +74,7 @@ def wait_for_result(response):
 def create_temp_dataset(profile_id: str):
     print('\nCreating a temporary dataset.')
     args = {
-        'name': 'encode_explorer_ingest_test2',
+        'name': 'encode_explorer_ingest_test',
         'defaultProfileId': profile_id,
         'schema': {'tables': [{'name': 'test_table_name', 'columns': [{'name': 'test_column', 'datatype': 'STRING'}]}]}
     }
