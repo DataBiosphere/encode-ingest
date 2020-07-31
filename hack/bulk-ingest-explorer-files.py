@@ -1,11 +1,11 @@
-from collections import namedtuple
 import google.auth
-from google.auth.transport.requests import AuthorizedSession
-from requests.exceptions import HTTPError
-from polling import poll
-from time import perf_counter
-import sys
 import re
+import sys
+from collections import namedtuple
+from google.auth.transport.requests import AuthorizedSession
+from polling import poll
+from requests.exceptions import HTTPError
+from time import perf_counter
 
 
 # This script bulk-ingests files from a google bucket, with the following arguments:
@@ -26,43 +26,17 @@ Counts = namedtuple('Counts', ['succeeded', 'failed', 'not_tried'])
 jade_base_url = 'https://jade-terra.datarepo-prod.broadinstitute.org/' if is_production \
     else 'https://jade.datarepo-dev.broadinstitute.org/'
 
-# define the name and schema of a temporary dataset (if no dataset id is provided)
-# datasets must have at least one table with at least one column
-use_temp_dataset = dataset_id is None
-test_dataset_name = 'encode_explorer_ingest_test'
-test_dataset_schema = {
-    "tables": [
-        {
-            "name": "test_table_name",
-            "columns": [
-                {
-                    "name": "test_column",
-                    "datatype": "STRING"
-                }
-            ]
-        }
-    ]
-}
 
-
-# Get the status of the given job: either "running", "succeeded", or "failed".
+# Get the status of the given job: either 'running', 'succeeded', or 'failed' using the retrieveJob endpoint.
 def check_job_status(job_id: str):
-    response = authed_session.get(f"{jade_base_url}/api/repository/v1/jobs/{job_id}")
+    response = authed_session.get(f'{jade_base_url}/api/repository/v1/jobs/{job_id}')
     if response.ok:
-        return response.json()["job_status"]
+        return response.json()['job_status']
     else:
-        raise HTTPError("Bad response, got code of: {}".format(response.status_code))
+        raise HTTPError('Bad response, got code of: {}'.format(response.status_code))
 
 
-# Check whether the given job is done.
-def is_done(job_id: str) -> bool:
-    status = check_job_status(job_id)
-    is_done = status in ["succeeded", "failed"]
-    if is_done:
-        print(f"Job {status}.")
-    return is_done
-
-
+# Get the result of a given job using the retrieveJobResult endpoint.
 def get_job_result(job_id: str):
     response = authed_session.get(f'{jade_base_url}/api/repository/v1/jobs/{job_id}/result')
     if response.ok:
@@ -70,69 +44,91 @@ def get_job_result(job_id: str):
     else:
         raise HTTPError(f'Failed to get the result. Got response : {response.json()}')
 
+
+# Check whether the given job is done.
+# Return true if the status is 'succeeded' or 'failed', return false if the status is 'running'.
+def is_done(job_id: str) -> bool:
+    status = check_job_status(job_id)
+    done = status in ['succeeded', 'failed']
+    if done:
+        print(f'Job {status}.')
+    return done
+
+
 # check that the response is okay, then poll the status until it finishes
 # return the final result of the job
 def wait_for_result(response):
     if response.ok:
+        print('Waiting for the job to finish...')
         job_id = response.json()['id']
-        print("Waiting for the job to finish...")
         # check every 10 seconds until the job is finished (wait up to 48 hours)
         poll(lambda: is_done(job_id), step=10, timeout=172800)
         result = get_job_result(job_id)
-        print(f"Result: {result}")
+        print(f'Result: {result}')
         return result
     else:
-        raise HTTPError(f"Failed with response : {response.json()}")
+        raise HTTPError(f'Failed with response : {response.json()}')
 
 
 # Create a new (temporary) jade dataset. If successful, return the id of the dataset.
 # The kwargs should include the defaultProfileId, name, and schema to use in dataset creation.
-def create_dataset(**kwargs):
-    print("\nCreating a temporary dataset.")
-    response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets', json=kwargs)
-    return wait_for_result(response)['id']
+def create_temp_dataset(profile_id: str):
+    print('\nCreating a temporary dataset.')
+    args = {
+        'name': 'encode_explorer_ingest_test2',
+        'defaultProfileId': profile_id,
+        'schema': {'tables': [{'name': 'test_table_name', 'columns': [{'name': 'test_column', 'datatype': 'STRING'}]}]}
+    }
+    response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets', json=args)
+    result = wait_for_result(response)
+    result_dataset_id = result['id']
+    print(f'Created dataset with ID: {result_dataset_id}')
+    return result_dataset_id
 
 
 # Delete the temporary jade dataset.
-def delete_dataset(dataset_id: str):
-    print("\nDeleting the temporary dataset.")
-    response = authed_session.delete(f'{jade_base_url}/api/repository/v1/datasets/{dataset_id}')
+def delete_dataset(target_dataset_id: str):
+    print('\nDeleting the temporary dataset.')
+    response = authed_session.delete(f'{jade_base_url}/api/repository/v1/datasets/{target_dataset_id}')
     wait_for_result(response)
+    print(f'Deleted dataset with ID: {target_dataset_id}')
 
 
 # submit a bulk file ingest request. If successful, return the id of the job.
-def request_bulk_file_ingest(dataset_id: str, **kwargs):
-    print("\nSubmitting the bulk file ingest request")
+def request_bulk_file_ingest(target_dataset_id: str, load_tag: str, profile_id: str, control_file_path: str):
+    print('\nSubmitting the bulk file ingest request')
+    args = {
+        'loadTag': load_tag,
+        'profileId': profile_id,
+        'loadControlFile': control_file_path,
+        'maxFailedFileLoads': 1000000  # the jade api will eventually have 'unlimited' as the default
+    }
+    # launch the job and wait for it to finish
     start_time = perf_counter()
-    response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{dataset_id}/files/bulk', json=kwargs)
-    print(f"Response: {response.json()}")
+    response = authed_session.post(f'{jade_base_url}/api/repository/v1/datasets/{target_dataset_id}/files/bulk', json=args)
+    job_id = response.json()['id']
+    print(f'Job ID: {job_id}')
     result = wait_for_result(response)
     time_elapsed = perf_counter() - start_time
-    print(f"Bulk file ingest (jobId: {response.json()['id']}) finished in {time_elapsed} seconds.")
-    # get the total number of files in each status type (succeeded, failed, not tried).
+
+    # print result information
+    print(f'Bulk file ingest finished in {time_elapsed} seconds.')
     counts = Counts(succeeded=result['succeededFiles'], failed=result['failedFiles'], not_tried=result['notTriedFiles'])
     print(f'Bulk file ingest failed on {counts.failed} files ({counts.not_tried} not tried, {counts.succeeded} successful)')
 
 
-# create a new dataset with default values if no dataset id was specified
+# create a temporary dataset if none was provided
+use_temp_dataset = dataset_id is None
 if use_temp_dataset:
-    dataset_id = create_dataset(name=test_dataset_name, defaultProfileId=profile_id, schema=test_dataset_schema)
-    print(f"Created dataset with ID: {dataset_id}")
+    dataset_id = create_temp_dataset(profile_id)
 
 # generate the load tag from the control file name
-load_tag_regex = r'.*/([^/]*).json' # match the part after the last "/" but before ".json"
+load_tag_regex = r'.*/([^/]*).json' # match the part after the last '/' but before '.json'
 load_tag = re.search(load_tag_regex, control_file_path).group(1)
 
 # submit the bulk file ingest job
-request_bulk_file_ingest(
-    dataset_id,
-    profileId=profile_id,
-    loadControlFile=control_file_path,
-    loadTag=load_tag,
-    maxFailedFileLoads=1000000
-)
+request_bulk_file_ingest(dataset_id, load_tag, profile_id, control_file_path)
 
 # delete dataset, if a temporary dataset was created
 if use_temp_dataset:
     delete_dataset(dataset_id)
-    print(f"Deleted dataset with ID: {dataset_id}")
