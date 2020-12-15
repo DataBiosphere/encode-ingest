@@ -13,13 +13,17 @@ object DonorTransformations {
   def transformDonor(donorInput: Msg): Donor = {
     val rawAge = donorInput.tryRead[String]("age")
     val (ageMin, ageMax) = rawAge.fold((Option.empty[Long], Option.empty[Long])) { raw =>
-      val splitIdx = raw.indexOf('-')
-      if (splitIdx == -1) {
-        val parsed = raw.toLong
-        (Some(parsed), Some(parsed))
+      if (raw.equals("90 or above")) {
+        (Some(90), None)
       } else {
-        val (min, max) = (raw.take(splitIdx), raw.drop(splitIdx + 1))
-        (Some(min.toLong), Some(max.toLong))
+        val splitIdx = raw.indexOf('-')
+        if (splitIdx == -1) {
+          val parsed = raw.toLong
+          (Some(parsed), Some(parsed))
+        } else {
+          val (min, max) = (raw.take(splitIdx), raw.drop(splitIdx + 1))
+          (Some(min.toLong), Some(max.toLong))
+        }
       }
     }
 
