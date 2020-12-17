@@ -14,9 +14,7 @@ spec:
       strategy: OnWorkflowSuccess
     parallelism: {{ .Values.maxParallelism }}
     {{- $smokeTest := .Values.smokeTest.enable }}
-    {{- if $smokeTest }}
     onExit: send-slack-notification
-    {{- end }}
     templates:
       - name: main
         steps:
@@ -28,7 +26,6 @@ spec:
                 parameters:
                   - name: gcs-prefix
                     value: '{{ template "argo.timestamp" }}'
-      {{- if $smokeTest }}
       - name: send-slack-notification
         container:
           image: curlimages/curl:7.70.0
@@ -47,7 +44,8 @@ spec:
             - -XPOST
             - -H
             - 'Content-type: application/json'
+            - -H
+            - 'Authorization: Bearer ${OAUTH_TOKEN}'
             - -d
-            - '{"text": "Workflow $(WORKFLOW_ID) entered state: $(WORKFLOW_STATE)"}'
-            - $(SLACK_URL)
-      {{- end }}
+            - '{"text": "*Encode-ingest {{ if $smokeTest }}(smoke test){{ else }}(prod){{ end }}:* Workflow $(WORKFLOW_ID) entered state: $(WORKFLOW_STATE)", "channel": "monster-ci"}'
+            - "https://slack.com/api/chat.postMessage"
