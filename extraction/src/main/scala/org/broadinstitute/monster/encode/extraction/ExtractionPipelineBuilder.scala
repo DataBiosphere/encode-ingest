@@ -6,7 +6,7 @@ import com.spotify.scio.transforms.ScalaAsyncLookupDoFn
 import com.spotify.scio.values.SCollection
 import org.apache.beam.sdk.transforms.ParDo
 import org.broadinstitute.monster.common.PipelineBuilder
-import org.broadinstitute.monster.common.StorageIO.writeJsonLists
+import org.broadinstitute.monster.common.StorageIO.writeJsonListsGeneric
 import org.broadinstitute.monster.common.msg.{MsgOps, UpackMsgCoder}
 import org.broadinstitute.monster.encode.EncodeEntity
 import upack._
@@ -80,7 +80,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     ): SCollection[Msg] = {
       val out = getEntities(encodeEntity, queryBatches.map(_ -> negativeFilters))
         .distinctBy(_.read[String]("@id"))
-      writeJsonLists(
+      writeJsonListsGeneric(
         out,
         encodeEntity.entryName,
         s"${args.outputDir}/${encodeEntity.entryName}"
@@ -213,7 +213,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       getEntities(EncodeEntity.File, queryBatches)
     }
 
-    writeJsonLists(
+    writeJsonListsGeneric(
       files,
       EncodeEntity.File.entryName,
       s"${args.outputDir}/${EncodeEntity.File.entryName}"

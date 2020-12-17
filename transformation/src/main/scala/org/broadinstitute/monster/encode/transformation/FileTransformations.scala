@@ -37,7 +37,8 @@ object FileTransformations {
     val Seq(sequence, alignment, other) = rawStream
       .withName("Split raw files by category")
       .partition(
-        3, {
+        3,
+        {
           case (rawFile, _) =>
             val category = rawFile.read[String]("output_category")
             if (category == SequencingCategory) 0
