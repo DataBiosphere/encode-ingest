@@ -71,7 +71,7 @@
     "smokeTest": {
       "type": "object",
        "properties": {
-         "enable": { "type": "boolean" },
+         "enable": { "type": "boolean" }
        },
        "required": ["enable"]
     },
