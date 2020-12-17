@@ -72,16 +72,23 @@
       "type": "object",
        "properties": {
          "enable": { "type": "boolean" },
-         "slackUrl": {
-           "type": "object",
-           "properties": {
-             "secretName": { "type": "string" },
-             "secretKey": { "type": "string" }
-           },
-           "required": ["secretName", "secretKey"]
-          }
        },
        "required": ["enable"]
+    },
+    "notification": {
+      "type": "object",
+      "properties": {
+        "onlyOnFailure": { "type": "boolean" },
+        "oauthToken": {
+          "type": "object",
+          "properties": {
+            "secretName": { "type": "string" },
+            "secretKey": { "type": "string" }
+          },
+          "required": ["secretName", "secretKey"]
+        }
+      },
+      "required": ["oauthToken"]
     },
     "bigquery": {
       "type": "object",

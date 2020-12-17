@@ -22,6 +22,11 @@ aws:
   credentialsSecretName: shhhhh
 smokeTest:
   enable: false
+notification:
+  onlyOnFailure: false
+  oauthToken:
+    secretName: aaaaa
+    secretKey: bbbbb
 argoTemplates:
   diffBQTable:
     schemaImageVersion: a-pinned-version

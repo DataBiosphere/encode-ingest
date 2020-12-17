@@ -22,9 +22,11 @@ aws:
   credentialsSecretName: shhhhh
 smokeTest:
   enable: true
-  slackUrl:
-    secretName: shh
-    secretKey: erl
+notification:
+  onlyOnFailure: false
+  oauthToken:
+    secretName: aaaaa
+    secretKey: bbbbb
 repo:
   url: http://repo!
   datasetId: a

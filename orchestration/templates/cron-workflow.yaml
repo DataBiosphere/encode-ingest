@@ -34,11 +34,11 @@ spec:
               value: '{{ "{{workflow.name}}" }}'
             - name: WORKFLOW_STATE
               value: '{{ "{{workflow.status}}" }}'
-            - name: SLACK_URL
+            - name: OAUTH_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.smokeTest.slackUrl.secretName }}
-                  key: {{ .Values.smokeTest.slackUrl.secretKey }}
+                  name: {{ .Values.notification.oauthToken.secretName }}
+                  key: {{ .Values.notification.oauthToken.secretKey }}
           command: [curl]
           args:
             - -XPOST
