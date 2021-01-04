@@ -45,7 +45,7 @@ spec:
             - -H
             - 'Content-type: application/json'
             - -H
-            - 'Authorization: Bearer ${OAUTH_TOKEN}'
+            - 'Authorization: Bearer $(OAUTH_TOKEN)'
             - -d
             - '{"text": "*Encode-ingest {{ if $smokeTest }}(smoke test){{ else }}(prod){{ end }}:* Workflow $(WORKFLOW_ID) entered state: $(WORKFLOW_STATE)", "channel": "monster-ci"}'
             - "https://slack.com/api/chat.postMessage"
