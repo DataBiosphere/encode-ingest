@@ -18,7 +18,8 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
         |"lab": "/labs/example-lab",
         |"parents": [],
         |"submitted_by": "/users/123-abc",
-        |"age": "30-33"
+        |"age": "30-33",
+        |"ethnicity": ["Arab", "Indian"]
         |}
         |""".stripMargin
     val inputMsg: Msg = JsonParser.parseEncodedJson(inputJson)
@@ -31,6 +32,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
     output.lab shouldBe "/labs/example-lab"
     output.ageMax shouldBe Some(33)
     output.ageMin shouldBe Some(30)
+    output.ethnicity shouldBe List("Arab", "Indian")
   }
 
   it should "parse ages 90 or above" in {
