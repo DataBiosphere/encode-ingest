@@ -31,6 +31,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
     output.lab shouldBe "/labs/example-lab"
     output.ageMax shouldBe Some(33)
     output.ageMin shouldBe Some(30)
+    output.ethnicity shouldBe List.empty[String]
   }
 
   it should "parse ages 90 or above" in {
@@ -55,6 +56,6 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
 
     output.ageMin shouldBe Some(90)
     output.ageMax shouldBe None
-    output.ethnicity shouldBe Some("ethn1" :: "ethn2")
+    output.ethnicity shouldBe List("ethn1", "ethn2")
   }
 }

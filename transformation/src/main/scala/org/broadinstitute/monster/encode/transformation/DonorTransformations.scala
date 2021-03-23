@@ -34,7 +34,7 @@ object DonorTransformations {
       ageMin = ageMin,
       ageMax = ageMax,
       ageUnit = donorInput.tryRead[String]("age_units"),
-      ethnicity = donorInput.read[List[String]]("ethnicity"),
+      ethnicity = donorInput.tryRead[List[String]]("ethnicity").getOrElse(List.empty[String]),
       organism = donorInput.read[String]("organism"),
       sex = donorInput.tryRead[String]("sex"),
       award = donorInput.read[String]("award"),
