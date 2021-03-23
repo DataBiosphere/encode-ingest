@@ -30,7 +30,8 @@
     },
     {
       "name": "ethnicity",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "organism",
