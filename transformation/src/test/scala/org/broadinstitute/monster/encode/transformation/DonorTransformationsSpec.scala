@@ -31,6 +31,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
     output.lab shouldBe "/labs/example-lab"
     output.ageMax shouldBe Some(33)
     output.ageMin shouldBe Some(30)
+    output.ethnicity shouldBe List.empty[String]
   }
 
   it should "parse ages 90 or above" in {
@@ -42,6 +43,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
         |"date_created": "2020-12-24T18:00:00.111222+00:00",
         |"organism": "/organisms/human",
         |"award": "/awards/xyz_award",
+        |"ethnicity": ["ethn1", "ethn2"],
         |"lab": "/labs/example-lab",
         |"parents": [],
         |"submitted_by": "/users/123-abc",
@@ -54,5 +56,6 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
 
     output.ageMin shouldBe Some(90)
     output.ageMax shouldBe None
+    output.ethnicity shouldBe List("ethn1", "ethn2")
   }
 }
