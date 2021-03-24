@@ -34,8 +34,7 @@ object AssayTransformations {
       timeCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
-      // TODO: This is dangerous, should we make it optional / an array?
-      assayCategory = rawExperiment.read[List[String]]("assay_slims").head,
+      assayCategory = rawExperiment.read[List[String]]("assay_slims").headOption,
       assayType = rawExperiment.read[String]("assay_term_id"),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
