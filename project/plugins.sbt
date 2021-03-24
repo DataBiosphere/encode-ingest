@@ -11,4 +11,4 @@ resolvers += Resolver.url(
   new URL("https://broadinstitute.jfrog.io/broadinstitute/libs-release/")
 )(publishPatterns)
 
-addSbtPlugin("org.broadinstitute.monster" % "ingest-sbt-plugins" % "2.1.6")
+addSbtPlugin("org.broadinstitute.monster" % "ingest-sbt-plugins" % "2.1.9")
