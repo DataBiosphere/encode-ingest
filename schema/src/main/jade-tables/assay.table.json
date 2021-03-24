@@ -26,8 +26,7 @@
     },
     {
       "name": "assay_category",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "assay_type",
