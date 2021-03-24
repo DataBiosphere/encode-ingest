@@ -14,8 +14,7 @@ spec:
       strategy: OnWorkflowSuccess
     parallelism: {{ .Values.maxParallelism }}
     {{- $smokeTest := .Values.smokeTest.enable }}
-    # TODO: re-enable after DSPDC-1498 lands
-    # onExit: send-slack-notification
+    onExit: send-slack-notification
     templates:
       - name: main
         steps:
