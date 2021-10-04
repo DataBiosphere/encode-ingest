@@ -20,7 +20,7 @@ spec:
         steps:
           - - name: run-main-template
               templateRef:
-                name: {{ if $smokeTest }}process-encode-data{{ else }}ingest-encode-data{{ end }}
+                name: ingest-encode-data
                 template: main
               arguments:
                 parameters:
