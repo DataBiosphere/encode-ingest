@@ -114,6 +114,58 @@
     {
       "name": "lot_id",
       "datatype": "string"
+    },
+    {
+      "name": "fly_life_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "fly_synchronization_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "model_organism_age",
+      "datatype": "integer"
+    },
+    {
+      "name": "model_organism_age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "mouse_life_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "origin_batch",
+      "datatype": "string"
+    },
+    {
+      "name": "passage_number",
+      "datatype": "integer"
+    },
+    {
+      "name": "post_nucleic_acid_delivery_time",
+      "datatype": "integer"
+    },
+    {
+      "name": "post_nucleic_acid_delivery_time_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "pulse_chase_time",
+      "datatype": "integer"
+    },
+    {
+      "name": "pulse_chase_time_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "worm_life_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "worm_synchronization_stage",
+      "datatype": "string"
     }
   ]
 }

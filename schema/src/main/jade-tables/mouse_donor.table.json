@@ -1,0 +1,66 @@
+{
+  "name": "mouse_donor",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "cross_references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "time_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "organism",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "award",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "submitted_by",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "source",
+      "datatype": "string"
+    },
+    {
+      "name": "genetic_modifications",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "genotype",
+      "datatype": "string"
+    },
+    {
+      "name": "strain_background",
+      "datatype": "string"
+    },
+    {
+      "name": "strain_name",
+      "datatype": "string"
+    },
+    {
+      "name": "parent_strains",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ]
+}

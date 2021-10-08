@@ -8,3 +8,4 @@ target/
 project/metals.sbt
 Chart.lock
 charts/
+.DS_Store
