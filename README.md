@@ -1,10 +1,11 @@
 # ENCODE Ingest
 
-Batch ETL pipeline to mirror ENCODE data into the Terra Data Repository (TDR).
+Batch ETL pipeline to mirror ENCODE data into the Terra Data Repository (TDR). See the [architecture documentation](https://github.com/DataBiosphere/encode-ingest/blob/master/ARCHITECTURE.md) for 
+further design details.
 
 ## Getting Started
 
-Orchestartion of the ETL flows in this project is implemented using [Argo Workflows](https://argoproj.github.io/argo-workflows/).
+Orchestration of the ETL flows in this project is implemented using [Argo Workflows](https://argoproj.github.io/argo-workflows/).
 
 The core extraction and transformation data pipelines are implemented in [Scio](https://spotify.github.io/scio/) on top of Apache Beam.
 
