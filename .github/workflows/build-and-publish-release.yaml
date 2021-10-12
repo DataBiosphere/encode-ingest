@@ -18,7 +18,7 @@ jobs:
       - uses: olafurpg/setup-scala@v10
         with:
           java-version: graalvm@20.0.0
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           version: '286.0.0'
           project_id: broad-dsp-monster-dev
