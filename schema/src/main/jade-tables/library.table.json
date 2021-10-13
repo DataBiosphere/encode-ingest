@@ -80,6 +80,39 @@
     {
       "name": "prep_material_name",
       "datatype": "string"
+    },
+    {
+      "name": "construction_method",
+      "datatype": "string"
+    },
+    {
+      "name": "fragment_length_cv",
+      "datatype": "integer"
+    },
+    {
+      "name": "fragment_length_sd",
+      "datatype": "integer"
+    },
+    {
+      "name": "fragmentation_duration_time",
+      "datatype": "integer"
+    },
+    {
+      "name": "fragmentation_duration_time_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "linkers",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "mint_mixture_identifier",
+      "datatype": "string"
+    },
+    {
+      "name": "replicates",
+      "datatype": "string"
     }
   ]
 }

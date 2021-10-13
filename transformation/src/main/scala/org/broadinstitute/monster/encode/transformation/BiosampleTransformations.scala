@@ -68,7 +68,21 @@ object BiosampleTransformations {
         None
       } else {
         lotIds.headOption
-      }
+      },
+      /** TODO Implement once schema is frozen */
+      flyLifeStage = Some("ignore"),
+      flySynchronizationStage = Some("ignore"),
+      modelOrganismAge = Some(1L),
+      modelOrganismAgeUnit = Some("ignore"),
+      mouseLifeStage = Some("ignore"),
+      originBatch = Some("ignore"),
+      passageNumber = Some(1L),
+      postNucleicAcidDeliveryTime = Some(1L),
+      postNucleicAcidDeliveryTimeUnit = Some("ignore"),
+      pulseChaseTime = Some(1L),
+      pulseChaseTimeUnit = Some("ignore"),
+      wormLifeStage = Some("ignore"),
+      wormSynchronizationStage = Some("ignore")
     )
   }
 }
