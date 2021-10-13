@@ -35,7 +35,16 @@ object LibraryTransformations {
       spikeIns = libraryInput.read[List[String]]("spikeins_used"),
       biosampleId = CommonTransformations.transformId(libraryInput.read[String]("biosample")),
       prepMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),
-      prepMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name")
+      prepMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name"),
+      /** TODO Implement once schema is frozen */
+      constructionMethod = Some("ignore"),
+      fragmentLengthCv = Some(1L),
+      fragmentLengthSd = Some(1L),
+      fragmentationDurationTime = Some(1L),
+      fragmentationDurationTimeUnit = Some("ignore"),
+      linkers = List(),
+      mintMixtureIdentifier = Some("ignore"),
+      replicates = Some("ignore")
     )
   }
 
