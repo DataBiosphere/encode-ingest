@@ -1,7 +1,7 @@
 package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
-import com.spotify.scio.values.SCollection
+import com.spotify.scio.values.{SCollection, SideInput}
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
@@ -26,6 +26,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     }
 
     // Donors can be processed in isolation.
+    // 03-2022 donor Id is needed by file transfor
     val donorInputs = readRawEntities(EncodeEntity.Donor)
     val donorOutput = donorInputs
       .withName("Transform donors")
@@ -81,6 +82,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     )
 
     // Libraries can also be processed in isolation
+    // 03-2022 Library Id needed by File transform
     val libraryInputs = readRawEntities(EncodeEntity.Library)
     val libraryOutput = libraryInputs
       .withName("Transform libraries")
@@ -90,6 +92,49 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       libraryOutput,
       "Libraries",
       s"${args.outputPrefix}/library"
+    )
+
+    // Biosample transformation needs Libraries, Experiments, and BiosampleTypes
+    val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
+    val biosampleTypeInputs = readRawEntities(EncodeEntity.BiosampleType)
+
+    val typesById = biosampleTypeInputs
+      .withName("Key biosample types by ID")
+      .keyBy(_.read[String]("@id"))
+
+    val biosamplesWithTypes = biosampleInputs
+      .withName("Key biosamples by type")
+      .keyBy(_.read[String]("biosample_ontology"))
+      .leftOuterJoin(typesById)
+      .values
+
+    // TODO? update for mixed_biosamples field?
+    val librariesByBiosample = libraryInputs
+      .withName("Key libraries by biosample")
+      .keyBy(_.read[String]("biosample"))
+      .groupByKey
+
+    val biosampleOutput = biosamplesWithTypes
+      .withName("Key biosamples by ID")
+      .keyBy {
+        case (rawSample, _) =>
+          rawSample.read[String]("@id")
+      }
+      .leftOuterJoin(librariesByBiosample)
+      .values
+      .withName("Transform biosamples")
+      .map {
+        case ((biosample, joinedType), joinedLibraries) =>
+          BiosampleTransformations.transformBiosample(
+            biosample,
+            joinedType,
+            joinedLibraries.toIterable.flatten
+          )
+      }
+    StorageIO.writeJsonLists(
+      biosampleOutput,
+      "Biosamples",
+      s"${args.outputPrefix}/biosample"
     )
 
     // Files are more complicated.
@@ -113,28 +158,51 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Split the file stream by output category.
     val fileBranches = FileTransformations.partitionRawFiles(fileWithExperiments)
-    val fileIdToType = FileTransformations.buildIdTypeMap(fileBranches)
+    val fileIdToType: SideInput[Map[String, FileType]] =
+      FileTransformations.buildIdTypeMap(fileBranches)
+
+    val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
+    val donorData: SideInput[Seq[Msg]] = donorInputs.asListSideInput
 
     val sequenceFileOutput = fileBranches.sequence
+      .withSideInputs(libraryData, donorData)
       .withName("Transform sequence files")
       .map {
-        case (rawFile, rawExperiment) =>
-          FileTransformations.transformSequenceFile(rawFile, rawExperiment)
+        case ((rawFile, rawExperiment), sideCtx) =>
+          FileTransformations.transformSequenceFile(
+            rawFile,
+            rawExperiment,
+            sideCtx(libraryData),
+            sideCtx(donorData)
+          )
       }
+      .toSCollection
     val alignmentFileOutput = fileBranches.alignment
-      .withSideInputs(fileIdToType)
+      .withSideInputs(fileIdToType, libraryData, donorData)
       .withName("Transform alignment files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
-          FileTransformations.transformAlignmentFile(rawFile, sideCtx(fileIdToType), rawExperiment)
+          FileTransformations.transformAlignmentFile(
+            rawFile,
+            sideCtx(fileIdToType),
+            rawExperiment,
+            sideCtx(libraryData),
+            sideCtx(donorData)
+          )
       }
       .toSCollection
     val otherFileOutput = fileBranches.other
-      .withSideInputs(fileIdToType)
+      .withSideInputs(fileIdToType, libraryData, donorData)
       .withName("Transform other files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
-          FileTransformations.transformOtherFile(rawFile, sideCtx(fileIdToType), rawExperiment)
+          FileTransformations.transformOtherFile(
+            rawFile,
+            sideCtx(fileIdToType),
+            rawExperiment,
+            sideCtx(libraryData),
+            sideCtx(donorData)
+          )
       }
       .toSCollection
 
@@ -289,48 +357,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       assayOutput,
       "Assays",
       s"${args.outputPrefix}/assay"
-    )
-
-    // Biosample transformation needs Libraries, Experiments, and BiosampleTypes
-    val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
-    val biosampleTypeInputs = readRawEntities(EncodeEntity.BiosampleType)
-
-    val typesById = biosampleTypeInputs
-      .withName("Key biosample types by ID")
-      .keyBy(_.read[String]("@id"))
-
-    val biosamplesWithTypes = biosampleInputs
-      .withName("Key biosamples by type")
-      .keyBy(_.read[String]("biosample_ontology"))
-      .leftOuterJoin(typesById)
-      .values
-
-    val librariesByBiosample = libraryInputs
-      .withName("Key libraries by biosample")
-      .keyBy(_.read[String]("biosample"))
-      .groupByKey
-
-    val biosampleOutput = biosamplesWithTypes
-      .withName("Key biosamples by ID")
-      .keyBy {
-        case (rawSample, _) =>
-          rawSample.read[String]("@id")
-      }
-      .leftOuterJoin(librariesByBiosample)
-      .values
-      .withName("Transform biosamples")
-      .map {
-        case ((biosample, joinedType), joinedLibraries) =>
-          BiosampleTransformations.transformBiosample(
-            biosample,
-            joinedType,
-            joinedLibraries.toIterable.flatten
-          )
-      }
-    StorageIO.writeJsonLists(
-      biosampleOutput,
-      "Biosamples",
-      s"${args.outputPrefix}/biosample"
     )
     ()
   }

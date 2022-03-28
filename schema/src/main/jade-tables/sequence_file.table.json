@@ -71,11 +71,34 @@
       "datatype": "integer"
     },
     {
-      "name": "library_id",
+      "name": "library_ids",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "library",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "biosample_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "donor_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "donor",
           "column_name": "id"
         }
       ]

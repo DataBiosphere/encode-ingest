@@ -183,16 +183,72 @@ object FileTransformations {
   /** 'run_type' value indicating a paired run in ENCODE. */
   private val PairedEndType = "paired-ended"
 
+  // NOTE: This will not work if Library has biosamples in both the biosample field and mixed_biosamples field
+  def getBiosamplesFromLibrary(rawLibrary: Msg): List[String] = {
+    rawLibrary.tryRead[String]("biosample") match {
+      case Some(biosample) => List(biosample)
+      case None            => rawLibrary.tryRead[List[String]]("mixed_biosamples").getOrElse(List())
+    }
+  }
+
+  def getBiosamples(rawFile: Msg): Option[List[String]] = {
+    return rawFile.tryRead[List[String]]("origin_batches")
+  }
+
+  // AH in the following 2 methods, I should be able to do a x.filter on the option instead of doing a
+  // match and creating a Some() if the option has a value. but it gave me compiler errors
+  def getDonorIds(rawFile: Msg, rawDonors: Seq[Msg]): Option[List[String]] = {
+    val donorAccessionIds = rawFile.tryRead[List[String]]("donors")
+    return donorAccessionIds match {
+      case Some(donorList) =>
+        Some(
+          rawDonors
+            .filter(rawDonor =>
+              donorList.contains(rawDonor.tryRead[String]("accession").getOrElse(""))
+            )
+            .map(filteredDonor => CommonTransformations.readId(filteredDonor))
+            .toList
+        )
+      case None => None
+    }
+  }
+
+  def computeLibrariesForFile(
+    biosampleids: Option[List[String]],
+    rawLibraries: Seq[Msg]
+  ): Option[List[String]] = {
+    return biosampleids match {
+      case Some(biosampleList) => {
+        Some(
+          rawLibraries
+            .filterNot(rawLibrary =>
+              biosampleList.intersect(getBiosamplesFromLibrary(rawLibrary)).isEmpty
+            )
+            .map(filteredLibrary => CommonTransformations.readId(filteredLibrary))
+            .toList
+        )
+      }
+      case None => None
+    }
+  }
+
   /**
     * Transform a raw sequence file into our preferred schema.
     *
     * NOTE: This assumes that the input file has already been verified
     * to be a sequence file.
     */
-  def transformSequenceFile(rawFile: Msg, rawExperiment: Option[Msg]): SequenceFile = {
+  def transformSequenceFile(
+    rawFile: Msg,
+    rawExperiment: Option[Msg],
+    rawLibraries: Seq[Msg],
+    rawDonors: Seq[Msg]
+  ): SequenceFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val modality = computeDataModality(rawFile, rawExperiment)
     val id = CommonTransformations.readId(rawFile)
+
+    val biosampleids = getBiosamples(rawFile)
 
     val pairedEndId = rawFile.tryRead[String]("paired_end") match {
       case None        => None
@@ -218,7 +274,10 @@ object FileTransformations {
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
-      libraryId = rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
+//      libraryId = rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
+      biosampleIds = biosampleids.getOrElse(List[String]()),
+      libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
+      donorIds = getDonorIds(rawFile, rawDonors).getOrElse(List()),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
       pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
@@ -237,7 +296,9 @@ object FileTransformations {
   def transformAlignmentFile(
     rawFile: Msg,
     idsToType: Map[String, FileType],
-    rawExperiment: Option[Msg]
+    rawExperiment: Option[Msg],
+    rawLibraries: Seq[Msg],
+    rawDonors: Seq[Msg]
   ): AlignmentFile = {
     val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
@@ -246,6 +307,8 @@ object FileTransformations {
       idsToType
     )
     val modality = computeDataModality(rawFile, rawExperiment)
+
+    val biosampleids = getBiosamples(rawFile)
 
     AlignmentFile(
       id = id,
@@ -261,6 +324,9 @@ object FileTransformations {
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
+      biosampleIds = biosampleids.getOrElse(List[String]()),
+      libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
+      donorIds = getDonorIds(rawFile, rawDonors).getOrElse(List()),
       derivedFromAlignmentFileIds = parentBranches.alignment,
       derivedFromSequenceFileIds = parentBranches.sequence,
       derivedFromOtherFileIds = parentBranches.other,
@@ -274,7 +340,9 @@ object FileTransformations {
   def transformOtherFile(
     rawFile: Msg,
     idsToType: Map[String, FileType],
-    rawExperiment: Option[Msg]
+    rawExperiment: Option[Msg],
+    rawLibraries: Seq[Msg],
+    rawDonors: Seq[Msg]
   ): OtherFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val parentBranches = splitFileReferences(
@@ -282,6 +350,8 @@ object FileTransformations {
       idsToType
     )
     val modality = computeDataModality(rawFile, rawExperiment)
+
+    val biosampleids = getBiosamples(rawFile)
 
     OtherFile(
       id = CommonTransformations.readId(rawFile),
@@ -298,6 +368,9 @@ object FileTransformations {
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
+      biosampleIds = biosampleids.getOrElse(List[String]()),
+      libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
+      donorIds = getDonorIds(rawFile, rawDonors).getOrElse(List()),
       derivedFromAlignmentFileIds = parentBranches.alignment,
       derivedFromSequenceFileIds = parentBranches.sequence,
       derivedFromOtherFileIds = parentBranches.other,
