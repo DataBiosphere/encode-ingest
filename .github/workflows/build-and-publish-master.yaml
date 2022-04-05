@@ -21,7 +21,7 @@ jobs:
         run: sbt "set ThisBuild/coverageEnabled := true" test coverageAggregate
       - name: Publish coverage
         uses: codecov/codecov-action@v1
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@v0
         with:
           version: '286.0.0'
           project_id: broad-dsp-monster-dev
