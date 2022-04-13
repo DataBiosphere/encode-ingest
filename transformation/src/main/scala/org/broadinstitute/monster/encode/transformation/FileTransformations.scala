@@ -195,22 +195,8 @@ object FileTransformations {
     return rawFile.tryRead[List[String]]("origin_batches")
   }
 
-  // AH in the following 2 methods, I should be able to do a x.filter on the option instead of doing a
-  // match and creating a Some() if the option has a value. but it gave me compiler errors
-  def getDonorIds(rawFile: Msg, rawDonors: Seq[Msg]): Option[List[String]] = {
-    val donorAccessionIds = rawFile.tryRead[List[String]]("donors")
-    return donorAccessionIds match {
-      case Some(donorList) =>
-        Some(
-          rawDonors
-            .filter(rawDonor =>
-              donorList.contains(rawDonor.tryRead[String]("accession").getOrElse(""))
-            )
-            .map(filteredDonor => CommonTransformations.readId(filteredDonor))
-            .toList
-        )
-      case None => None
-    }
+  def getDonorIds(rawFile: Msg): Option[List[String]] = {
+    return rawFile.tryRead[List[String]]("donors")
   }
 
   def computeLibrariesForFile(
@@ -241,8 +227,7 @@ object FileTransformations {
   def transformSequenceFile(
     rawFile: Msg,
     rawExperiment: Option[Msg],
-    rawLibraries: Seq[Msg],
-    rawDonors: Seq[Msg]
+    rawLibraries: Seq[Msg]
   ): SequenceFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val modality = computeDataModality(rawFile, rawExperiment)
@@ -277,7 +262,7 @@ object FileTransformations {
 //      libraryId = rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
       biosampleIds = biosampleids.getOrElse(List[String]()),
       libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
-      donorIds = getDonorIds(rawFile, rawDonors).getOrElse(List()),
+      donorIds = getDonorIds(rawFile).getOrElse(List()),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
       pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
@@ -297,8 +282,7 @@ object FileTransformations {
     rawFile: Msg,
     idsToType: Map[String, FileType],
     rawExperiment: Option[Msg],
-    rawLibraries: Seq[Msg],
-    rawDonors: Seq[Msg]
+    rawLibraries: Seq[Msg]
   ): AlignmentFile = {
     val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
@@ -326,7 +310,7 @@ object FileTransformations {
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
       biosampleIds = biosampleids.getOrElse(List[String]()),
       libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
-      donorIds = getDonorIds(rawFile, rawDonors).getOrElse(List()),
+      donorIds = getDonorIds(rawFile).getOrElse(List()),
       derivedFromAlignmentFileIds = parentBranches.alignment,
       derivedFromSequenceFileIds = parentBranches.sequence,
       derivedFromOtherFileIds = parentBranches.other,
@@ -341,8 +325,7 @@ object FileTransformations {
     rawFile: Msg,
     idsToType: Map[String, FileType],
     rawExperiment: Option[Msg],
-    rawLibraries: Seq[Msg],
-    rawDonors: Seq[Msg]
+    rawLibraries: Seq[Msg]
   ): OtherFile = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val parentBranches = splitFileReferences(
@@ -370,7 +353,7 @@ object FileTransformations {
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
       biosampleIds = biosampleids.getOrElse(List[String]()),
       libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
-      donorIds = getDonorIds(rawFile, rawDonors).getOrElse(List()),
+      donorIds = getDonorIds(rawFile).getOrElse(List()),
       derivedFromAlignmentFileIds = parentBranches.alignment,
       derivedFromSequenceFileIds = parentBranches.sequence,
       derivedFromOtherFileIds = parentBranches.other,

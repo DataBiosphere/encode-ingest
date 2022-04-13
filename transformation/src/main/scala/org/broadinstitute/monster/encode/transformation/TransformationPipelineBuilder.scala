@@ -162,23 +162,21 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       FileTransformations.buildIdTypeMap(fileBranches)
 
     val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
-    val donorData: SideInput[Seq[Msg]] = donorInputs.asListSideInput
 
     val sequenceFileOutput = fileBranches.sequence
-      .withSideInputs(libraryData, donorData)
+      .withSideInputs(libraryData)
       .withName("Transform sequence files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
           FileTransformations.transformSequenceFile(
             rawFile,
             rawExperiment,
-            sideCtx(libraryData),
-            sideCtx(donorData)
+            sideCtx(libraryData)
           )
       }
       .toSCollection
     val alignmentFileOutput = fileBranches.alignment
-      .withSideInputs(fileIdToType, libraryData, donorData)
+      .withSideInputs(fileIdToType, libraryData)
       .withName("Transform alignment files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
@@ -186,13 +184,12 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
             rawFile,
             sideCtx(fileIdToType),
             rawExperiment,
-            sideCtx(libraryData),
-            sideCtx(donorData)
+            sideCtx(libraryData)
           )
       }
       .toSCollection
     val otherFileOutput = fileBranches.other
-      .withSideInputs(fileIdToType, libraryData, donorData)
+      .withSideInputs(fileIdToType, libraryData)
       .withName("Transform other files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
@@ -200,8 +197,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
             rawFile,
             sideCtx(fileIdToType),
             rawExperiment,
-            sideCtx(libraryData),
-            sideCtx(donorData)
+            sideCtx(libraryData)
           )
       }
       .toSCollection
