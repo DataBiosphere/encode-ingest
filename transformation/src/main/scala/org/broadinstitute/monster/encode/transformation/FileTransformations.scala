@@ -105,72 +105,12 @@ object FileTransformations {
       if (rawFile.tryRead[String]("output_category").contains("reference")) {
         Some("Genomic_Assembly")
       } else {
-        rawExperiment.flatMap(e => e.tryRead[String]("assay_title")).collect {
-          case "3' RACE"                 => "Transcriptomic"
-          case "4C"                      => "Epigenomic_3D Contact Maps"
-          case "5' RACE"                 => "Transcriptomic"
-          case "5' RLM RACE"             => "Transcriptomic"
-          case "5C"                      => "Epigenomic_3D Contact Maps"
-          case "ATAC-seq"                => "Epigenomic_DNAChromatinAccessibility"
-          case "Bru-seq"                 => "Transcriptomic_Unbiased"
-          case "BruChase-seq"            => "Transcriptomic_Unbiased"
-          case "BruUV-seq"               => "Transcriptomic_Unbiased"
-          case "CAGE"                    => "Transcriptomic_Unbiased"
-          case "ChIA-PET"                => "Epigenomic_3D Contact Maps"
-          case "Circulome-seq"           => "Genomic"
-          case "Clone-seq"               => "Proteomic"
-          case "genotyping array"        => "Genomic_Genotyping_Targeted"
-          case "Control ChIP-seq"        => "Epigenomic_DNABinding"
-          case "Control eCLIP"           => "Epigenomic_RNABinding"
-          case "CRISPR RNA-seq"          => "Transcriptomic_Unbiased"
-          case "CRISPRi RNA-seq"         => "Transcriptomic_Unbiased"
-          case "direct RNA-seq"          => "Transcriptomic_Unbiased"
-          case "DNAme array"             => "Epigenomic_DNAMethylation"
-          case "DNA-PET"                 => "Epigenomic_3D Contact Maps"
-          case "DNase-seq"               => "Epigenomic_DNAChromatinAccessibility"
-          case "FAIRE-seq"               => "Epigenomic_DNAChromatinAccessibility"
-          case "GM DNase-seq"            => "Epigenomic_DNAChromatinAccessibility"
-          case "genotype phasing by HiC" => "Genomic_Assembly"
-          case "genotyping HTS"          => "Genomic_Genotyping_Whole Genomic"
-          case "Hi-C"                    => "Epigenomic_3D Contact Maps"
-          case "Histone ChIP-seq"        => "Epigenomic_DNABinding_HistoneModificationLocation"
-          case "iCLIP"                   => "Epigenomic_RNABinding"
-          case "icSHAPE"                 => "Epigenomic_RNABinding"
-          case "long read RNA-seq"       => "Transcriptomic_Unbiased"
-          case "MeDIP-seq"               => "Epigenomic_DNAMethylation"
-          case "microRNA counts"         => "Transcriptomic_Unbiased"
-          case "microRNA-seq"            => "Transcriptomic_Unbiased"
-          case "MNase-seq"               => "Epigenomic_DNAChromatinAccessibility"
-          case "MRE-seq"                 => "Epigenomic_DNAMethylation"
-          case "PAS-seq"                 => "Transcriptomic_Unbiased"
-          case "PLAC-seq"                => "Epigenomic_DNAChromatinAccessibility"
-          case "polyA minus RNA-seq"     => "Transcriptomic_Unbiased"
-          case "polyA plus RNA-seq"      => "Transcriptomic_Unbiased"
-          case "PRO-cap"                 => "Transcriptomic"
-          case "PRO-seq"                 => "Transcriptomic"
-          case "MS-MS"                   => "Proteomic"
-          case "RAMPAGE"                 => "Transcriptomic_Unbiased"
-          case "Repli-chip"              => "Genomic"
-          case "Repli-seq"               => "Genomic"
-          case "RIP-chip"                => "Epigenomic_RNABinding"
-          case "RIP-seq"                 => "Epigenomic_RNABinding"
-          case "RNA Bind-n-Seq"          => "Epigenomic_RNABinding"
-          case "RNA microarray"          => "Transcriptomic_Targeted"
-          case "RNA-PET"                 => "Transcriptomic_Unbiased"
-          case "RRBS"                    => "Epigenomic_DNAMethylation"
-          case "shRNA RNA-seq"           => "Transcriptomic_Unbiased"
-          case "scRNA-seq"               => "Transcriptomic_Unbiased"
-          case "single-cell ATAC-seq"    => "Epigenomic_DNAChromatinAccessibility"
-          case "snATAC-seq"              => "Epigenomic_DNAChromatinAccessibility"
-          case "siRNA RNA-seq"           => "Transcriptomic_Unbiased"
-          case "small RNA-seq"           => "Transcriptomic_Unbiased"
-          case "Switchgear"              => "Epigenomic_RNABinding"
-          case "TAB-seq"                 => "Epigenomic_DNAMethylation"
-          case "TF ChIP-seq"             => "Epigenomic_DNABinding_TranscriptomeFactorLocation"
-          case "total RNA-seq"           => "Transcriptomic_Unbiased"
-          case "WGS"                     => "Genomic_Genotyping_Whole Genomic"
-          case "WGBS"                    => "Epigenomic_DNAMethylation"
-        }
+        rawExperiment.flatMap(e =>
+          e.tryRead[String]("assay_title") match {
+            case Some(str) => Some(AssayTransformations.transformAssayTermToDataModality(str))
+            case None      => None
+          }
+        )
       }
     if (dataModality.isEmpty) {
       logger.warn(
