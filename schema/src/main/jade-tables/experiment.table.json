@@ -29,6 +29,15 @@
       "datatype": "string"
     },
     {
+      "name": "audit_labels",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "max_audit_flag",
+      "datatype": "string"
+    },
+    {
       "name": "award",
       "datatype": "string",
       "type": "required"
@@ -47,6 +56,105 @@
       "name": "status",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "used_alignment_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "alignment_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "used_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "used_other_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "other_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_alignment_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "alignment_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_sequence_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "sequence_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "generated_other_file_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "other_file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "antibody_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "antibody",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "biosample_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "library_ids",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "library",
+          "column_name": "id"
+        }
+      ]
     }
   ]
 }

@@ -11,53 +11,31 @@ object AssayTransformations {
 
   /** Transform a raw experiment into our preferred schema for assays. */
   def transformAssay(
-    rawExperiment: Msg,
-    rawLibraries: Iterable[Msg],
-    fileIdToTypeMap: Map[String, FileType]
+    rawExperiment: Msg
   ): Assay = {
     val id = CommonTransformations.readId(rawExperiment)
 
-    val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawExperiment)
-    val usedFileBranches = FileTransformations.splitFileReferences(
-      rawExperiment.read[List[String]]("contributing_files"),
-      fileIdToTypeMap
-    )
-    val generatedFileBranches = FileTransformations.splitFileReferences(
-      rawExperiment.read[List[String]]("files"),
-      fileIdToTypeMap
-    )
-
-    val libraryArray = rawLibraries.toList
-
+//    val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawExperiment)
+//    val usedFileBranches = FileTransformations.splitFileReferences(
+//      rawExperiment.read[List[String]]("contributing_files"),
+//      fileIdToTypeMap
+//    )
+//    val generatedFileBranches = FileTransformations.splitFileReferences(
+//      rawExperiment.read[List[String]]("files"),
+//      fileIdToTypeMap
+//    )
+//
+//    val libraryArray = rawLibraries.toList
+//
     Assay(
       id = id,
-      crossReferences = rawExperiment.read[List[String]]("dbxrefs"),
+//      crossReferences = rawExperiment.read[List[String]]("dbxrefs"),
       timeCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
       assayCategory = rawExperiment.read[List[String]]("assay_slims").headOption,
       assayType = rawExperiment.read[String]("assay_term_id"),
-      auditLabels = auditLabels,
-      maxAuditFlag = auditLevel,
-      award = rawExperiment.read[String]("award"),
-      lab = rawExperiment.read[String]("lab"),
-      submittedBy = rawExperiment.read[String]("submitted_by"),
-      // NOTE: Sorting the arrays below are important for reproducibility.
-      biosampleIds = libraryArray.map { lib =>
-        CommonTransformations.transformId(lib.read[String]("biosample"))
-      }.sorted.distinct,
-      usedAlignmentFileIds = usedFileBranches.alignment.sorted,
-      usedSequenceFileIds = usedFileBranches.sequence.sorted,
-      usedOtherFileIds = usedFileBranches.other.sorted,
-      generatedAlignmentFileIds = generatedFileBranches.alignment.sorted,
-      generatedSequenceFileIds = generatedFileBranches.sequence.sorted,
-      generatedOtherFileIds = generatedFileBranches.other.sorted,
-      antibodyIds = libraryArray.flatMap {
-        _.tryRead[Array[String]]("antibodies")
-          .getOrElse(Array.empty)
-          .map(CommonTransformations.transformId)
-      }.sorted.distinct,
-      libraryIds = libraryArray.map(CommonTransformations.readId).sorted
+      dataModality = transformAssayTermToDataModality(rawExperiment.read[String]("assay_term_name"))
     )
   }
 

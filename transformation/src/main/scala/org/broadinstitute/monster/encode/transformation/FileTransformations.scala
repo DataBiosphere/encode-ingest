@@ -199,7 +199,6 @@ object FileTransformations {
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
-//      libraryId = rawFile.tryRead[String]("library").map(CommonTransformations.transformId),
       biosampleIds = biosampleids.getOrElse(List[String]()),
       libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
       donorIds = getDonorIds(rawFile).getOrElse(List()),
