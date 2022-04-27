@@ -26,9 +26,9 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
     val output = DonorTransformations.transformDonor(inputMsg)
 
     output.id shouldBe "ABC123"
-    output.award shouldBe "/awards/xyz_award"
-    output.submittedBy shouldBe "/users/123-abc"
-    output.lab shouldBe "/labs/example-lab"
+    output.award shouldBe "https://www.encodeproject.org/awards/xyz_award"
+    output.submittedBy shouldBe "https://www.encodeproject.org/users/123-abc"
+    output.lab shouldBe "https://www.encodeproject.org/labs/example-lab"
     output.ageMax shouldBe Some(33)
     output.ageMin shouldBe Some(30)
     output.ethnicity shouldBe List.empty[String]

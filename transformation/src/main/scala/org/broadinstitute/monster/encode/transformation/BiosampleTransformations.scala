@@ -36,7 +36,7 @@ object BiosampleTransformations {
       id = CommonTransformations.readId(biosampleInput),
       crossReferences = biosampleInput.read[List[String]]("dbxrefs"),
       timeCreated = biosampleInput.read[OffsetDateTime]("date_created"),
-      source = biosampleInput.tryRead[String]("source"),
+      source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
@@ -47,14 +47,14 @@ object BiosampleTransformations {
       donorId = biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
-      award = biosampleInput.read[String]("award"),
+      award = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("award")),
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
       geneticModifications = biosampleInput.read[List[String]]("applied_modifications"),
       healthStatus = biosampleInput.tryRead[String]("health_status"),
-      lab = biosampleInput.read[String]("lab"),
-      treatments = biosampleInput.read[List[String]]("treatments"),
+      lab = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("lab")),
+      treatments = CommonTransformations.convertToEncodeUrl(biosampleInput.read[List[String]]("treatments")),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
-      submittedBy = biosampleInput.read[String]("submitted_by"),
+      submittedBy = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("submitted_by")),
       productId = if (productIds.size > 1) {
         logger.warn(
           s"Biosample '$biosampleId' has multiple product ids: [${productIds.mkString(",")}]."

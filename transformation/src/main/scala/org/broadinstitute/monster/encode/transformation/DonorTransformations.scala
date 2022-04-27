@@ -35,10 +35,10 @@ object DonorTransformations {
       ageMax = ageMax,
       ageUnit = donorInput.tryRead[String]("age_units"),
       ethnicity = donorInput.tryRead[List[String]]("ethnicity").getOrElse(List.empty[String]),
-      organism = donorInput.read[String]("organism"),
+      organism = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("organism")),
       sex = donorInput.tryRead[String]("sex"),
-      award = donorInput.read[String]("award"),
-      lab = donorInput.read[String]("lab"),
+      award = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("award")),
+      lab = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("lab")),
       lifeStage = donorInput.tryRead[String]("life_stage"),
       parentDonorIds = donorInput
         .read[List[String]]("parents")
