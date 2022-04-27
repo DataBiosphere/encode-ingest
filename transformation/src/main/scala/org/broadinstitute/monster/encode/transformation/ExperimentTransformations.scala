@@ -30,7 +30,7 @@ object ExperimentTransformations {
 
     Experiment(
       id = CommonTransformations.readId(rawExperiment),
-      crossReferences = rawExperiment.read[List[String]]("dbxrefs"),
+      crossReferences = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("@id")) :: rawExperiment.read[List[String]]("dbxrefs"),
       timeCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),

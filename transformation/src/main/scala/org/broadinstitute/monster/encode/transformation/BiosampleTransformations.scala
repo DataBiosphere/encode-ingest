@@ -34,7 +34,7 @@ object BiosampleTransformations {
 
     Biosample(
       id = CommonTransformations.readId(biosampleInput),
-      crossReferences = biosampleInput.read[List[String]]("dbxrefs"),
+      crossReferences = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("@id")) :: biosampleInput.read[List[String]]("dbxrefs"),
       timeCreated = biosampleInput.read[OffsetDateTime]("date_created"),
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),

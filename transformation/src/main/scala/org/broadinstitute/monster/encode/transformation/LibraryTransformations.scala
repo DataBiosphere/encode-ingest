@@ -21,7 +21,7 @@ object LibraryTransformations {
 
     Library(
       id = CommonTransformations.readId(libraryInput),
-      crossReferences = libraryInput.read[List[String]]("dbxrefs"),
+      crossReferences = CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("@id")) :: libraryInput.read[List[String]]("dbxrefs"),
       timeCreated = libraryInput.read[OffsetDateTime]("date_created"),
       award = CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("award")),
       lab = CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("lab")),

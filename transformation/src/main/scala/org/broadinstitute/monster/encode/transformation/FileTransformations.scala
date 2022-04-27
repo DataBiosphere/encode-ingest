@@ -187,7 +187,7 @@ object FileTransformations {
 
     SequenceFile(
       id = id,
-      crossReferences = rawFile.read[List[String]]("dbxrefs"),
+      crossReferences = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: rawFile.read[List[String]]("dbxrefs"),
       timeCreated = rawFile.read[OffsetDateTime]("date_created"),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
       dataModality = modality,

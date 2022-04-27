@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 import org.broadinstitute.monster.encode.jadeschema.table.Antibody
 import upack.Msg
 
+
 /** Transformation logic for ENCODE antibody objects. */
 object AntibodyTransformations {
 
@@ -20,7 +21,7 @@ object AntibodyTransformations {
 
     Antibody(
       id = CommonTransformations.readId(antibodyInput),
-      crossReferences = antibodyInput.read[List[String]]("dbxrefs"),
+      crossReferences = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("@id")) :: antibodyInput.read[List[String]]("dbxrefs"),
       timeCreated = antibodyInput.read[OffsetDateTime]("date_created"),
       source = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("source")),
       clonality = antibodyInput.tryRead[String]("clonality"),

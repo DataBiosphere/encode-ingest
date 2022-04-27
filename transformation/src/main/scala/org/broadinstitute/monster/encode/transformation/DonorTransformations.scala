@@ -29,7 +29,7 @@ object DonorTransformations {
 
     Donor(
       id = CommonTransformations.readId(donorInput),
-      crossReferences = donorInput.read[List[String]]("dbxrefs"),
+      crossReferences = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("@id")) :: donorInput.read[List[String]]("dbxrefs"),
       timeCreated = donorInput.read[OffsetDateTime]("date_created"),
       ageMin = ageMin,
       ageMax = ageMax,
