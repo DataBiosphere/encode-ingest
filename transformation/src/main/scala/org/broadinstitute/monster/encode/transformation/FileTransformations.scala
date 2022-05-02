@@ -3,7 +3,7 @@ package org.broadinstitute.monster.encode.transformation
 import java.time.OffsetDateTime
 
 import com.spotify.scio.values.{SCollection, SideInput}
-import org.broadinstitute.monster.encode.jadeschema.table.{AlignmentFile, OtherFile, SequenceFile}
+import org.broadinstitute.monster.encode.jadeschema.table.File
 import org.slf4j.LoggerFactory
 import upack.Msg
 
@@ -107,7 +107,7 @@ object FileTransformations {
       } else {
         rawExperiment.flatMap(e =>
           e.tryRead[String]("assay_title") match {
-            case Some(str) => Some(AssayTransformations.transformAssayTermToDataModality(str))
+            case Some(str) => Some(AssayActivityTransformations.transformAssayTermToDataModality(str))
             case None      => None
           }
         )
@@ -140,10 +140,10 @@ object FileTransformations {
   }
 
   def computeLibrariesForFile(
-    biosampleids: Option[List[String]],
+    biosample: Option[List[String]],
     rawLibraries: Seq[Msg]
   ): Option[List[String]] = {
-    return biosampleids match {
+    return biosample match {
       case Some(biosampleList) => {
         Some(
           rawLibraries
@@ -168,12 +168,12 @@ object FileTransformations {
     rawFile: Msg,
     rawExperiment: Option[Msg],
     rawLibraries: Seq[Msg]
-  ): SequenceFile = {
+  ): File = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val modality = computeDataModality(rawFile, rawExperiment)
     val id = CommonTransformations.readId(rawFile)
 
-    val biosampleids = getBiosamples(rawFile)
+    val biosample = getBiosamples(rawFile)
 
     val pairedEndId = rawFile.tryRead[String]("paired_end") match {
       case None        => None
@@ -185,10 +185,12 @@ object FileTransformations {
         None
     }
 
-    SequenceFile(
+    File(
       id = id,
-      crossReferences = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: rawFile.read[List[String]]("dbxrefs"),
-      timeCreated = rawFile.read[OffsetDateTime]("date_created"),
+      label = id,
+      xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: rawFile
+        .read[List[String]]("dbxrefs"),
+      dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
       dataModality = modality,
       auditLabels = auditLabels,
@@ -199,15 +201,14 @@ object FileTransformations {
       platform = rawFile.tryRead[String]("platform"),
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
-      biosampleIds = biosampleids.getOrElse(List[String]()),
-      libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
-      donorIds = getDonorIds(rawFile).getOrElse(List()),
+      usesSample = biosample.getOrElse(List[String]()),
+      library = computeLibrariesForFile(biosample, rawLibraries).getOrElse(List()),
+      donor = getDonorIds(rawFile).getOrElse(List()),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
-      pairedLibraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
-      pairedEndIdentifier = pairedEndId,
-      pairedWithSequenceFileId =
-        rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
+      libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
+      pairedEndId = pairedEndId,
+      pairedFile = rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
     )
   }
 
@@ -222,21 +223,22 @@ object FileTransformations {
     idsToType: Map[String, FileType],
     rawExperiment: Option[Msg],
     rawLibraries: Seq[Msg]
-  ): AlignmentFile = {
+  ): File = {
     val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val parentBranches = splitFileReferences(
-      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
-      idsToType
-    )
+//    val parentBranches = splitFileReferences(
+//      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
+//      idsToType
+//    )
     val modality = computeDataModality(rawFile, rawExperiment)
 
-    val biosampleids = getBiosamples(rawFile)
+    val biosample = getBiosamples(rawFile)
 
-    AlignmentFile(
+    File(
       id = id,
-      crossReferences = rawFile.read[List[String]]("dbxrefs"),
-      timeCreated = rawFile.read[OffsetDateTime]("date_created"),
+      label = id,
+      xref = rawFile.read[List[String]]("dbxrefs"),
+      dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       dataModality = modality,
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
@@ -247,12 +249,10 @@ object FileTransformations {
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      biosampleIds = biosampleids.getOrElse(List[String]()),
-      libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
-      donorIds = getDonorIds(rawFile).getOrElse(List()),
-      derivedFromAlignmentFileIds = parentBranches.alignment,
-      derivedFromSequenceFileIds = parentBranches.sequence,
-      derivedFromOtherFileIds = parentBranches.other,
+      usesSample = biosample.getOrElse(List[String]()),
+      library = computeLibrariesForFile(biosample, rawLibraries).getOrElse(List()),
+      donor = getDonorIds(rawFile).getOrElse(List()),
+      derivedFrom = rawFile.tryRead[List[String]]("derived_from"),
       referenceAssembly = rawFile.read[String]("assembly"),
       cloudPath = None,
       indexCloudPath = None
@@ -265,20 +265,22 @@ object FileTransformations {
     idsToType: Map[String, FileType],
     rawExperiment: Option[Msg],
     rawLibraries: Seq[Msg]
-  ): OtherFile = {
+  ): File = {
+    val id = CommonTransformations.readId(rawFile)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val parentBranches = splitFileReferences(
-      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
-      idsToType
-    )
+//    val parentBranches = splitFileReferences(
+//      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
+//      idsToType
+//    )
     val modality = computeDataModality(rawFile, rawExperiment)
 
-    val biosampleids = getBiosamples(rawFile)
+    val biosample = getBiosamples(rawFile)
 
-    OtherFile(
-      id = CommonTransformations.readId(rawFile),
-      crossReferences = rawFile.read[List[String]]("dbxrefs"),
-      timeCreated = rawFile.read[OffsetDateTime]("date_created"),
+    File(
+      id = id,
+      label = id,
+      xref = rawFile.read[List[String]]("dbxrefs"),
+      dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       dataModality = modality,
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
@@ -290,12 +292,10 @@ object FileTransformations {
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
       submittedBy = rawFile.read[String]("submitted_by"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      biosampleIds = biosampleids.getOrElse(List[String]()),
-      libraryIds = computeLibrariesForFile(biosampleids, rawLibraries).getOrElse(List()),
-      donorIds = getDonorIds(rawFile).getOrElse(List()),
-      derivedFromAlignmentFileIds = parentBranches.alignment,
-      derivedFromSequenceFileIds = parentBranches.sequence,
-      derivedFromOtherFileIds = parentBranches.other,
+      usesSample = biosample.getOrElse(List[String]()),
+      library = computeLibrariesForFile(biosample, rawLibraries).getOrElse(List()),
+      donor = getDonorIds(rawFile).getOrElse(List()),
+      derivedFrom = rawFile.tryRead[List[String]]("derived_from"),
       cloudPath = None
     )
   }

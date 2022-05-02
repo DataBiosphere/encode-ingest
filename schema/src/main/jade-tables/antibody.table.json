@@ -7,12 +7,17 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
@@ -31,7 +36,7 @@
       "type": "required"
     },
     {
-      "name": "targets",
+      "name": "target",
       "datatype": "string",
       "type": "repeated"
     },
@@ -50,11 +55,11 @@
       "type": "required"
     },
     {
-      "name": "lot_id",
+      "name": "lot",
       "datatype": "string"
     },
     {
-      "name": "product_id",
+      "name": "part_number",
       "datatype": "string",
       "type": "required"
     },

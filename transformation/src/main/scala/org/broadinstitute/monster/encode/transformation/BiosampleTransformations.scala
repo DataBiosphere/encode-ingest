@@ -18,10 +18,10 @@ object BiosampleTransformations {
     joinedType: Option[Msg],
     joinedLibraries: Iterable[Msg]
   ): Biosample = {
-    val biosampleId = CommonTransformations.readId(biosampleInput)
+    val usesSample = CommonTransformations.readId(biosampleInput)
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(biosampleInput)
-
-    val productIds = joinedLibraries
+    val id = CommonTransformations.readId(biosampleInput)
+    val partNumbers = joinedLibraries
       .flatMap(library => library.tryRead[String]("product_id"))
       .toSet[String]
     val lotIds = joinedLibraries
@@ -29,42 +29,47 @@ object BiosampleTransformations {
       .toSet[String]
 
     if (joinedType.isEmpty) {
-      logger.warn(s"Biosample '$biosampleId' has no associated type!")
+      logger.warn(s"Biosample '$id' has no associated type!")
     }
 
     Biosample(
-      id = CommonTransformations.readId(biosampleInput),
-      crossReferences = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("@id")) :: biosampleInput.read[List[String]]("dbxrefs"),
-      timeCreated = biosampleInput.read[OffsetDateTime]("date_created"),
+      id = id,
+      label = id,
+      xref = CommonTransformations.convertToEncodeUrl(
+        biosampleInput.read[String]("@id")
+      ) :: biosampleInput.read[List[String]]("dbxrefs"),
+      dateCreated = biosampleInput.read[OffsetDateTime]("date_created"),
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
-      derivedFromBiosampleId =
+      derivedFrom =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
       anatomicalSite = joinedType.map(_.read[String]("term_id")),
       biosampleType = joinedType.map(_.read[String]("classification")),
-      samplePreservationState = biosampleInput.tryRead[String]("preservation_method"),
+      preservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
       donorId = biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       award = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("award")),
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
-      geneticModifications = biosampleInput.read[List[String]]("applied_modifications"),
+      geneticMod = biosampleInput.read[List[String]]("applied_modifications"),
       healthStatus = biosampleInput.tryRead[String]("health_status"),
       lab = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("lab")),
-      treatments = CommonTransformations.convertToEncodeUrl(biosampleInput.read[List[String]]("treatments")),
+      sampleTreatment =
+        CommonTransformations.convertToEncodeUrl(biosampleInput.read[List[String]]("treatments")),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
-      submittedBy = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("submitted_by")),
-      productId = if (productIds.size > 1) {
+      submittedBy =
+        CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("submitted_by")),
+      partNumber = if (partNumbers.size > 1) {
         logger.warn(
-          s"Biosample '$biosampleId' has multiple product ids: [${productIds.mkString(",")}]."
+          s"Biosample '$usesSample' has multiple product ids: [${partNumbers.mkString(",")}]."
         )
         None
       } else {
-        productIds.headOption
+        partNumbers.headOption
       },
-      lotId = if (lotIds.size > 1) {
-        logger.warn(s"Biosample '$biosampleId' has multiple lot ids: [${lotIds.mkString(",")}].")
+      lot = if (lotIds.size > 1) {
+        logger.warn(s"Biosample '$usesSample' has multiple lot ids: [${lotIds.mkString(",")}].")
         None
       } else {
         lotIds.headOption

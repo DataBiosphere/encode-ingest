@@ -1,0 +1,39 @@
+{
+  "name": "librarypreparationactivity",
+  "columns": [
+    {
+      "name": "id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "date_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "lab",
+      "datatype": "string"
+    },
+    {
+      "name": "generated",
+      "datatype": "string"
+    },
+    {
+      "name": "uses_sample",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    }
+  ]
+}

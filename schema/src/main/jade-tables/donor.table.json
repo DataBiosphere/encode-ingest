@@ -7,21 +7,26 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "age_min",
+      "name": "age_lowerbound",
       "datatype": "integer"
     },
     {
-      "name": "age_max",
+      "name": "age_upperbound",
       "datatype": "integer"
     },
     {
@@ -29,17 +34,17 @@
       "datatype": "string"
     },
     {
-      "name": "ethnicity",
+      "name": "reported_ethnicity",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "organism",
+      "name": "organism_type",
       "datatype": "string",
       "type": "required"
     },
     {
-      "name": "sex",
+      "name": "phenotypic_sex",
       "datatype": "string"
     },
     {
@@ -57,7 +62,7 @@
       "datatype": "string"
     },
     {
-      "name": "parent_donor_ids",
+      "name": "parent",
       "datatype": "string",
       "type": "repeated",
       "links": [
@@ -68,7 +73,7 @@
       ]
     },
     {
-      "name": "twin_donor_id",
+      "name": "sibling",
       "datatype": "string",
       "links": [
         {

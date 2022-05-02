@@ -12,7 +12,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
         |"@id":"/human-donors/ABC123/",
         |"accession": "ABC123",
         |"dbxrefs": [],
-        |"date_created": "2020-12-24T18:00:00.111222+00:00",
+        |"time_created": "2020-12-24T18:00:00.111222+00:00",
         |"organism": "/organisms/human",
         |"award": "/awards/xyz_award",
         |"lab": "/labs/example-lab",
@@ -29,9 +29,9 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
     output.award shouldBe "https://www.encodeproject.org/awards/xyz_award"
     output.submittedBy shouldBe "https://www.encodeproject.org/users/123-abc"
     output.lab shouldBe "https://www.encodeproject.org/labs/example-lab"
-    output.ageMax shouldBe Some(33)
-    output.ageMin shouldBe Some(30)
-    output.ethnicity shouldBe List.empty[String]
+    output.ageUpperbound shouldBe Some(33)
+    output.ageLowerbound shouldBe Some(30)
+    output.reportedEthnicity shouldBe List.empty[String]
   }
 
   it should "parse ages 90 or above" in {
@@ -40,7 +40,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
         |"@id":"/human-donors/ABC123/",
         |"accession": "ABC123",
         |"dbxrefs": [],
-        |"date_created": "2020-12-24T18:00:00.111222+00:00",
+        |"time_created": "2020-12-24T18:00:00.111222+00:00",
         |"organism": "/organisms/human",
         |"award": "/awards/xyz_award",
         |"ethnicity": ["ethn1", "ethn2"],
@@ -54,8 +54,8 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
 
     val output = DonorTransformations.transformDonor(inputMsg)
 
-    output.ageMin shouldBe Some(90)
-    output.ageMax shouldBe None
-    output.ethnicity shouldBe List("ethn1", "ethn2")
+    output.ageLowerbound shouldBe Some(90)
+    output.ageUpperbound shouldBe None
+    output.reportedEthnicity shouldBe List("ethn1", "ethn2")
   }
 }

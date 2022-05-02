@@ -7,12 +7,17 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
@@ -39,16 +44,16 @@
       "datatype": "string"
     },
     {
-      "name": "strand_specific",
+      "name": "library_layout",
       "datatype": "boolean",
       "type": "required"
     },
     {
-      "name": "strand_specificity",
+      "name": "paired_end_id",
       "datatype": "string"
     },
     {
-      "name": "treatments",
+      "name": "sample_treatment",
       "datatype": "string",
       "type": "repeated"
     },
@@ -58,12 +63,12 @@
       "type": "required"
     },
     {
-      "name": "spike_ins",
+      "name": "used",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "biosample_id",
+      "name": "uses_sample",
       "datatype": "string",
       "type": "required",
       "links": [

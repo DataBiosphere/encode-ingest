@@ -1,5 +1,5 @@
 {
-  "name": "step_run",
+  "name": "sequencingactivity",
   "columns": [
     {
       "name": "id",
@@ -17,30 +17,17 @@
       "type": "repeated"
     },
     {
-      "name": "version",
-      "datatype": "string",
+      "name": "date_created",
+      "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "pipeline_run_id",
-      "datatype": "string",
-      "links": [
-        {
-          "table_name": "analysisactivity",
-          "column_name": "id"
-        }
-      ]
+      "name": "data_modality",
+      "datatype": "string"
     },
     {
-      "name": "used",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "file",
-          "column_name": "id"
-        }
-      ]
+      "name": "reference_assembly",
+      "datatype": "string"
     },
     {
       "name": "generated",
@@ -52,6 +39,36 @@
           "column_name": "id"
         }
       ]
+    },
+    {
+      "name": "uses_sample",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "lab",
+      "datatype": "string"
+    },
+    {
+      "name": "uses_library",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "library",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "platform",
+      "datatype": "string"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "step_run",
+  "name": "analysisactivity",
   "columns": [
     {
       "name": "id",
@@ -17,22 +17,23 @@
       "type": "repeated"
     },
     {
-      "name": "version",
+      "name": "analysis_type",
       "datatype": "string",
       "type": "required"
     },
     {
-      "name": "pipeline_run_id",
+      "name": "assay_id",
       "datatype": "string",
+      "type": "required",
       "links": [
         {
-          "table_name": "analysisactivity",
+          "table_name": "assayactivity",
           "column_name": "id"
         }
       ]
     },
     {
-      "name": "used",
+      "name": "derived_from",
       "datatype": "string",
       "type": "repeated",
       "links": [

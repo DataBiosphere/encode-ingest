@@ -7,12 +7,17 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
@@ -25,7 +30,7 @@
       "datatype": "date"
     },
     {
-      "name": "derived_from_biosample_id",
+      "name": "derived_from",
       "datatype": "string",
       "links": [
         {
@@ -43,7 +48,7 @@
       "datatype": "string"
     },
     {
-      "name": "sample_preservation_state",
+      "name": "preservation_state",
       "datatype": "string"
     },
     {
@@ -79,7 +84,7 @@
       "datatype": "string"
     },
     {
-      "name": "genetic_modifications",
+      "name": "genetic_mod",
       "datatype": "string",
       "type": "repeated"
     },
@@ -93,7 +98,7 @@
       "type": "required"
     },
     {
-      "name": "treatments",
+      "name": "sample_treatment",
       "datatype": "string",
       "type": "repeated"
     },
@@ -108,12 +113,23 @@
       "type": "required"
     },
     {
-      "name": "product_id",
+      "name": "part_number",
       "datatype": "string"
     },
     {
-      "name": "lot_id",
+      "name": "lot",
       "datatype": "string"
+    },
+    {
+      "name": "library_prep",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "librarypreparationactivity",
+          "column_name": "id"
+        }
+      ]
     }
   ]
 }

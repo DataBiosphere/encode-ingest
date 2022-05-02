@@ -33,8 +33,9 @@ object PipelineRunTransformations {
 
     PipelineRun(
       id = pipelineRunId,
+      label = pipelineRunId,
       pipeline = CommonTransformations.convertToEncodeUrl(pipelineId),
-      pipelineName = rawPipeline.read[String]("title"),
+      analysisType = rawPipeline.read[String]("title"),
       assayId = CommonTransformations.transformId(experimentId),
       usedAlignmentFileIds = usedFileBranches.alignment.sorted,
       usedSequenceFileIds = usedFileBranches.sequence.sorted,

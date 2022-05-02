@@ -1,5 +1,5 @@
 {
-  "name": "assay",
+  "name": "assayactivity",
   "columns": [
     {
       "name": "id",
@@ -7,17 +7,19 @@
       "type": "primary_key"
     },
     {
-      "name": "time_created",
-      "datatype": "timestamp",
+      "name": "label",
+      "datatype": "string",
       "type": "required"
     },
     {
-      "name": "date_submitted",
-      "datatype": "date"
+      "name": "xref",
+      "datatype": "string",
+      "type": "repeated"
     },
     {
-      "name": "description",
-      "datatype": "string"
+      "name": "date_created",
+      "datatype": "timestamp",
+      "type": "required"
     },
     {
       "name": "assay_category",

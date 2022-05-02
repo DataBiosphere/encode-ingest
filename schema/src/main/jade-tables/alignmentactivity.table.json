@@ -1,5 +1,5 @@
 {
-  "name": "step_run",
+  "name": "alignmentactivity",
   "columns": [
     {
       "name": "id",
@@ -17,32 +17,19 @@
       "type": "repeated"
     },
     {
-      "name": "version",
-      "datatype": "string",
+      "name": "date_created",
+      "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "pipeline_run_id",
-      "datatype": "string",
-      "links": [
-        {
-          "table_name": "analysisactivity",
-          "column_name": "id"
-        }
-      ]
+      "name": "data_modality",
+      "datatype": "string"
     },
     {
-      "name": "used",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "file",
-          "column_name": "id"
-        }
-      ]
+      "name": "reference_assembly",
+      "datatype": "string"
     },
-    {
+                                                                                                                                                                                                           {
       "name": "generated",
       "datatype": "string",
       "type": "repeated",
@@ -52,6 +39,21 @@
           "column_name": "id"
         }
       ]
+    },
+    {
+      "name": "uses",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "lab",
+      "datatype": "string"
     }
   ]
 }

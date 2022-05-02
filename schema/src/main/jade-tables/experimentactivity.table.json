@@ -1,5 +1,5 @@
 {
-  "name": "sequence_file",
+  "name": "experimentactivity",
   "columns": [
     {
       "name": "id",
@@ -7,19 +7,27 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "lab",
-      "datatype": "string",
-      "type": "required"
+      "name": "date_submitted",
+      "datatype": "date"
+    },
+    {
+      "name": "description",
+      "datatype": "string"
     },
     {
       "name": "data_modality",
@@ -40,22 +48,9 @@
       "type": "required"
     },
     {
-      "name": "file_format",
+      "name": "lab",
       "datatype": "string",
       "type": "required"
-    },
-    {
-      "name": "file_format_type",
-      "datatype": "string"
-    },
-    {
-      "name": "platform",
-      "datatype": "string"
-    },
-    {
-      "name": "quality_metrics",
-      "datatype": "string",
-      "type": "repeated"
     },
     {
       "name": "submitted_by",
@@ -63,26 +58,45 @@
       "type": "required"
     },
     {
-      "name": "read_count",
-      "datatype": "integer"
+      "name": "status",
+      "datatype": "string",
+      "type": "required"
     },
     {
-      "name": "read_length",
-      "datatype": "integer"
-    },
-    {
-      "name": "library_ids",
+      "name": "used",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "library",
+          "table_name": "file",
           "column_name": "id"
         }
       ]
     },
     {
-      "name": "biosample_ids",
+      "name": "generated",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "antibody",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "antibody",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "uses_sample",
       "datatype": "string",
       "type": "repeated",
       "links": [
@@ -93,30 +107,12 @@
       ]
     },
     {
-      "name": "donor_ids",
+      "name": "library",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "donor",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "paired_library_layout",
-      "datatype": "boolean"
-    },
-    {
-      "name": "paired_end_identifier",
-      "datatype": "integer"
-    },
-    {
-      "name": "paired_with_sequence_file_id",
-      "datatype": "string",
-      "links": [
-        {
-          "table_name": "sequence_file",
+          "table_name": "library",
           "column_name": "id"
         }
       ]

@@ -1,5 +1,5 @@
 {
-  "name": "experiment",
+  "name": "file",
   "columns": [
     {
       "name": "id",
@@ -7,22 +7,19 @@
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
-    },
-    {
-      "name": "date_submitted",
-      "datatype": "date"
-    },
-    {
-      "name": "description",
-      "datatype": "string"
     },
     {
       "name": "data_modality",
@@ -43,9 +40,28 @@
       "type": "required"
     },
     {
+      "name": "file_format",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "file_format_type",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
       "name": "lab",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "platform",
+      "datatype": "string"
+    },
+    {
+      "name": "quality_metrics",
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "submitted_by",
@@ -53,89 +69,30 @@
       "type": "required"
     },
     {
-      "name": "status",
-      "datatype": "string",
-      "type": "required"
+      "name": "read_count",
+      "datatype": "integer"
     },
     {
-      "name": "used_alignment_file_ids",
+      "name": "read_length",
+      "datatype": "integer"
+    },
+    {
+      "name": "genome_annotation",
+      "datatype": "string"
+    },
+    {
+      "name": "library",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "alignment_file",
+          "table_name": "library",
           "column_name": "id"
         }
       ]
     },
     {
-      "name": "used_sequence_file_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "sequence_file",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "used_other_file_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "other_file",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "generated_alignment_file_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "alignment_file",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "generated_sequence_file_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "sequence_file",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "generated_other_file_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "other_file",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "antibody_ids",
-      "datatype": "string",
-      "type": "repeated",
-      "links": [
-        {
-          "table_name": "antibody",
-          "column_name": "id"
-        }
-      ]
-    },
-    {
-      "name": "biosample_ids",
+      "name": "uses_sample",
       "datatype": "string",
       "type": "repeated",
       "links": [
@@ -146,12 +103,54 @@
       ]
     },
     {
-      "name": "library_ids",
+      "name": "donor",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "library",
+          "table_name": "donor",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "derived_from",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "id"
+        }
+      ]
+    },
+    {
+      "name": "reference_assembly",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "cloud_path",
+      "datatype": "fileref"
+    },
+    {
+      "name": "index_cloud_path",
+      "datatype": "fileref"
+    },
+    {
+      "name": "library_layout",
+      "datatype": "boolean"
+    },
+    {
+      "name": "paired_end_id",
+      "datatype": "integer"
+    },
+    {
+      "name": "paired_file",
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "sequence_file",
           "column_name": "id"
         }
       ]

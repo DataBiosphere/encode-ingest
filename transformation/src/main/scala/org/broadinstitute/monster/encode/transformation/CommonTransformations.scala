@@ -47,9 +47,13 @@ object CommonTransformations {
     * Prepend the encode base url to any string that represent an encode url path
     */
   val urlPrefix = "https://www.encodeproject.org"
-  def convertToEncodeUrl(value:String): String = urlPrefix + value
-  def convertToEncodeUrl(optValue:Option[String]): Option[String] = optValue.map(value => urlPrefix + value)
-  def convertToEncodeUrl(values:List[String]): List[String] = values.map(value => convertToEncodeUrl(value))
+  def convertToEncodeUrl(value: String): String = urlPrefix + value
+
+  def convertToEncodeUrl(optValue: Option[String]): Option[String] =
+    optValue.map(value => urlPrefix + value)
+
+  def convertToEncodeUrl(values: List[String]): List[String] =
+    values.map(value => convertToEncodeUrl(value))
 
   /**
     * Summarize any audit records found in a raw ENCODE object, returning:

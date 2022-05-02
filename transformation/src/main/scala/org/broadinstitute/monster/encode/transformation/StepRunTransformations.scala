@@ -30,25 +30,24 @@ object StepRunTransformations {
 
     // branch files
     val generatedFileArray = rawGeneratedFiles.toList
-    val generatedFileBranches = FileTransformations.splitFileReferences(
-      generatedFileArray.map(_.read[String]("@id")),
-      fileIdToTypeMap
-    )
-    val usedFileIds = generatedFileArray
-      .flatMap(_.read[Array[String]]("derived_from"))
-      .distinct
-    val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
+//    val generatedFileBranches = FileTransformations.splitFileReferences(
+//      generatedFileArray.map(_.read[String]("@id")),
+//      fileIdToTypeMap
+//    )
+//    val usedFileIds = generatedFileArray
+//      .flatMap(_.read[Array[String]]("derived_from"))
+//      .distinct
+//    val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
 
     StepRun(
       id = stepRunId,
+      label = stepRunId,
       version = rawStepVersion.read[String]("name"),
       pipelineRunId = pipelineRunId,
-      usedAlignmentFileIds = usedFileBranches.alignment.sorted,
-      usedSequenceFileIds = usedFileBranches.sequence.sorted,
-      usedOtherFileIds = usedFileBranches.other.sorted,
-      generatedAlignmentFileIds = generatedFileBranches.alignment.sorted,
-      generatedSequenceFileIds = generatedFileBranches.sequence.sorted,
-      generatedOtherFileIds = generatedFileBranches.other.sorted
+      used = generatedFileArray
+        .flatMap(_.read[Array[String]]("derived_from"))
+        .distinct,
+      generated = generatedFileArray.map(_.read[String]("@id"))
     )
   }
 }

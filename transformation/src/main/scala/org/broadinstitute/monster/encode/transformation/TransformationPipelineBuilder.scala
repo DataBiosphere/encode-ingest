@@ -344,8 +344,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         case ((rawExperiment, rawLibraries), sideCtx) =>
           ExperimentTransformations.transformExperiment(
             rawExperiment,
-            rawLibraries.toIterable.flatten,
-            sideCtx(fileIdToType)
+            rawLibraries.toIterable.flatten //,
+//            sideCtx(fileIdToType)
           )
       }
       .toSCollection
