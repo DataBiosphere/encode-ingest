@@ -30,6 +30,10 @@
       "datatype": "string"
     },
     {
+      "name": "dataset",
+      "datatype": "string"
+    },
+    {
       "name": "generated",
       "datatype": "string",
       "type": "repeated",
@@ -39,6 +43,11 @@
           "column_name": "id"
         }
       ]
+    },
+    {
+      "name": "temp_generated",
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "uses_sample",

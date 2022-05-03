@@ -2,10 +2,10 @@ package org.broadinstitute.monster.encode.transformation
 
 import java.time.{LocalDate, OffsetDateTime}
 
-import org.broadinstitute.monster.encode.jadeschema.table.Experiment
+import org.broadinstitute.monster.encode.jadeschema.table.Experimentactivity
 import upack.Msg
 
-object ExperimentTransformations {
+object ExperimentActivityTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw experiment into our preferred schema for experiments. */
@@ -13,13 +13,13 @@ object ExperimentTransformations {
     rawExperiment: Msg,
     rawLibraries: Iterable[Msg] //,
 //    fileIdToTypeMap: Map[String, FileType]
-  ): Experiment = {
+  ): Experimentactivity = {
     val id = CommonTransformations.readId(rawExperiment)
     val libraryArray = rawLibraries.toList
 
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawExperiment)
 
-    Experiment(
+    Experimentactivity(
       id = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
@@ -28,10 +28,9 @@ object ExperimentTransformations {
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
-      dataModality = rawExperiment.tryRead[String]("assay_term_name") match {
-        case Some(str) => Some(AssayActivityTransformations.transformAssayTermToDataModality(str))
-        case None      => None
-      },
+      dataModality = rawExperiment
+        .tryRead[String]("assay_term_name")
+        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       award = rawExperiment.read[String]("award"),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,

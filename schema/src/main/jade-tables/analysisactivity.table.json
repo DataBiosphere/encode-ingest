@@ -8,8 +8,7 @@
     },
     {
       "name": "label",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "xref",
@@ -18,8 +17,7 @@
     },
     {
       "name": "analysis_type",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "assay_id",

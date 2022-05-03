@@ -1,9 +1,9 @@
 package org.broadinstitute.monster.encode.transformation
 
-import java.time.{LocalDate, OffsetDateTime}
+import java.time.OffsetDateTime
 
 import upack.Msg
-import org.broadinstitute.monster.encode.jadeschema.table.Assay
+import org.broadinstitute.monster.encode.jadeschema.table.Assayactivity
 
 object AssayActivityTransformations {
 
@@ -12,16 +12,15 @@ object AssayActivityTransformations {
   /** Transform a raw experiment into our preferred schema for assays. */
   def transformAssayActivity(
     rawExperiment: Msg
-  ): AssayActivity = {
+  ): Assayactivity = {
     val id = CommonTransformations.readId(rawExperiment)
 
-    AssayActivity(
+    Assayactivity(
       id = id,
       label = id,
-      xrefs = rawExperiment.read[List[Strint]]
-//      dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
-//      dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
-//      description = rawExperiment.tryRead[String]("description"),
+      xref = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("@id")) ::
+        rawExperiment.read[List[String]]("dbxrefs"),
+      dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       assayCategory = rawExperiment.read[List[String]]("assay_slims").headOption,
       assayType = rawExperiment.read[String]("assay_term_id"),
       dataModality = transformAssayTermToDataModality(rawExperiment.read[String]("assay_term_name"))

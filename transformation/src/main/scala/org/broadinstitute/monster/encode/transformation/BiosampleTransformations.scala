@@ -27,6 +27,9 @@ object BiosampleTransformations {
     val lotIds = joinedLibraries
       .flatMap(library => library.tryRead[String]("lot_id"))
       .toSet[String]
+    val libraryPrepIds = joinedLibraries
+      .map(library => CommonTransformations.readId(library))
+      .toList
 
     if (joinedType.isEmpty) {
       logger.warn(s"Biosample '$id' has no associated type!")
@@ -73,7 +76,8 @@ object BiosampleTransformations {
         None
       } else {
         lotIds.headOption
-      }
+      },
+      libraryPrep = libraryPrepIds
     )
   }
 }

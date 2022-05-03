@@ -34,7 +34,8 @@ object LibraryTransformations {
       sizeRange = libraryInput.tryRead[String]("size_range"),
       libraryLayout = pairedEndId.isDefined,
       pairedEndId = pairedEndId.filterNot(_ == specificityPlaceholder),
-      sampleTreatment = libraryInput.read[List[String]]("treatments"),
+      sampleTreatment =
+        CommonTransformations.convertToEncodeUrl(libraryInput.read[List[String]]("treatments")),
       submittedBy =
         CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("submitted_by")),
       used = libraryInput.read[List[String]]("spikeins_used"),

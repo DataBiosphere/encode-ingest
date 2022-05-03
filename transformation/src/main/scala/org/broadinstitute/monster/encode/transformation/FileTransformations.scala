@@ -106,10 +106,8 @@ object FileTransformations {
         Some("Genomic_Assembly")
       } else {
         rawExperiment.flatMap(e =>
-          e.tryRead[String]("assay_title") match {
-            case Some(str) => Some(AssayActivityTransformations.transformAssayTermToDataModality(str))
-            case None      => None
-          }
+          e.tryRead[String]("assay_title")
+            .map(AssayActivityTransformations.transformAssayTermToDataModality(_))
         )
       }
     if (dataModality.isEmpty) {
@@ -132,7 +130,7 @@ object FileTransformations {
   }
 
   def getBiosamples(rawFile: Msg): Option[List[String]] = {
-    return rawFile.tryRead[List[String]]("origin_batches")
+    rawFile.tryRead[List[String]]("origin_batches")
   }
 
   def getDonorIds(rawFile: Msg): Option[List[String]] = {
@@ -140,31 +138,31 @@ object FileTransformations {
   }
 
   def computeLibrariesForFile(
+    rawFile: Msg,
+    rawLibraries: Seq[Msg]
+  ): Option[List[String]] = {
+    computeLibrariesForBiosamples(getBiosamples(rawFile), rawLibraries)
+  }
+
+  def computeLibrariesForBiosamples(
     biosample: Option[List[String]],
     rawLibraries: Seq[Msg]
   ): Option[List[String]] = {
-    return biosample match {
-      case Some(biosampleList) => {
-        Some(
-          rawLibraries
-            .filterNot(rawLibrary =>
-              biosampleList.intersect(getBiosamplesFromLibrary(rawLibrary)).isEmpty
-            )
-            .map(filteredLibrary => CommonTransformations.readId(filteredLibrary))
-            .toList
+    biosample.map(biosampleList =>
+      rawLibraries
+        .filterNot(rawLibrary =>
+          biosampleList.intersect(getBiosamplesFromLibrary(rawLibrary)).isEmpty
         )
-      }
-      case None => None
-    }
+        .map(filteredLibrary => CommonTransformations.readId(filteredLibrary))
+        .toList
+    )
   }
 
   /**
-    * Transform a raw sequence file into our preferred schema.
-    *
-    * NOTE: This assumes that the input file has already been verified
-    * to be a sequence file.
+    * Transform a raw file into our preferred schema.
     */
-  def transformSequenceFile(
+
+  def transformFile(
     rawFile: Msg,
     rawExperiment: Option[Msg],
     rawLibraries: Seq[Msg]
@@ -191,112 +189,29 @@ object FileTransformations {
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: rawFile
         .read[List[String]]("dbxrefs"),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
-      lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
       dataModality = modality,
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       award = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("award")),
       fileFormat = rawFile.read[String]("file_format"),
-      fileFormatType = rawFile.tryRead[String]("file_format_type"),
-      platform = rawFile.tryRead[String]("platform"),
+      fileFormatType = rawFile.read[String]("file_format_type"),
+      lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
+      platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform")),
       qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
-      submittedBy = rawFile.read[String]("submitted_by"),
-      usesSample = biosample.getOrElse(List[String]()),
-      library = computeLibrariesForFile(biosample, rawLibraries).getOrElse(List()),
-      donor = getDonorIds(rawFile).getOrElse(List()),
+      submittedBy = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("submitted_by")),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
+      genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
+      library = computeLibrariesForBiosamples(biosample, rawLibraries).getOrElse(List()),
+      usesSample = biosample.getOrElse(List[String]()),
+      donor = getDonorIds(rawFile).getOrElse(List()),
+      derivedFrom = rawFile.read[List[String]]("derived_from"),
+      referenceAssembly = rawFile.read[String]("assembly"),
+      cloudPath = None,
+      indexCloudPath = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       pairedEndId = pairedEndId,
       pairedFile = rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
-    )
-  }
-
-  /**
-    * Transform a raw alignment file into our preferred schema.
-    *
-    * NOTE: This assumes that the input file has already been verified
-    * to be an alignment file.
-    */
-  def transformAlignmentFile(
-    rawFile: Msg,
-    idsToType: Map[String, FileType],
-    rawExperiment: Option[Msg],
-    rawLibraries: Seq[Msg]
-  ): File = {
-    val id = CommonTransformations.readId(rawFile)
-    val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-//    val parentBranches = splitFileReferences(
-//      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
-//      idsToType
-//    )
-    val modality = computeDataModality(rawFile, rawExperiment)
-
-    val biosample = getBiosamples(rawFile)
-
-    File(
-      id = id,
-      label = id,
-      xref = rawFile.read[List[String]]("dbxrefs"),
-      dateCreated = rawFile.read[OffsetDateTime]("date_created"),
-      dataModality = modality,
-      auditLabels = auditLabels,
-      maxAuditFlag = auditLevel,
-      award = rawFile.read[String]("award"),
-      fileFormat = rawFile.read[String]("file_format"),
-      lab = rawFile.read[String]("lab"),
-      platform = rawFile.tryRead[String]("platform"),
-      qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
-      submittedBy = rawFile.read[String]("submitted_by"),
-      genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      usesSample = biosample.getOrElse(List[String]()),
-      library = computeLibrariesForFile(biosample, rawLibraries).getOrElse(List()),
-      donor = getDonorIds(rawFile).getOrElse(List()),
-      derivedFrom = rawFile.tryRead[List[String]]("derived_from"),
-      referenceAssembly = rawFile.read[String]("assembly"),
-      cloudPath = None,
-      indexCloudPath = None
-    )
-  }
-
-  /** Transform a raw file into our preferred schema for generic files. */
-  def transformOtherFile(
-    rawFile: Msg,
-    idsToType: Map[String, FileType],
-    rawExperiment: Option[Msg],
-    rawLibraries: Seq[Msg]
-  ): File = {
-    val id = CommonTransformations.readId(rawFile)
-    val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-//    val parentBranches = splitFileReferences(
-//      rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
-//      idsToType
-//    )
-    val modality = computeDataModality(rawFile, rawExperiment)
-
-    val biosample = getBiosamples(rawFile)
-
-    File(
-      id = id,
-      label = id,
-      xref = rawFile.read[List[String]]("dbxrefs"),
-      dateCreated = rawFile.read[OffsetDateTime]("date_created"),
-      dataModality = modality,
-      auditLabels = auditLabels,
-      maxAuditFlag = auditLevel,
-      award = rawFile.read[String]("award"),
-      fileFormat = rawFile.read[String]("file_format"),
-      fileFormatType = rawFile.tryRead[String]("file_format_type"),
-      lab = rawFile.read[String]("lab"),
-      platform = rawFile.tryRead[String]("platform"),
-      qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
-      submittedBy = rawFile.read[String]("submitted_by"),
-      genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      usesSample = biosample.getOrElse(List[String]()),
-      library = computeLibrariesForFile(biosample, rawLibraries).getOrElse(List()),
-      donor = getDonorIds(rawFile).getOrElse(List()),
-      derivedFrom = rawFile.tryRead[List[String]]("derived_from"),
-      cloudPath = None
     )
   }
 }

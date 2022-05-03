@@ -12,11 +12,6 @@
       "type": "required"
     },
     {
-      "name": "xref",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
       "name": "version",
       "datatype": "string",
       "type": "required"

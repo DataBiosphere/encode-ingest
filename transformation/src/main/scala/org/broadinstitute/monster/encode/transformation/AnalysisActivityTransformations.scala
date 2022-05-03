@@ -1,48 +1,40 @@
 package org.broadinstitute.monster.encode.transformation
 
-import org.broadinstitute.monster.encode.jadeschema.table.PipelineRun
+import org.broadinstitute.monster.encode.jadeschema.table.Analysisactivity
 import org.slf4j.LoggerFactory
 import upack.Msg
 import org.broadinstitute.monster.common.msg.MsgOps
 
 /** Transformation logic for ENCODE pipeline objects. */
-object PipelineRunTransformations {
+object AnalysisActivityTransformations {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   /** Transform a raw ENCODE pipeline into our preferred schema. */
-  def transformPipelineRun(
+  def transformAnalysisActivity(
     rawPipeline: Msg,
     experimentId: String,
-    rawGeneratedFiles: Iterable[Msg],
-    fileIdToTypeMap: Map[String, FileType]
-  ): PipelineRun = {
-    val pipelineId = rawPipeline.read[String]("@id")
+    rawGeneratedFiles: Iterable[Msg]
+  ): Analysisactivity = {
+    val pipelineId = CommonTransformations.readId(rawPipeline)
     val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
 
     // branch files
     val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
-    val generatedFileBranches =
-      FileTransformations.splitFileReferences(generatedFileIds, fileIdToTypeMap)
     val usedFileIds = rawGeneratedFiles
       .flatMap(_.read[Array[String]]("derived_from"))
       .toList
       .distinct
       .diff(generatedFileIds)
-    val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
 
-    PipelineRun(
+    Analysisactivity(
       id = pipelineRunId,
-      label = pipelineRunId,
-      pipeline = CommonTransformations.convertToEncodeUrl(pipelineId),
-      analysisType = rawPipeline.read[String]("title"),
+      label = Some(pipelineRunId),
+      xref = CommonTransformations.convertToEncodeUrl(rawPipeline.read[String]("@id")) :: List(),
+      analysisType = rawPipeline.tryRead[String]("title"),
       assayId = CommonTransformations.transformId(experimentId),
-      usedAlignmentFileIds = usedFileBranches.alignment.sorted,
-      usedSequenceFileIds = usedFileBranches.sequence.sorted,
-      usedOtherFileIds = usedFileBranches.other.sorted,
-      generatedAlignmentFileIds = generatedFileBranches.alignment.sorted,
-      generatedSequenceFileIds = generatedFileBranches.sequence.sorted,
-      generatedOtherFileIds = generatedFileBranches.other.sorted
+      derivedFrom = usedFileIds.sorted,
+      generated = generatedFileIds.sorted
     )
   }
 

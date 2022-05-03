@@ -12,42 +12,34 @@ object StepRunTransformations {
     rawStepRun: Msg,
     rawStepVersion: Msg,
     rawStep: Msg,
-    rawGeneratedFiles: Iterable[Msg],
-    fileIdToTypeMap: Map[String, FileType]
+    rawGeneratedFiles: Iterable[Msg]
   ): StepRun = {
 
     // get pipeline run id
     val stepRunId = CommonTransformations.readId(rawStepRun)
     val pipelineRunId = for {
-      idPair <- PipelineRunTransformations.getPipelineExperimentIdPair(
+      idPair <- AnalysisActivityTransformations.getPipelineExperimentIdPair(
         rawStep,
         rawGeneratedFiles,
         stepRunId
       )
     } yield {
-      PipelineRunTransformations.getPipelineRunId(idPair._1, idPair._2)
+      AnalysisActivityTransformations.getPipelineRunId(idPair._1, idPair._2)
     }
 
     // branch files
     val generatedFileArray = rawGeneratedFiles.toList
-//    val generatedFileBranches = FileTransformations.splitFileReferences(
-//      generatedFileArray.map(_.read[String]("@id")),
-//      fileIdToTypeMap
-//    )
-//    val usedFileIds = generatedFileArray
-//      .flatMap(_.read[Array[String]]("derived_from"))
-//      .distinct
-//    val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
+    val usedFileIds = generatedFileArray
+      .flatMap(_.read[Array[String]]("derived_from"))
+      .distinct
 
     StepRun(
       id = stepRunId,
       label = stepRunId,
       version = rawStepVersion.read[String]("name"),
       pipelineRunId = pipelineRunId,
-      used = generatedFileArray
-        .flatMap(_.read[Array[String]]("derived_from"))
-        .distinct,
-      generated = generatedFileArray.map(_.read[String]("@id"))
+      used = usedFileIds,
+      generated = generatedFileArray.map(CommonTransformations.readId(_))
     )
   }
 }
