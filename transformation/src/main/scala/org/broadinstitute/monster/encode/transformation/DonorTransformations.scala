@@ -51,7 +51,7 @@ object DonorTransformations {
       sibling = donorInput
         .tryRead[String]("twin")
         .map(CommonTransformations.transformId),
-      submittedBy = donorInput.read[String]("submitted_by")
+      submittedBy = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("submitted_by"))
     )
   }
 }
