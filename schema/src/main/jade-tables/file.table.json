@@ -150,7 +150,7 @@
       "datatype": "string",
       "links": [
         {
-          "table_name": "sequence_file",
+          "table_name": "file",
           "column_name": "id"
         }
       ]
