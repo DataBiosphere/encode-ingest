@@ -42,15 +42,17 @@ spec:
           - name: process-tables
             dependencies: [create-dataset]
             withItems:
-              - alignment_file
+              - alignmentactivity
+              - analysisactivity
               - antibody
-              - assay
+              - assayactivity
               - biosample
               - donor
+              - experimentactivity
+              - file
               - library
-              - other_file
-              - pipeline_run
-              - sequence_file
+              - librarypreparationactivity
+              - sequencingactivity
               - step_run
             template: process-table
             arguments:

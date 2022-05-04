@@ -217,31 +217,12 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
           )
       }
       .toSCollection
-//    val otherFileOutput = fileBranches.other
-//      .withSideInputs(fileIdToType, libraryData)
-//      .withName("Transform other files")
-//      .map {
-//        case ((rawFile, rawExperiment), sideCtx) =>
-//          FileTransformations.transformOtherFile(
-//            rawFile,
-//            sideCtx(fileIdToType),
-//            rawExperiment,
-//            sideCtx(libraryData)
-//          )
-//      }
-//      .toSCollection
 
     StorageIO.writeJsonLists(
       alignmentActivityOutput,
       "Alignment Activity",
       s"${args.outputPrefix}/alignmentactivity"
     )
-//    StorageIO.writeJsonLists(
-//      otherFileOutput,
-//      "Other Files",
-//      s"${args.outputPrefix}/other_file"
-//    )
-//
     // Experiments join against both replicates and libraries
     val replicateInputs = readRawEntities(EncodeEntity.Replicate)
 
