@@ -1,7 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
 import java.time.OffsetDateTime
-
 import upack.Msg
 import org.broadinstitute.monster.encode.jadeschema.table.Assayactivity
 
@@ -62,6 +61,7 @@ object AssayActivityTransformations {
       case "DNA-PET"                                              => "Genomic_Genotyping"
       case "DNase-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
       case "eCLIP"                                                => "Epigenomic_RNABinding"
+      case "FACS CRISPR screen"                                   => "???"
       case "FAIRE-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
       case "Flow-FISH CRISPR screen"                              => "???"
       case "GM DNase-seq"                                         => "Epigenomic_DNAChromatinAccessibility"
@@ -88,11 +88,15 @@ object AssayActivityTransformations {
       case "MNase-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
       case "MRE-seq"                                              => "Epigenomic_DNAMethylation"
       case "PAS-seq"                                              => "Transcriptomic_NonTargeted"
+      case "perturbation followed by scRNA-seq"                   => "???"
+      case "perturbation followed by snATAC-seq"                  => "???"
       case "PLAC-seq"                                             => "Epigenomic_DNAChromatinAccessibility"
+      case "pooled clone sequencing"                              => "???"
       case "polyA minus RNA-seq"                                  => "Transcriptomic_NonTargeted"
       case "polyA plus RNA-seq"                                   => "Transcriptomic_NonTargeted"
       case "PRO-cap"                                              => "Transcriptomic"
       case "PRO-seq"                                              => "Transcriptomic"
+      case "proliferation CRISPR screen"                          => "???"
       case "MS-MS"                                                => "Proteomic"
       case "protein sequencing by tandem mass spectrometry assay" => "Proteomic"
       case "RAMPAGE"                                              => "Transcriptomic_NonTargeted"
@@ -130,6 +134,8 @@ object AssayActivityTransformations {
       case "MPRA"                                                 => "Massively parallel reporter assay"
       case "STARR-seq"                                            => "Massively parallel reporter assay"
       case "pooled clone sequencing"                              => "Library Preparation"
+      // this will match any string and we can prepend it with !!! so it is easy to search in the DB
+      case x:String                                               => "!!!" + x
     }
 
   }
