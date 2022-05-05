@@ -34,7 +34,7 @@ object DonorTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("@id")) :: donorInput
         .read[List[String]]("dbxrefs"),
-      dateCreated = donorInput.read[OffsetDateTime]("time_created"),
+      dateCreated = donorInput.read[OffsetDateTime]("date_created"),
       ageLowerbound = ageLowerbound,
       ageUpperbound = ageUpperbound,
       ageUnit = donorInput.tryRead[String]("age_units"),
