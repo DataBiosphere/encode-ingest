@@ -63,6 +63,7 @@ object AssayActivityTransformations {
       case "DNase-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
       case "eCLIP"                                                => "Epigenomic_RNABinding"
       case "FAIRE-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
+      case "Flow-FISH CRISPR screen"                              => "???"
       case "GM DNase-seq"                                         => "Epigenomic_DNAChromatinAccessibility"
       case "genetic modification followed by DNase-seq"           => "Epigenomic_DNAChromatinAccessibility"
       case "genotype phasing by HiC"                              => "Genomic_Assembly"
