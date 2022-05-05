@@ -86,12 +86,13 @@ object AssayActivityTransformations {
       case "microRNA-seq"                                         => "Transcriptomic_NonTargeted"
       case "Mint-ChIP-seq"                                        => "Epigenomic_DNABinding"
       case "MNase-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
+      case "MPRA"                                                 => "Massively parallel reporter assay"
       case "MRE-seq"                                              => "Epigenomic_DNAMethylation"
       case "PAS-seq"                                              => "Transcriptomic_NonTargeted"
       case "perturbation followed by scRNA-seq"                   => "???"
       case "perturbation followed by snATAC-seq"                  => "???"
       case "PLAC-seq"                                             => "Epigenomic_DNAChromatinAccessibility"
-      case "pooled clone sequencing"                              => "???"
+      case "pooled clone sequencing"                              => "Library Preparation"
       case "polyA minus RNA-seq"                                  => "Transcriptomic_NonTargeted"
       case "polyA plus RNA-seq"                                   => "Transcriptomic_NonTargeted"
       case "PRO-cap"                                              => "Transcriptomic"
@@ -122,6 +123,7 @@ object AssayActivityTransformations {
       case "small RNA-seq"                                        => "Transcriptomic_NonTargeted"
       case "SPRITE"                                               => "Epigenomic_3D Contact Maps"
       case "SPRITE-IP"                                            => "Epigenomic_3D Contact Maps"
+      case "STARR-seq"                                            => "Massively parallel reporter assay"
       case "Switchgear"                                           => "Epigenomic_RNABinding"
       case "TAB-seq"                                              => "Epigenomic_DNAMethylation"
       case "TF ChIP-seq"                                          => "Epigenomic_DNABinding_TranscriptomeFactorLocation"
@@ -131,11 +133,8 @@ object AssayActivityTransformations {
       case "whole genome sequencing assay"                        => "Genomic_Genotyping_Whole Genomic"
       case "WGBS"                                                 => "Epigenomic_DNAMethylation"
       case "whole-genome shotgun bisulfite sequencing"            => "Epigenomic_DNAMethylation"
-      case "MPRA"                                                 => "Massively parallel reporter assay"
-      case "STARR-seq"                                            => "Massively parallel reporter assay"
-      case "pooled clone sequencing"                              => "Library Preparation"
       // this will match any string and we can prepend it with !!! so it is easy to search in the DB
-      case x:String                                               => "!!!" + x
+      case x: String => "!!!" + x
     }
 
   }
