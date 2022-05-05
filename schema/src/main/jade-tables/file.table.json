@@ -41,13 +41,11 @@
     },
     {
       "name": "file_format",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "file_format_type",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "lab",
@@ -126,8 +124,7 @@
     },
     {
       "name": "reference_assembly",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
     },
     {
       "name": "cloud_path",

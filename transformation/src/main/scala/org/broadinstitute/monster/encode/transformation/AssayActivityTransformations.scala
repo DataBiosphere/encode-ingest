@@ -61,9 +61,9 @@ object AssayActivityTransformations {
       case "DNA-PET"                                              => "Genomic_Genotyping"
       case "DNase-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
       case "eCLIP"                                                => "Epigenomic_RNABinding"
-      case "FACS CRISPR screen"                                   => "???"
+      case "FACS CRISPR screen"                                   => "!FACS CRISPR screen"
       case "FAIRE-seq"                                            => "Epigenomic_DNAChromatinAccessibility"
-      case "Flow-FISH CRISPR screen"                              => "???"
+      case "Flow-FISH CRISPR screen"                              => "!Flow-FISH CRISPR screen"
       case "GM DNase-seq"                                         => "Epigenomic_DNAChromatinAccessibility"
       case "genetic modification followed by DNase-seq"           => "Epigenomic_DNAChromatinAccessibility"
       case "genotype phasing by HiC"                              => "Genomic_Assembly"
@@ -89,15 +89,15 @@ object AssayActivityTransformations {
       case "MPRA"                                                 => "Massively parallel reporter assay"
       case "MRE-seq"                                              => "Epigenomic_DNAMethylation"
       case "PAS-seq"                                              => "Transcriptomic_NonTargeted"
-      case "perturbation followed by scRNA-seq"                   => "???"
-      case "perturbation followed by snATAC-seq"                  => "???"
+      case "perturbation followed by scRNA-seq"                   => "!perturbation followed by scRNA-seq"
+      case "perturbation followed by snATAC-seq"                  => "!perturbation followed by snATAC-seq"
       case "PLAC-seq"                                             => "Epigenomic_DNAChromatinAccessibility"
       case "pooled clone sequencing"                              => "Library Preparation"
       case "polyA minus RNA-seq"                                  => "Transcriptomic_NonTargeted"
       case "polyA plus RNA-seq"                                   => "Transcriptomic_NonTargeted"
       case "PRO-cap"                                              => "Transcriptomic"
       case "PRO-seq"                                              => "Transcriptomic"
-      case "proliferation CRISPR screen"                          => "???"
+      case "proliferation CRISPR screen"                          => "!proliferation CRISPR screen"
       case "MS-MS"                                                => "Proteomic"
       case "protein sequencing by tandem mass spectrometry assay" => "Proteomic"
       case "RAMPAGE"                                              => "Transcriptomic_NonTargeted"
@@ -134,7 +134,7 @@ object AssayActivityTransformations {
       case "WGBS"                                                 => "Epigenomic_DNAMethylation"
       case "whole-genome shotgun bisulfite sequencing"            => "Epigenomic_DNAMethylation"
       // this will match any string and we can prepend it with !!! so it is easy to search in the DB
-      case x: String => "!!!" + x
+      case x: String => "!" + x
     }
 
   }

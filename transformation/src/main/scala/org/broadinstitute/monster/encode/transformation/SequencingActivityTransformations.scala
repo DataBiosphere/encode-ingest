@@ -2,6 +2,7 @@ package org.broadinstitute.monster.encode.transformation
 
 import org.broadinstitute.monster.common.msg.MsgOps
 import org.broadinstitute.monster.encode.jadeschema.table.Sequencingactivity
+import org.slf4j.LoggerFactory
 import upack.Msg
 
 import java.time.OffsetDateTime
@@ -9,23 +10,18 @@ import java.time.OffsetDateTime
 /** Transformation logic for ENCODE pipeline objects. */
 object SequencingActivityTransformations {
 
-//  private val logger = LoggerFactory.getLogger(getClass)
+  private val logger = LoggerFactory.getLogger(getClass)
 
   /** Transform a raw ENCODE pipeline into our preferred schema. */
   def transformSequencingActivity(
     rawFile: Msg,
-//    fileIdToTypeMap: Map[String, FileType],
     rawGeneratedFiles: Iterable[Msg],
     rawLibraries: Seq[Msg]
   ): Sequencingactivity = {
     val id = CommonTransformations.readId(rawFile)
-    // branch files
     val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
-//    val usedFileIds = rawGeneratedFiles
-//      .flatMap(_.read[Array[String]]("derived_from"))
-//      .toList
-//      .distinct
-//      .diff(generatedFileIds)
+
+    logger.info("starting sequencing activity transform")
 
     Sequencingactivity(
       id = id,
@@ -37,9 +33,9 @@ object SequencingActivityTransformations {
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       dataset = rawFile.tryRead[String]("dataset"),
-      generated = rawFile.read[List[String]]("derived_from"),
+      generated = rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
       tempGenerated = generatedFileIds.sorted,
-      usesSample = rawFile.read[List[String]]("origin_batches"),
+      usesSample = rawFile.tryRead[List[String]]("origin_batches").getOrElse(Nil),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab")),
       usesLibrary =
         FileTransformations.computeLibrariesForFile(rawFile, rawLibraries).getOrElse(List()),
