@@ -25,7 +25,7 @@ object LibraryTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
         libraryInput.read[String]("@id")
-      ) :: libraryInput.read[List[String]]("dbxrefs"),
+      ) :: libraryInput.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
       dateCreated = libraryInput.read[OffsetDateTime]("date_created"),
       award = CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("award")),
       lab = CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("lab")),
@@ -34,11 +34,12 @@ object LibraryTransformations {
       sizeRange = libraryInput.tryRead[String]("size_range"),
       libraryLayout = pairedEndId.isDefined,
       pairedEndId = pairedEndId.filterNot(_ == specificityPlaceholder),
-      sampleTreatment =
-        CommonTransformations.convertToEncodeUrl(libraryInput.read[List[String]]("treatments")),
+      sampleTreatment = CommonTransformations.convertToEncodeUrl(
+        libraryInput.tryRead[List[String]]("treatments").getOrElse(List.empty[String])
+      ),
       submittedBy =
         CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("submitted_by")),
-      used = libraryInput.read[List[String]]("spikeins_used"),
+      used = libraryInput.tryRead[List[String]]("spikeins_used").getOrElse(List.empty[String]),
       usesSample = CommonTransformations.transformId(libraryInput.read[String]("biosample")),
       prepMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),
       prepMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name")

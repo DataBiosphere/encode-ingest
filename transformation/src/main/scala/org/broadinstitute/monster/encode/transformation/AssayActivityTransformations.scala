@@ -18,9 +18,9 @@ object AssayActivityTransformations {
       id = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("@id")) ::
-        rawExperiment.read[List[String]]("dbxrefs"),
+        rawExperiment.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
-      assayCategory = rawExperiment.read[List[String]]("assay_slims").headOption,
+      assayCategory = rawExperiment.tryRead[List[String]]("assay_slims").map(_.head),
       assayType = rawExperiment.read[String]("assay_term_id"),
       dataModality = transformAssayTermToDataModality(rawExperiment.read[String]("assay_term_name"))
     )

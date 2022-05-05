@@ -40,7 +40,7 @@ object BiosampleTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
         biosampleInput.read[String]("@id")
-      ) :: biosampleInput.read[List[String]]("dbxrefs"),
+      ) :: biosampleInput.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
       dateCreated = biosampleInput.read[OffsetDateTime]("date_created"),
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
@@ -55,11 +55,13 @@ object BiosampleTransformations {
       maxAuditFlag = auditLevel,
       award = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("award")),
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
-      geneticMod = biosampleInput.read[List[String]]("applied_modifications"),
+      geneticMod =
+        biosampleInput.tryRead[List[String]]("applied_modifications").getOrElse(List.empty[String]),
       healthStatus = biosampleInput.tryRead[String]("health_status"),
       lab = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("lab")),
-      sampleTreatment =
-        CommonTransformations.convertToEncodeUrl(biosampleInput.read[List[String]]("treatments")),
+      sampleTreatment = CommonTransformations.convertToEncodeUrl(
+        biosampleInput.tryRead[List[String]]("treatments").getOrElse(List.empty[String])
+      ),
       wasPerturbed = biosampleInput.read[Boolean]("perturbed"),
       submittedBy =
         CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("submitted_by")),

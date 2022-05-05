@@ -52,11 +52,6 @@
       ]
     },
     {
-      "name": "temp_uses",
-      "datatype": "string",
-      "type": "repeated"
-    },
-    {
       "name": "lab",
       "datatype": "string"
     }

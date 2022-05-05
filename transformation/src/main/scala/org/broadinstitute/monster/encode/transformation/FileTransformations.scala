@@ -125,7 +125,8 @@ object FileTransformations {
   def getBiosamplesFromLibrary(rawLibrary: Msg): List[String] = {
     rawLibrary.tryRead[String]("biosample") match {
       case Some(biosample) => List(biosample)
-      case None            => rawLibrary.tryRead[List[String]]("mixed_biosamples").getOrElse(List())
+      case None =>
+        rawLibrary.tryRead[List[String]]("mixed_biosamples").getOrElse(List.empty[String])
     }
   }
 
@@ -187,7 +188,8 @@ object FileTransformations {
       id = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: rawFile
-        .read[List[String]]("dbxrefs"),
+        .tryRead[List[String]]("dbxrefs")
+        .getOrElse(List.empty[String]),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       dataModality = modality,
       auditLabels = auditLabels,
@@ -197,15 +199,17 @@ object FileTransformations {
       fileFormatType = rawFile.tryRead[String]("file_format_type"),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
       platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform")),
-      qualityMetrics = rawFile.read[List[String]]("quality_metrics"),
+      qualityMetrics =
+        rawFile.tryRead[List[String]]("quality_metrics").getOrElse(List.empty[String]),
       submittedBy = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("submitted_by")),
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      library = computeLibrariesForBiosamples(biosample, rawLibraries).getOrElse(Nil),
+      library =
+        computeLibrariesForBiosamples(biosample, rawLibraries).getOrElse(List.empty[String]),
       usesSample = biosample.getOrElse(List[String]()),
-      donor = getDonorIds(rawFile).getOrElse(Nil),
-      derivedFrom = rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
+      donor = getDonorIds(rawFile).getOrElse(List.empty[String]),
+      derivedFrom = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       cloudPath = None,
       indexCloudPath = None,

@@ -14,18 +14,12 @@ object AlignmentActivityTransformations {
   /** Transform a raw ENCODE pipeline into our preferred schema. */
   def transformAlignmentActivity(
     rawFile: Msg,
-//                                  fileIdToTypeMap: Map[String, FileType],
     rawGeneratedFiles: Iterable[Msg]
   ): Alignmentactivity = {
     val id = CommonTransformations.readId(rawFile)
 
     // branch files
     val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
-    val usedFileIds = rawGeneratedFiles
-      .flatMap(_.read[Array[String]]("derived_from"))
-      .toList
-      .distinct
-      .diff(generatedFileIds)
 
     Alignmentactivity(
       id = id,
@@ -37,8 +31,7 @@ object AlignmentActivityTransformations {
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       generated = generatedFileIds.sorted,
-      uses = rawFile.read[List[String]]("derived_from"),
-      tempUses = usedFileIds.sorted,
+      uses = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab"))
     )
   }

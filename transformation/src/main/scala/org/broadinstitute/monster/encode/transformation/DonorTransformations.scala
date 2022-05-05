@@ -33,7 +33,8 @@ object DonorTransformations {
       id = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("@id")) :: donorInput
-        .read[List[String]]("dbxrefs"),
+        .tryRead[List[String]]("dbxrefs")
+        .getOrElse(List.empty[String]),
       dateCreated = donorInput.read[OffsetDateTime]("date_created"),
       ageLowerbound = ageLowerbound,
       ageUpperbound = ageUpperbound,
@@ -46,7 +47,8 @@ object DonorTransformations {
       lab = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("lab")),
       lifeStage = donorInput.tryRead[String]("life_stage"),
       parent = donorInput
-        .read[List[String]]("parents")
+        .tryRead[List[String]]("parents")
+        .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId),
       sibling = donorInput
         .tryRead[String]("twin")

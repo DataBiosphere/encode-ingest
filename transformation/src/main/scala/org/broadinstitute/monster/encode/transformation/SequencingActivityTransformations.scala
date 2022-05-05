@@ -33,12 +33,13 @@ object SequencingActivityTransformations {
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       dataset = rawFile.tryRead[String]("dataset"),
-      generated = rawFile.tryRead[List[String]]("derived_from").getOrElse(Nil),
+      generated = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       tempGenerated = generatedFileIds.sorted,
-      usesSample = rawFile.tryRead[List[String]]("origin_batches").getOrElse(Nil),
+      usesSample = rawFile.tryRead[List[String]]("origin_batches").getOrElse(List.empty[String]),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab")),
-      usesLibrary =
-        FileTransformations.computeLibrariesForFile(rawFile, rawLibraries).getOrElse(List()),
+      usesLibrary = FileTransformations
+        .computeLibrariesForFile(rawFile, rawLibraries)
+        .getOrElse(List.empty[String]),
       platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform"))
     )
   }

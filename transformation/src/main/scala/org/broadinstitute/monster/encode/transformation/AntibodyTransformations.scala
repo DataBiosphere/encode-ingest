@@ -24,7 +24,7 @@ object AntibodyTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
         antibodyInput.read[String]("@id")
-      ) :: antibodyInput.read[List[String]]("dbxrefs"),
+      ) :: antibodyInput.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
       dateCreated = antibodyInput.read[OffsetDateTime]("date_created"),
       source = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("source")),
       clonality = antibodyInput.tryRead[String]("clonality"),
@@ -36,7 +36,8 @@ object AntibodyTransformations {
       lab = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("lab")),
       lot = antibodyInput.tryRead[String]("lot_id"),
       partNumber = antibodyInput.read[String]("product_id"),
-      purificationMethods = antibodyInput.read[List[String]]("purifications")
+      purificationMethods =
+        antibodyInput.tryRead[List[String]]("purifications").getOrElse(List.empty[String])
     )
   }
 }

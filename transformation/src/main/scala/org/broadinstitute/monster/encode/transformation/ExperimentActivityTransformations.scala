@@ -24,7 +24,7 @@ object ExperimentActivityTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
         rawExperiment.read[String]("@id")
-      ) :: rawExperiment.read[List[String]]("dbxrefs"),
+      ) :: rawExperiment.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
@@ -38,8 +38,9 @@ object ExperimentActivityTransformations {
       submittedBy =
         CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("submitted_by")),
       status = rawExperiment.read[String]("status"),
-      used = rawExperiment.read[List[String]]("contributing_files"),
-      generated = rawExperiment.read[List[String]]("files"),
+      used =
+        rawExperiment.tryRead[List[String]]("contributing_files").getOrElse(List.empty[String]),
+      generated = rawExperiment.tryRead[List[String]]("files").getOrElse(List.empty[String]),
       usesSample = libraryArray.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.sorted.distinct,
