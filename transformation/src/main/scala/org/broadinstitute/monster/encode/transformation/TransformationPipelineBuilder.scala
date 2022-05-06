@@ -94,6 +94,15 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/library"
     )
 
+    val libraryPrepOutput = libraryInputs
+      .withName("Transform library preparation activity")
+      .map(LibraryPreparationActivityTransformations.transformLibraryPreparationActivity)
+    StorageIO.writeJsonLists(
+      libraryPrepOutput,
+      "LibraryPreparationActivity",
+      s"${args.outputPrefix}/librarypreparationactivity"
+    )
+
     // Biosample transformation needs Libraries, Experiments, and BiosampleTypes
     val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
     val biosampleTypeInputs = readRawEntities(EncodeEntity.BiosampleType)
@@ -149,7 +158,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     StorageIO.writeJsonLists(
       assayActivityOutput,
       "Assay Activities",
-      s"${args.outputPrefix}/assay_activity"
+      s"${args.outputPrefix}/assayactivity"
     )
 
     // Files are more complicated.
@@ -203,7 +212,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     StorageIO.writeJsonLists(
       sequenceActivityOutput,
       "Sequence Activity",
-      s"${args.outputPrefix}/sequenceactivity"
+      s"${args.outputPrefix}/sequencingactivity"
     )
 
     val alignmentActivityOutput = fileBranches.alignment
@@ -330,7 +339,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     StorageIO.writeJsonLists(
       pipelineRunOut,
       "Pipeline Runs",
-      s"${args.outputPrefix}/pipeline_run"
+      s"${args.outputPrefix}/analysisactivity"
     )
 
     val experimentOutput = experimentsById
@@ -348,7 +357,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     StorageIO.writeJsonLists(
       experimentOutput,
       "Experiment",
-      s"${args.outputPrefix}/experiment"
+      s"${args.outputPrefix}/experimentactivity"
     )
     ()
   }
