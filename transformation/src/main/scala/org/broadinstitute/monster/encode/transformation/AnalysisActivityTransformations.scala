@@ -23,10 +23,14 @@ object AnalysisActivityTransformations {
     // branch files
     val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
     val usedFileIds = rawGeneratedFiles
-      .flatMap(_.tryRead[List[String]]("derived_from").getOrElse(List.empty[String])
-      .distinct
-      .diff(generatedFileIds)
-      .sorted).toList
+      .flatMap(
+        _.tryRead[List[String]]("derived_from")
+          .getOrElse(List.empty[String])
+          .distinct
+          .diff(generatedFileIds)
+          .sorted
+      )
+      .toList
 
     Analysisactivity(
       id = pipelineRunId,
