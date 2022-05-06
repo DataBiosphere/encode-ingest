@@ -23,7 +23,8 @@
     },
     {
       "name": "data_modality",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "audit_labels",

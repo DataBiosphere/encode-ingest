@@ -33,7 +33,7 @@
     {
       "name": "data_modality",
       "datatype": "string",
-      "type": "required"
+      "type": "repeated"
     }
   ]
 }

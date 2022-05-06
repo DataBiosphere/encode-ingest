@@ -27,7 +27,8 @@ object AlignmentActivityTransformations {
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       dataModality = rawFile
-        .tryRead[String]("assay_term_name")
+        .tryRead[List[String]]("assay_term_name")
+        .getOrElse(List.empty[String])
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       generated = generatedFileIds.sorted,

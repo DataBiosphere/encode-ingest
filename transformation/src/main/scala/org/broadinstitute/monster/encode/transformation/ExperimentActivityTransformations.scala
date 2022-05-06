@@ -30,7 +30,8 @@ object ExperimentActivityTransformations {
       description = rawExperiment.tryRead[String]("description"),
       dataModality = rawExperiment
         .tryRead[String]("assay_term_name")
-        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
+        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term))
+        .toList,
       award = rawExperiment.read[String]("award"),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,

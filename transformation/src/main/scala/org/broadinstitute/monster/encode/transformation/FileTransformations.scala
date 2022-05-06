@@ -100,7 +100,7 @@ object FileTransformations {
   }
 
   /** Compute the data modality of a raw file. */
-  private def computeDataModality(rawFile: Msg, rawExperiment: Option[Msg]): Option[String] = {
+  private def computeDataModality(rawFile: Msg, rawExperiment: Option[Msg]): List[String] = {
     val dataModality =
       if (rawFile.tryRead[String]("output_category").contains("reference")) {
         Some("Genomic_Assembly")
@@ -115,7 +115,7 @@ object FileTransformations {
         s"No Data Modality found for assay_title in file $rawFile for experiment $rawExperiment"
       )
     }
-    dataModality
+    dataModality.toList
   }
 
   /** 'run_type' value indicating a paired run in ENCODE. */

@@ -22,7 +22,10 @@ object AssayActivityTransformations {
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       assayCategory = rawExperiment.tryRead[List[String]]("assay_slims").map(_.head),
       assayType = rawExperiment.read[String]("assay_term_id"),
-      dataModality = transformAssayTermToDataModality(rawExperiment.read[String]("assay_term_name"))
+      dataModality = rawExperiment
+        .tryRead[String]("assay_term_name")
+        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term))
+        .toList
     )
   }
 
