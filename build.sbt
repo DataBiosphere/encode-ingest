@@ -5,6 +5,7 @@ val okhttpVersion = "4.4.1"
 val postgresDriverVersion = "42.2.12"
 val postgresSocketFactoryVersion = "1.0.15"
 val scioJdbcVersion = "0.8.4"
+val snappyVersion = "1.1.8.2"
 
 lazy val `encode-ingest` = project
   .in(file("."))
@@ -24,7 +25,8 @@ lazy val `encode-common` = project
   .settings(
     publish / skip := true,
     libraryDependencies ++= Seq(
-      "com.beachape" %% "enumeratum" % enumeratumVersion
+      "com.beachape" %% "enumeratum" % enumeratumVersion,
+      "org.xerial.snappy" % "snappy-java" % snappyVersion
     )
   )
 
