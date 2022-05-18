@@ -20,7 +20,14 @@ object SequencingActivityTransformations {
   ): Sequencingactivity = {
     val fileId = CommonTransformations.readId(rawFile)
     val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toList
-    val experimentId = generatedFileIds.head
+    val dataset = rawFile.tryRead[String]("dataset").map(CommonTransformations.transformId)
+    val experimentId = dataset match {
+      case None => generatedFileIds match {
+        case Nil => "NONE"
+        case _ => generatedFileIds.head
+      }
+      case Some(x) => x
+    }
     val id = s"${fileId}_${experimentId}"
     logger.info("starting sequencing activity transform")
 

@@ -17,8 +17,8 @@ object AnalysisActivityTransformations {
     rawGeneratedFiles: Iterable[Msg]
   ): Analysisactivity = {
     val pipelineId = CommonTransformations.readId(rawPipeline)
-    val rawExperimentId = CommonTransformations.transformId(experimentId)
-    val pipelineRunId = s"${pipelineId}-${rawExperimentId}"
+    val experimentIdAccession = CommonTransformations.transformId(experimentId)
+    val pipelineRunId = s"${pipelineId}_${experimentIdAccession}"
 //    val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
 
     // branch files
@@ -39,7 +39,7 @@ object AnalysisActivityTransformations {
       label = pipelineRunId,
       xref = CommonTransformations.convertToEncodeUrl(rawPipeline.read[String]("@id")) :: List(),
       analysisType = rawPipeline.tryRead[String]("title"),
-      assayactivityId = rawExperimentId,
+      assayactivityId = experimentIdAccession,
       derivedFromFileId = usedFileIds,
       generatedFileId = generatedFileIds.sorted
     )
@@ -96,5 +96,5 @@ object AnalysisActivityTransformations {
 
   /** Combine a pipeline ID and experiment ID to generate an ID for a pipeline run. */
   def getPipelineRunId(pipelineId: String, experimentId: String): String =
-    s"${CommonTransformations.transformId(pipelineId)}-${CommonTransformations.transformId(experimentId)}"
+    s"${CommonTransformations.transformId(pipelineId)}_${CommonTransformations.transformId(experimentId)}"
 }
