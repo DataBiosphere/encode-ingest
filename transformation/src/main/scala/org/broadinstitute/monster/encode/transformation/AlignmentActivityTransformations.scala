@@ -16,13 +16,13 @@ object AlignmentActivityTransformations {
     rawFile: Msg,
     rawGeneratedFiles: Iterable[Msg]
   ): Alignmentactivity = {
-    val id = CommonTransformations.readId(rawFile)
-
-    // branch files
-    val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
+    val fileId = CommonTransformations.readId(rawFile)
+    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toList
+    val experimentId = generatedFileIds.head
+    val id = s"${fileId}_${experimentId}"
 
     Alignmentactivity(
-      id = id,
+      alignmentactivityId = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
@@ -30,9 +30,8 @@ object AlignmentActivityTransformations {
         .tryRead[List[String]]("assay_term_name")
         .getOrElse(List.empty[String])
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
-      referenceAssembly = rawFile.tryRead[String]("assembly"),
-      generated = generatedFileIds.sorted,
-      uses = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
+      generatedFileId = fileId :: List(),
+      usesFileId = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab"))
     )
   }

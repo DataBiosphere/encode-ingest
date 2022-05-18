@@ -2,7 +2,7 @@
   "name": "antibody",
   "columns": [
     {
-      "name": "id",
+      "name": "antibody_id",
       "datatype": "string",
       "type": "primary_key"
     },

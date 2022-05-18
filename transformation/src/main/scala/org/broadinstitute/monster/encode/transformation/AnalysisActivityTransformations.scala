@@ -17,30 +17,31 @@ object AnalysisActivityTransformations {
     rawGeneratedFiles: Iterable[Msg]
   ): Analysisactivity = {
     val pipelineId = CommonTransformations.readId(rawPipeline)
-    val pipelineRunId = s"${pipelineId}-${experimentId}"
+    val rawExperimentId = CommonTransformations.transformId(experimentId)
+    val pipelineRunId = s"${pipelineId}-${rawExperimentId}"
 //    val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
 
     // branch files
-    val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
+    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId).toList
     val usedFileIds = rawGeneratedFiles
       .flatMap(
         _.tryRead[List[String]]("derived_from")
           .getOrElse(List.empty[String])
           .distinct
+          .map(CommonTransformations.transformId)
           .diff(generatedFileIds)
           .sorted
       )
       .toList
 
     Analysisactivity(
-      id = pipelineRunId,
-      label = Some(pipelineRunId),
+      analysisactivityId = pipelineRunId,
+      label = pipelineRunId,
       xref = CommonTransformations.convertToEncodeUrl(rawPipeline.read[String]("@id")) :: List(),
       analysisType = rawPipeline.tryRead[String]("title"),
-//      assayId = CommonTransformations.transformId(experimentId),
-      assayId = experimentId,
-      derivedFrom = usedFileIds,
-      generated = generatedFileIds.sorted
+      assayactivityId = rawExperimentId,
+      derivedFromFileId = usedFileIds,
+      generatedFileId = generatedFileIds.sorted
     )
   }
 

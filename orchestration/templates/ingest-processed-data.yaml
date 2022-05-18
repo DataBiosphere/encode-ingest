@@ -53,7 +53,7 @@ spec:
               - library
               - librarypreparationactivity
               - sequencingactivity
-              - step_run
+              - stepactivity
             template: process-table
             arguments:
               parameters:

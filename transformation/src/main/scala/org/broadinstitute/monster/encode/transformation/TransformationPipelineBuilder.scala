@@ -94,15 +94,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/library"
     )
 
-    val libraryPrepOutput = libraryInputs
-      .withName("Transform library preparation activity")
-      .map(LibraryPreparationActivityTransformations.transformLibraryPreparationActivity)
-    StorageIO.writeJsonLists(
-      libraryPrepOutput,
-      "LibraryPreparationActivity",
-      s"${args.outputPrefix}/librarypreparationactivity"
-    )
-
     // Biosample transformation needs Libraries, Experiments, and BiosampleTypes
     val biosampleInputs = readRawEntities(EncodeEntity.Biosample)
     val biosampleTypeInputs = readRawEntities(EncodeEntity.BiosampleType)
@@ -122,6 +113,15 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Key libraries by biosample")
       .keyBy(_.read[String]("biosample"))
       .groupByKey
+
+    val libraryPrepOutput = libraryInputs
+      .withName("Transform library preparation activity")
+      .map(LibraryPreparationActivityTransformations.transformLibraryPreparationActivity)
+    StorageIO.writeJsonLists(
+      libraryPrepOutput,
+      "LibraryPreparationActivity",
+      s"${args.outputPrefix}/librarypreparationactivity"
+    )
 
     val biosampleOutput = biosamplesWithTypes
       .withName("Key biosamples by ID")
@@ -151,16 +151,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val experimentInputs = readRawEntities(EncodeEntity.Experiment)
     val fcExperimentInputs = readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment)
 
-    val assayActivityOutput = experimentInputs
-      .union(fcExperimentInputs)
-      .withName("Transform Assay Activities")
-      .map(AssayActivityTransformations.transformAssayActivity(_))
-    StorageIO.writeJsonLists(
-      assayActivityOutput,
-      "Assay Activities",
-      s"${args.outputPrefix}/assayactivity"
-    )
-
     // Files are more complicated.
     val fileInputs = readRawEntities(EncodeEntity.File)
 
@@ -178,8 +168,21 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Split the file stream by output category.
     val fileBranches = FileTransformations.partitionRawFiles(fileWithExperiments)
-//    val fileIdToType: SideInput[Map[String, FileType]] =
-//      FileTransformations.buildIdTypeMap(fileBranches)
+
+    val alignmentActivityOutput = fileBranches.alignment
+      .withName("Transform alignment files")
+      .map {
+        case (rawFile, rawExperiment) =>
+          AlignmentActivityTransformations.transformAlignmentActivity(
+            rawFile,
+            rawExperiment
+          )
+      }
+    StorageIO.writeJsonLists(
+      alignmentActivityOutput,
+      "Alignment Activity",
+      s"${args.outputPrefix}/alignmentactivity"
+    )
 
     val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
 
@@ -215,23 +218,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/sequencingactivity"
     )
 
-    val alignmentActivityOutput = fileBranches.alignment
-      .withSideInputs(libraryData)
-      .withName("Transform alignment files")
-      .map {
-        case ((rawFile, _), sideCtx) =>
-          AlignmentActivityTransformations.transformAlignmentActivity(
-            rawFile,
-            sideCtx(libraryData)
-          )
-      }
-      .toSCollection
-
-    StorageIO.writeJsonLists(
-      alignmentActivityOutput,
-      "Alignment Activity",
-      s"${args.outputPrefix}/alignmentactivity"
-    )
     // Experiments join against both replicates and libraries
     val replicateInputs = readRawEntities(EncodeEntity.Replicate)
 
@@ -291,7 +277,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Transform step runs")
       .map {
         case (((stepRun, stepVersion), step), generatedFiles) =>
-          StepRunTransformations.transformStepRun(
+          StepActivityTransformations.transformStepActivity(
             stepRun,
             stepVersion,
             step,
@@ -342,14 +328,46 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       s"${args.outputPrefix}/analysisactivity"
     )
 
+    val filesByExperiment = fileInputs
+      .withName("Key files by experiments")
+      .keyBy(_.read[String]("dataset"))
+      .groupByKey
+
+    val assayActivityOutput = experimentsById
+      .withName("Transform Assay Activities")
+      .leftOuterJoin(
+        filesByExperiment
+      ) // tuple of format (expId, (experiment, Option[Iterable[file]]))
+      .withName("With Libraries")
+      .leftOuterJoin(
+        (librariesByExperiment)
+      ) // (expId, ((experiment, Option[I[file]]), Option[I[Library]]))
+      .values
+      .withName("With Libraries")
+      .map {
+        case ((rawExperiment, rawFiles), rawLibraries) =>
+          AssayActivityTransformations.transformAssayActivity(
+            rawExperiment,
+            rawFiles.toIterable.flatten,
+            rawLibraries.toIterable.flatten
+          )
+      }
+
+    StorageIO.writeJsonLists(
+      assayActivityOutput,
+      "Assay Activities",
+      s"${args.outputPrefix}/assayactivity"
+    )
+
     val experimentOutput = experimentsById
       .withName("Join experiments and libraries")
       .leftOuterJoin(librariesByExperiment)
-      .values
+      //      .values
       .withName("Transform experiments")
       .map {
-        case (rawExperiment, rawLibraries) =>
+        case (experimentId, (rawExperiment, rawLibraries)) =>
           ExperimentActivityTransformations.transformExperiment(
+            experimentId,
             rawExperiment,
             rawLibraries.toIterable.flatten
           )

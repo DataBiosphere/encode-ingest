@@ -20,7 +20,7 @@ object AntibodyTransformations {
       .distinct
 
     Antibody(
-      id = CommonTransformations.readId(antibodyInput),
+      antibodyId = CommonTransformations.readId(antibodyInput),
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
         antibodyInput.read[String]("@id")

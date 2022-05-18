@@ -2,13 +2,14 @@
   "name": "analysisactivity",
   "columns": [
     {
-      "name": "id",
+      "name": "analysisactivity_id",
       "datatype": "string",
       "type": "primary_key"
     },
     {
       "name": "label",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "required"
     },
     {
       "name": "xref",
@@ -20,35 +21,35 @@
       "datatype": "string"
     },
     {
-      "name": "assay_id",
+      "name": "assayactivity_id",
       "datatype": "string",
       "type": "required",
       "links": [
         {
           "table_name": "assayactivity",
-          "column_name": "id"
+          "column_name": "assayactivity_id"
         }
       ]
     },
     {
-      "name": "derived_from",
+      "name": "derived_from_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
     {
-      "name": "generated",
+      "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     }

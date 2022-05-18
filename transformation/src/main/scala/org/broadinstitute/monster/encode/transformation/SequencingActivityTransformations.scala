@@ -18,13 +18,14 @@ object SequencingActivityTransformations {
     rawGeneratedFiles: Iterable[Msg],
     rawLibraries: Seq[Msg]
   ): Sequencingactivity = {
-    val id = CommonTransformations.readId(rawFile)
-    val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
-
+    val fileId = CommonTransformations.readId(rawFile)
+    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toList
+    val experimentId = generatedFileIds.head
+    val id = s"${fileId}_${experimentId}"
     logger.info("starting sequencing activity transform")
 
     Sequencingactivity(
-      id = id,
+      sequencingactivityId = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
@@ -32,13 +33,14 @@ object SequencingActivityTransformations {
         .tryRead[List[String]]("assay_term_name")
         .getOrElse(List.empty[String])
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
-      referenceAssembly = rawFile.tryRead[String]("assembly"),
-      dataset = rawFile.tryRead[String]("dataset"),
-      generated = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
-      tempGenerated = generatedFileIds.sorted,
-      usesSample = rawFile.tryRead[List[String]]("origin_batches").getOrElse(List.empty[String]),
+      generatedFileId = fileId :: List(),
+      associatedWith = generatedFileIds.sorted,
+      usesSampleBiosampleId = rawFile
+        .tryRead[List[String]]("origin_batches")
+        .getOrElse(List.empty[String])
+        .map(CommonTransformations.transformId(_)),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab")),
-      usesLibrary = FileTransformations
+      libraryId = FileTransformations
         .computeLibrariesForFile(rawFile, rawLibraries)
         .getOrElse(List.empty[String]),
       platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform"))

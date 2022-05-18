@@ -55,6 +55,22 @@ object CommonTransformations {
   def convertToEncodeUrl(values: List[String]): List[String] =
     values.map(value => convertToEncodeUrl(value))
 
+  def computeAgeLowerAndUpperbounds(rawAge: Option[String]): (Option[Long], Option[Long]) =
+    rawAge.fold((Option.empty[Long], Option.empty[Long])) { raw =>
+      if (raw.equals("90 or above")) {
+        (Some(90), None)
+      } else {
+        val splitIdx = raw.indexOf('-')
+        if (splitIdx == -1) {
+          val parsed = raw.toLong
+          (Some(parsed), Some(parsed))
+        } else {
+          val (min, max) = (raw.take(splitIdx), raw.drop(splitIdx + 1))
+          (Some(min.toLong), Some(max.toLong))
+        }
+      }
+    }
+
   /**
     * Summarize any audit records found in a raw ENCODE object, returning:
     *   1. A color label for the max audit level present

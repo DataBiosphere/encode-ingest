@@ -2,7 +2,7 @@
   "name": "file",
   "columns": [
     {
-      "name": "id",
+      "name": "file_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -39,6 +39,10 @@
       "name": "award",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "file_type",
+      "datatype": "string"
     },
     {
       "name": "file_format",
@@ -80,46 +84,46 @@
       "datatype": "string"
     },
     {
-      "name": "library",
+      "name": "library_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "library",
-          "column_name": "id"
+          "column_name": "library_id"
         }
       ]
     },
     {
-      "name": "uses_sample",
+      "name": "uses_sample_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     },
     {
-      "name": "donor",
+      "name": "donor_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },
     {
-      "name": "derived_from",
+      "name": "derived_from_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
@@ -144,12 +148,12 @@
       "datatype": "integer"
     },
     {
-      "name": "paired_file",
+      "name": "paired_with_file_id",
       "datatype": "string",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     }

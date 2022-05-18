@@ -13,44 +13,33 @@ object DonorTransformations {
   def transformDonor(donorInput: Msg): Donor = {
     val id = CommonTransformations.readId(donorInput)
     val rawAge = donorInput.tryRead[String]("age")
-    val (ageLowerbound, ageUpperbound) = rawAge.fold((Option.empty[Long], Option.empty[Long])) {
-      raw =>
-        if (raw.equals("90 or above")) {
-          (Some(90), None)
-        } else {
-          val splitIdx = raw.indexOf('-')
-          if (splitIdx == -1) {
-            val parsed = raw.toLong
-            (Some(parsed), Some(parsed))
-          } else {
-            val (min, max) = (raw.take(splitIdx), raw.drop(splitIdx + 1))
-            (Some(min.toLong), Some(max.toLong))
-          }
-        }
-    }
+    val (ageLowerbound, ageUpperbound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
     Donor(
-      id = id,
+      donorId = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("@id")) :: donorInput
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = donorInput.read[OffsetDateTime]("date_created"),
-      ageLowerbound = ageLowerbound,
-      ageUpperbound = ageUpperbound,
-      ageUnit = donorInput.tryRead[String]("age_units"),
+      ageAgeLowerbound = ageLowerbound,
+      ageAgeUpperbound = ageUpperbound,
+      ageAgeUnit = donorInput.tryRead[String]("age_units"),
+      ageAgeStage = donorInput.tryRead[String]("life_stage"),
+      ageAgeCategory = None,
       reportedEthnicity =
         donorInput.tryRead[List[String]]("ethnicity").getOrElse(List.empty[String]),
-      organismType = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("organism")),
+      organismType =
+        "Homo sapiens", // CommonTransformations.convertToEncodeUrl(donorInput.read[String]("organism")),
       phenotypicSex = donorInput.tryRead[String]("sex"),
+      partOfDatasetId = Some("ENCODE"),
       award = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("award")),
       lab = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("lab")),
-      lifeStage = donorInput.tryRead[String]("life_stage"),
-      parent = donorInput
+      parentDonorId = donorInput
         .tryRead[List[String]]("parents")
         .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId),
-      sibling = donorInput
+      siblingDonorId = donorInput
         .tryRead[String]("twin")
         .map(CommonTransformations.transformId),
       submittedBy = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("submitted_by"))

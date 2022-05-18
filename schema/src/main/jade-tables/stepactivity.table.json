@@ -1,8 +1,8 @@
 {
-  "name": "step_run",
+  "name": "stepactivity",
   "columns": [
     {
-      "name": "id",
+      "name": "stepactivity_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -17,34 +17,34 @@
       "type": "required"
     },
     {
-      "name": "pipeline_run_id",
+      "name": "analysisactivity_id",
       "datatype": "string",
       "links": [
         {
           "table_name": "analysisactivity",
-          "column_name": "id"
+          "column_name": "analysisactivity_id"
         }
       ]
     },
     {
-      "name": "used",
+      "name": "used_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
     {
-      "name": "generated",
+      "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     }

@@ -2,7 +2,7 @@
   "name": "experimentactivity",
   "columns": [
     {
-      "name": "id",
+      "name": "experimentactivity_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -64,57 +64,57 @@
       "type": "required"
     },
     {
-      "name": "used",
+      "name": "used_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
     {
-      "name": "generated",
+      "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
     {
-      "name": "antibody",
+      "name": "antibody_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "antibody",
-          "column_name": "id"
+          "column_name": "antibody_id"
         }
       ]
     },
     {
-      "name": "uses_sample",
+      "name": "uses_sample_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     },
     {
-      "name": "library",
+      "name": "library_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "library",
-          "column_name": "id"
+          "column_name": "library_id"
         }
       ]
     }

@@ -2,7 +2,7 @@
   "name": "librarypreparationactivity",
   "columns": [
     {
-      "name": "id",
+      "name": "librarypreparationactivity_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -21,17 +21,23 @@
       "datatype": "string"
     },
     {
-      "name": "generated",
-      "datatype": "string"
+      "name": "generated_library_id",
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "library",
+          "column_name": "library_id"
+        }
+      ]
     },
     {
-      "name": "uses_sample",
+      "name": "uses_sample_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     }

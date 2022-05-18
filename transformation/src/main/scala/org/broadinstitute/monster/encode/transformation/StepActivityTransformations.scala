@@ -1,19 +1,19 @@
 package org.broadinstitute.monster.encode.transformation
 
-import org.broadinstitute.monster.encode.jadeschema.table.StepRun
+import org.broadinstitute.monster.encode.jadeschema.table.Stepactivity
 import upack.Msg
 
 /** Transformation logic for ENCODE analysis step run objects. */
-object StepRunTransformations {
+object StepActivityTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw ENCODE analysis step run into our preferred schema. */
-  def transformStepRun(
+  def transformStepActivity(
     rawStepRun: Msg,
     rawStepVersion: Msg,
     rawStep: Msg,
     rawGeneratedFiles: Iterable[Msg]
-  ): StepRun = {
+  ): Stepactivity = {
 
     // get pipeline run id
     val stepRunId = CommonTransformations.readId(rawStepRun)
@@ -30,16 +30,16 @@ object StepRunTransformations {
     // branch files
     val generatedFileArray = rawGeneratedFiles.toList
     val usedFileIds = generatedFileArray
-      .flatMap(_.read[Array[String]]("derived_from"))
+      .flatMap(_.read[Array[String]]("derived_from").map(CommonTransformations.transformId(_)))
       .distinct
 
-    StepRun(
-      id = stepRunId,
+    Stepactivity(
+      stepactivityId = stepRunId,
       label = stepRunId,
       version = rawStepVersion.read[String]("name"),
-      pipelineRunId = pipelineRunId,
-      used = usedFileIds,
-      generated = generatedFileArray.map(CommonTransformations.readId(_))
+      analysisactivityId = pipelineRunId,
+      usedFileId = usedFileIds,
+      generatedFileId = generatedFileArray.map(CommonTransformations.readId(_))
     )
   }
 }

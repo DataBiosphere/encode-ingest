@@ -14,12 +14,12 @@ object LibraryPreparationActivityTransformations {
     val id = CommonTransformations.readId(libraryInput)
 
     Librarypreparationactivity(
-      id = id,
+      librarypreparationactivityId = id,
       label = id,
       dateCreated = libraryInput.read[OffsetDateTime]("date_created"),
       lab = CommonTransformations.convertToEncodeUrl(libraryInput.tryRead[String]("lab")),
-      generated = Some(id),
-      usesSample =
+      generatedLibraryId = Some(id),
+      usesSampleBiosampleId =
         CommonTransformations.transformId(libraryInput.read[String]("biosample")) :: List()
     )
   }

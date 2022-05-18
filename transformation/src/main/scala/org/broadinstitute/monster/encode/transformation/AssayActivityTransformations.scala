@@ -10,12 +10,14 @@ object AssayActivityTransformations {
 
   /** Transform a raw experiment into our preferred schema for assays. */
   def transformAssayActivity(
-    rawExperiment: Msg
+    rawExperiment: Msg,
+    rawFiles: Iterable[Msg],
+    rawLibraries: Iterable[Msg]
   ): Assayactivity = {
     val id = CommonTransformations.readId(rawExperiment)
 
     Assayactivity(
-      id = id,
+      assayactivityId = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("@id")) ::
         rawExperiment.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
@@ -25,7 +27,12 @@ object AssayActivityTransformations {
       dataModality = rawExperiment
         .tryRead[String]("assay_term_name")
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term))
-        .toList
+        .toList,
+      generatedFileId = rawFiles.map(CommonTransformations.readId).toList,
+      usesSampleBiosampleId = rawLibraries.map { lib =>
+        CommonTransformations.transformId(lib.read[String]("biosample"))
+      }.toList,
+      libraryId = rawLibraries.map(CommonTransformations.readId).toList
     )
   }
 

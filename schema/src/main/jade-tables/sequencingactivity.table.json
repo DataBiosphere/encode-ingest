@@ -2,7 +2,7 @@
   "name": "sequencingactivity",
   "columns": [
     {
-      "name": "id",
+      "name": "sequencingactivity_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -26,38 +26,37 @@
       "datatype": "string",
       "type": "repeated"
     },
+
     {
-      "name": "reference_assembly",
-      "datatype": "string"
-    },
-    {
-      "name": "dataset",
-      "datatype": "string"
-    },
-    {
-      "name": "generated",
+      "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
     {
-      "name": "temp_generated",
+      "name": "associated_with",
       "datatype": "string",
-      "type": "repeated"
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "experimentactivity",
+          "column_name": "experimentactivity_id"
+        }
+      ]
     },
     {
-      "name": "uses_sample",
+      "name": "uses_sample_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     },
@@ -66,13 +65,13 @@
       "datatype": "string"
     },
     {
-      "name": "uses_library",
+      "name": "library_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "library",
-          "column_name": "id"
+          "column_name": "library_id"
         }
       ]
     },

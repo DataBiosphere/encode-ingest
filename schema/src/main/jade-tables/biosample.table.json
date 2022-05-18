@@ -2,7 +2,7 @@
   "name": "biosample",
   "columns": [
     {
-      "name": "id",
+      "name": "biosample_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -22,6 +22,26 @@
       "type": "required"
     },
     {
+      "name": "donor_age_at_collection_age_category",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_age_at_collection_age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_age_at_collection_age_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_age_at_collection_age_lowerbound",
+      "datatype": "integer"
+    },
+    {
+      "name": "donor_age_at_collection_age_upperbound",
+      "datatype": "integer"
+    },
+    {
       "name": "source",
       "datatype": "string"
     },
@@ -30,12 +50,16 @@
       "datatype": "date"
     },
     {
-      "name": "derived_from",
+      "name": "part_of_dataset_id",
+      "datatype": "string"
+    },
+    {
+      "name": "derived_from_biosample_id",
       "datatype": "string",
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     },
@@ -61,7 +85,7 @@
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },
@@ -127,7 +151,7 @@
       "links": [
         {
           "table_name": "librarypreparationactivity",
-          "column_name": "id"
+          "column_name": "librarypreparationactivity_id"
         }
       ]
     }

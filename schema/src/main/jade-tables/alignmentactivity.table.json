@@ -2,7 +2,7 @@
   "name": "alignmentactivity",
   "columns": [
     {
-      "name": "id",
+      "name": "alignmentactivity_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -27,28 +27,24 @@
       "type": "repeated"
     },
     {
-      "name": "reference_assembly",
-      "datatype": "string"
-    },
-                                                                                                                                                                                                           {
-      "name": "generated",
+      "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },
     {
-      "name": "uses",
+      "name": "uses_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "file",
-          "column_name": "id"
+          "column_name": "file_id"
         }
       ]
     },

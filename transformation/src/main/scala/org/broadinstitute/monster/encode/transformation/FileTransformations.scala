@@ -22,11 +22,18 @@ object FileTransformations {
     */
   case class FileBranches[F[_], V](sequence: F[V], alignment: F[V], other: F[V])
 
+  /** TODO REALLY FIX THIS!!!! */
+
   /** Output category for sequencing files. */
   private val SequencingCategory = "raw data"
 
   /** Output category for alignment files. */
   private val AlignmentCategory = "alignment"
+
+  /** Output categories for analysis files. */
+//  private val signal = "signal"
+//  private val annotation = "annotation"
+//  private val quantification = "quantification"
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -48,6 +55,13 @@ object FileTransformations {
       )
 
     FileBranches(sequence, alignment, other)
+  }
+
+  def getFileType(rawFile: Msg): String = {
+    val category = rawFile.read[String]("output_category")
+    if (category == SequencingCategory) "Sequence"
+    else if (category == AlignmentCategory) "Alignment"
+    else "Other"
   }
 
   /**
@@ -185,7 +199,7 @@ object FileTransformations {
     }
 
     File(
-      id = id,
+      fileId = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: rawFile
         .tryRead[List[String]]("dbxrefs")
@@ -197,6 +211,7 @@ object FileTransformations {
       award = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("award")),
       fileFormat = rawFile.tryRead[String]("file_format"),
       fileFormatType = rawFile.tryRead[String]("file_format_type"),
+      fileType = Some(getFileType(rawFile)),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
       platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform")),
       qualityMetrics =
@@ -205,17 +220,19 @@ object FileTransformations {
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      library =
+      libraryId =
         computeLibrariesForBiosamples(biosample, rawLibraries).getOrElse(List.empty[String]),
-      usesSample = biosample.getOrElse(List[String]()),
-      donor = getDonorIds(rawFile).getOrElse(List.empty[String]),
-      derivedFrom = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
+      usesSampleBiosampleId = biosample.getOrElse(List[String]()),
+      donorId = getDonorIds(rawFile).getOrElse(List.empty[String]),
+      derivedFromFileId =
+        rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       cloudPath = None,
       indexCloudPath = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       pairedEndId = pairedEndId,
-      pairedFile = rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
+      pairedWithFileId =
+        rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
     )
   }
 }

@@ -21,7 +21,7 @@ object LibraryTransformations {
     val pairedEndId = libraryInput.tryRead[String]("strand_specificity")
 
     Library(
-      id = id,
+      libraryId = id,
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(
         libraryInput.read[String]("@id")
@@ -39,8 +39,9 @@ object LibraryTransformations {
       ),
       submittedBy =
         CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("submitted_by")),
-      used = libraryInput.tryRead[List[String]]("spikeins_used").getOrElse(List.empty[String]),
-      usesSample = CommonTransformations.transformId(libraryInput.read[String]("biosample")),
+      usedBy = libraryInput.tryRead[List[String]]("spikeins_used").getOrElse(List.empty[String]),
+      usesSampleBiosampleId =
+        CommonTransformations.transformId(libraryInput.read[String]("biosample")),
       prepMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),
       prepMaterialName = libraryInput.tryRead[String]("nucleic_acid_term_name")
     )

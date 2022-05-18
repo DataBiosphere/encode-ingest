@@ -2,7 +2,7 @@
   "name": "library",
   "columns": [
     {
-      "name": "id",
+      "name": "library_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -63,18 +63,18 @@
       "type": "required"
     },
     {
-      "name": "used",
+      "name": "used_by",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "uses_sample",
+      "name": "uses_sample_biosample_id",
       "datatype": "string",
       "type": "required",
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     },

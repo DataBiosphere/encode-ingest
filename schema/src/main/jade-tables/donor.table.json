@@ -2,7 +2,7 @@
   "name": "donor",
   "columns": [
     {
-      "name": "id",
+      "name": "donor_id",
       "datatype": "string",
       "type": "primary_key"
     },
@@ -22,16 +22,28 @@
       "type": "required"
     },
     {
-      "name": "age_lowerbound",
-      "datatype": "integer"
-    },
-    {
-      "name": "age_upperbound",
-      "datatype": "integer"
-    },
-    {
-      "name": "age_unit",
+      "name": "part_of_dataset_id",
       "datatype": "string"
+    },
+    {
+      "name": "age_age_category",
+      "datatype": "string"
+    },
+    {
+      "name": "age_age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "age_age_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "age_age_lowerbound",
+      "datatype": "integer"
+    },
+    {
+      "name": "age_age_upperbound",
+      "datatype": "integer"
     },
     {
       "name": "reported_ethnicity",
@@ -58,27 +70,23 @@
       "type": "required"
     },
     {
-      "name": "life_stage",
-      "datatype": "string"
-    },
-    {
-      "name": "parent",
+      "name": "parent_donor_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },
     {
-      "name": "sibling",
+      "name": "sibling_donor_id",
       "datatype": "string",
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },
