@@ -35,11 +35,11 @@
     },
     {
       "name": "donor_age_at_collection_age_lowerbound",
-      "datatype": "integer"
+      "datatype": "float"
     },
     {
       "name": "donor_age_at_collection_age_upperbound",
-      "datatype": "integer"
+      "datatype": "float"
     },
     {
       "name": "source",

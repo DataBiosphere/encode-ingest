@@ -39,11 +39,11 @@
     },
     {
       "name": "age_age_lowerbound",
-      "datatype": "integer"
+      "datatype": "float"
     },
     {
       "name": "age_age_upperbound",
-      "datatype": "integer"
+      "datatype": "float"
     },
     {
       "name": "reported_ethnicity",

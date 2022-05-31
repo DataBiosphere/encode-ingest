@@ -55,18 +55,18 @@ object CommonTransformations {
   def convertToEncodeUrl(values: List[String]): List[String] =
     values.map(value => convertToEncodeUrl(value))
 
-  def computeAgeLowerAndUpperbounds(rawAge: Option[String]): (Option[Long], Option[Long]) =
-    rawAge.fold((Option.empty[Long], Option.empty[Long])) { raw =>
+  def computeAgeLowerAndUpperbounds(rawAge: Option[String]): (Option[Double], Option[Double]) =
+    rawAge.fold((Option.empty[Double], Option.empty[Double])) { raw =>
       if (raw.equals("90 or above")) {
-        (Some(90), None)
+        (Some(90.0), None)
       } else {
         val splitIdx = raw.indexOf('-')
         if (splitIdx == -1) {
-          val parsed = raw.toLong
+          val parsed = raw.toDouble
           (Some(parsed), Some(parsed))
         } else {
           val (min, max) = (raw.take(splitIdx), raw.drop(splitIdx + 1))
-          (Some(min.toLong), Some(max.toLong))
+          (Some(min.toDouble), Some(max.toDouble))
         }
       }
     }
