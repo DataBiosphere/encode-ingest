@@ -25,12 +25,23 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .map(CommonTransformations.removeUnknowns)
     }
 
-    // Donors can be processed in isolation.
-    // 03-2022 donor Id is needed by file transfor
+    val organismInputs = readRawEntities(EncodeEntity.Organism)
+    val keyedOrganisms = organismInputs
+      .withName("Key by name")
+      .keyBy(_.read[String]("@id"))
+
+//    val organismData = organismNameToSciName.asMapSideInput
+
     val donorInputs = readRawEntities(EncodeEntity.Donor)
     val donorOutput = donorInputs
+      .withName("Key by organism")
+      .keyBy(_.read[String]("organism"))
+      .leftOuterJoin(keyedOrganisms)
+      .values
       .withName("Transform donors")
-      .map(DonorTransformations.transformDonor)
+      .map {
+        case (donor, organism) => DonorTransformations.transformDonor(donor, organism)
+      }
     StorageIO.writeJsonLists(donorOutput, "Donors", s"${args.outputPrefix}/donor")
 
     // The Antibody transformation needs information from the Target objects

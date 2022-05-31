@@ -23,7 +23,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
         |""".stripMargin
     val inputMsg: Msg = JsonParser.parseEncodedJson(inputJson)
 
-    val output = DonorTransformations.transformDonor(inputMsg)
+    val output = DonorTransformations.transformDonor(inputMsg, None)
 
     output.donorId shouldBe "ABC123"
     output.award shouldBe "https://www.encodeproject.org/awards/xyz_award"
@@ -52,7 +52,7 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
         |""".stripMargin
     val inputMsg: Msg = JsonParser.parseEncodedJson(inputJson)
 
-    val output = DonorTransformations.transformDonor(inputMsg)
+    val output = DonorTransformations.transformDonor(inputMsg, None)
 
     output.ageAgeLowerbound shouldBe Some(90)
     output.ageAgeUpperbound shouldBe None

@@ -10,7 +10,7 @@ object DonorTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw ENCODE donor into our preferred schema. */
-  def transformDonor(donorInput: Msg): Donor = {
+  def transformDonor(donorInput: Msg, organism: Option[Msg]): Donor = {
     val id = CommonTransformations.readId(donorInput)
     val rawAge = donorInput.tryRead[String]("age")
     val (ageLowerbound, ageUpperbound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
@@ -29,8 +29,9 @@ object DonorTransformations {
       ageAgeCategory = None,
       reportedEthnicity =
         donorInput.tryRead[List[String]]("ethnicity").getOrElse(List.empty[String]),
-      organismType =
-        "Homo sapiens", // CommonTransformations.convertToEncodeUrl(donorInput.read[String]("organism")),
+      organismType = organism
+        .map(msg => msg.read[String]("scientific_name"))
+        .getOrElse(donorInput.read[String]("organism")),
       phenotypicSex = donorInput.tryRead[String]("sex"),
       partOfDatasetId = Some("ENCODE"),
       award = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("award")),
