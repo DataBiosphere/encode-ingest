@@ -26,7 +26,6 @@ case class Args(
   initialQuery: List[(String, String)] = List()
 )
 
-
 object Args {
 
   implicit val tupleParser: ArgParser[(String, String)] =
