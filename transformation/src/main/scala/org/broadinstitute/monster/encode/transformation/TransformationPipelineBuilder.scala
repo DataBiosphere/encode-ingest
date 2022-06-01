@@ -203,7 +203,12 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Transform all files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
-          FileTransformations.transformFile(rawFile, rawExperiment, sideCtx(libraryData), fileSourcePath)
+          FileTransformations.transformFile(
+            rawFile,
+            rawExperiment,
+            sideCtx(libraryData),
+            fileSourcePath
+          )
       }
       .toSCollection
     StorageIO.writeJsonLists(
