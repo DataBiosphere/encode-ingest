@@ -22,8 +22,10 @@ case class Args(
   @HelpMessage(
     "Initial query to target a specific entry-point to the pipeline."
   )
-  initialQuery: List[(String, String)] = List("organism.name" -> "mouse")
+//  initialQuery: List[(String, String)] = List("organism.name" -> "mouse")
+  initialQuery: List[(String, String)] = List()
 )
+
 
 object Args {
 
