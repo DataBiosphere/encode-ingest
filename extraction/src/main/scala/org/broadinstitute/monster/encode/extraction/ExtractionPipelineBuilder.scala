@@ -144,7 +144,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       sourceField = "organism",
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.Organism,
-      targetField = "biosample.name"
+      targetField = "@id"
     )
 
     val libraries = extractLinkedEntities(
