@@ -78,6 +78,8 @@ spec:
           {{- $inputPrefix := "{{inputs.parameters.input-prefix}}" }}
           - name: output-prefix
           {{- $outputPrefix := "{{inputs.parameters.output-prefix}}" }}
+          - name: file-storage
+          {{- fileStorage := "{{inputs.parameters.file-storage}}" }}
       container:
         image: us.gcr.io/broad-dsp-gcr-public/encode-transformation-pipeline:{{ $version }}
         command: []
@@ -85,6 +87,7 @@ spec:
           - --runner=dataflow
           - --inputPrefix=gs://{{ $bucket }}/{{ $inputPrefix }}
           - --outputPrefix=gs://{{ $bucket }}/{{ $outputPrefix }}
+          - --fileStorage=gs://{ $fileStorage }}
           - --project={{ .project }}
           - --region={{ .region }}
           - --tempLocation=gs://{{ .tmpBucketName }}/dataflow
