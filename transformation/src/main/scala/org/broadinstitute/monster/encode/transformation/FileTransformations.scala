@@ -180,7 +180,8 @@ object FileTransformations {
   def transformFile(
     rawFile: Msg,
     rawExperiment: Option[Msg],
-    rawLibraries: Seq[Msg]
+    rawLibraries: Seq[Msg],
+    fileSourceDir: String
   ): File = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val modality = computeDataModality(rawFile, rawExperiment)
@@ -227,7 +228,7 @@ object FileTransformations {
       derivedFromFileId =
         rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
-      cloudPath = None,
+      cloudPath = Some(s"""{"sourcePath":"$fileSourceDir/$id","targetPath":"/files/$id"}"""),
       indexCloudPath = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       pairedEndId = pairedEndId,

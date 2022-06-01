@@ -26,6 +26,6 @@ When modifying the Scio data pipelines, it's possible to run the pipeline locall
 `sbt "encode-extraction / runMain org.broadinstitute.monster.encode.extraction.ExtractionPipeline  --outputDir=<some local directory>"`
 * **Transformation** 
 
-`sbt "encode-transformation-pipeline / runMain org.broadinstitute.monster.encode.transformation.TransformationPipeline --inputPrefix=<extraction dir> --outputPrefix=<output dir>"`
+`sbt "encode-transformation-pipeline / runMain org.broadinstitute.monster.encode.transformation.TransformationPipeline --inputPrefix=<extraction dir> --outputPrefix=<output dir>" --fileStorage=<file dir>`
 
 Development of Argo changes requires deployment to the DEV environment as documented in the [monster-deploy repo](https://github.com/broadinstitute/monster-deploy/)

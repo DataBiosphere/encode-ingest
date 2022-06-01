@@ -25,6 +25,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
         .map(CommonTransformations.removeUnknowns)
     }
 
+    val fileSourcePath = args.fileStorage
     val organismInputs = readRawEntities(EncodeEntity.Organism)
     val keyedOrganisms = organismInputs
       .withName("Key by name")
@@ -202,7 +203,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Transform all files")
       .map {
         case ((rawFile, rawExperiment), sideCtx) =>
-          FileTransformations.transformFile(rawFile, rawExperiment, sideCtx(libraryData))
+          FileTransformations.transformFile(rawFile, rawExperiment, sideCtx(libraryData), fileSourcePath)
       }
       .toSCollection
     StorageIO.writeJsonLists(

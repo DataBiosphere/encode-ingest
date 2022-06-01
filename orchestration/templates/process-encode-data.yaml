@@ -32,6 +32,8 @@ spec:
                   value: '{{ printf "%s/raw" $gcsPrefix }}'
                 - name: output-prefix
                   value: '{{ printf "%s/processed" $gcsPrefix }}'
+                - name: file-storage
+                  value: 'gs://broad-dsp-monster-encode-prod-staging-storage/files/'
 
     {{- /* Version used for both Dataflow docker images. */}}
     {{- $version := default "latest" .Chart.AppVersion }}

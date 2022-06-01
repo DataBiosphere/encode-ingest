@@ -10,5 +10,7 @@ case class Args(
   @HelpMessage("Path to the top-level directory where JSON was extracted")
   inputPrefix: String,
   @HelpMessage("Path where transformed JSON should be written")
-  outputPrefix: String
+  outputPrefix: String,
+  @HelpMessage("GCS Path where downloaded ENCODE files are")
+  fileStorage: String
 )
