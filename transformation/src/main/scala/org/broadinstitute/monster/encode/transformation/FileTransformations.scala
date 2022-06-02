@@ -186,6 +186,7 @@ object FileTransformations {
     val modality = computeDataModality(rawFile, rawExperiment)
     val id = CommonTransformations.readId(rawFile)
 
+    val fileSourceDir = "gs://broad-dsp-monster-encode-prod-staging-storage/files/"
     val biosample = getBiosamples(rawFile)
 
     val pairedEndId = rawFile.tryRead[String]("paired_end") match {
@@ -227,7 +228,7 @@ object FileTransformations {
       derivedFromFileId =
         rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
-      cloudPath = None,
+      cloudPath = Some(s"""{"sourcePath":"$fileSourceDir/$id","targetPath":"/files/$id"}"""),
       indexCloudPath = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       pairedEndId = pairedEndId,
