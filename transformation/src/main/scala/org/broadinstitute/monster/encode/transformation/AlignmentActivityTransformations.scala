@@ -39,7 +39,8 @@ object AlignmentActivityTransformations {
         .getOrElse(List.empty[String])
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       generatedFileId = fileId :: List(),
-      usesFileId = rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
+      usedFileId = rawFile.tryRead[List[String]]("derived_from")
+        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab"))
     )
   }

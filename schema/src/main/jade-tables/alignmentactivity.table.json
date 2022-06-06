@@ -38,7 +38,7 @@
       ]
     },
     {
-      "name": "uses_file_id",
+      "name": "used_file_id",
       "datatype": "string",
       "type": "repeated",
       "links": [

@@ -40,9 +40,10 @@ object ExperimentActivityTransformations {
       submittedBy =
         CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("submitted_by")),
       status = rawExperiment.read[String]("status"),
-      usedFileId =
-        rawExperiment.tryRead[List[String]]("contributing_files").getOrElse(List.empty[String]),
-      generatedFileId = rawExperiment.tryRead[List[String]]("files").getOrElse(List.empty[String]),
+      usedFileId = rawExperiment.tryRead[List[String]]("contributing_files")
+        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
+      generatedFileId = rawExperiment.tryRead[List[String]]("files")
+        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
       usesSampleBiosampleId = libraryArray.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.sorted.distinct,

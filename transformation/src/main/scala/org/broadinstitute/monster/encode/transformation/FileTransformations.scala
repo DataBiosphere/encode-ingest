@@ -220,12 +220,12 @@ object FileTransformations {
       readCount = rawFile.tryRead[Long]("read_count"),
       readLength = rawFile.tryRead[Long]("read_length"),
       genomeAnnotation = rawFile.tryRead[String]("genome_annotation"),
-      libraryId =
-        computeLibrariesForBiosamples(biosample, rawLibraries).getOrElse(List.empty[String]),
-      usesSampleBiosampleId = biosample.getOrElse(List[String]()),
-      donorId = getDonorIds(rawFile).getOrElse(List.empty[String]),
-      derivedFromFileId =
-        rawFile.tryRead[List[String]]("derived_from").getOrElse(List.empty[String]),
+      libraryId = computeLibrariesForBiosamples(biosample, rawLibraries)
+        .getOrElse(List.empty[String]),
+      usesSampleBiosampleId = biosample.getOrElse(List[String]()).map(CommonTransformations.transformId(_)),
+      donorId = getDonorIds(rawFile).getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
+      derivedFromFileId = rawFile.tryRead[List[String]]("derived_from")
+        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       cloudPath = None,
       indexCloudPath = None,
