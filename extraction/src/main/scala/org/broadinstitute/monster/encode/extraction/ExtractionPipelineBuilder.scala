@@ -147,6 +147,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       targetField = "@id"
     )
 
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "@id",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.GeneticModification,
+      targetField = "biosamples_modified"
+    )
+
     val libraries = extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
       sourceField = "accession",

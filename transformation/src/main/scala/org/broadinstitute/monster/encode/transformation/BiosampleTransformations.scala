@@ -1,7 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
 import java.time.{LocalDate, OffsetDateTime}
-
 import org.broadinstitute.monster.encode.jadeschema.table.Biosample
 import org.slf4j.LoggerFactory
 import upack.Msg
@@ -16,8 +15,14 @@ object BiosampleTransformations {
   def transformBiosample(
     biosampleInput: Msg,
     joinedType: Option[Msg],
-    joinedLibraries: Iterable[Msg]
+    joinedLibraries: Iterable[Msg],
+    geneticMods: Iterable[Msg]
   ): Biosample = {
+
+    def getMergedGeneticModStringAttribute(attribute: String) = {
+      geneticMods.map(_.tryRead[String](attribute)).flatten.toSet.toList
+    }
+
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(biosampleInput)
     val id = CommonTransformations.readId(biosampleInput)
     val partNumbers = joinedLibraries
@@ -89,7 +94,72 @@ object BiosampleTransformations {
       } else {
         lotIds.headOption
       },
-      libraryPrep = libraryPrepIds
+      libraryPrep = libraryPrepIds,
+      geneticModMerged = getMergedGeneticModStringAttribute("accession"),
+      perturbation = getMergedGeneticModStringAttribute("pertubation"),
+      geneticModType = getMergedGeneticModStringAttribute("purpose ")
+        ::: getMergedGeneticModStringAttribute("category"),
+      geneticModMethod = getMergedGeneticModStringAttribute("method"),
+      nucleicAcidDeliveryMethod =
+        getMergedGeneticModStringAttribute("nucleic_acid_delivery_method"),
+      modifiedSiteByTarget = CommonTransformations.convertToEncodeUrl(
+        getMergedGeneticModStringAttribute("modified_site_by_target_id")
+      ),
+      modifiedSiteByGene = CommonTransformations.convertToEncodeUrl(
+        getMergedGeneticModStringAttribute("modified_site_by_gene_id")
+      ),
+      modifiedSiteNonspecific = getMergedGeneticModStringAttribute("modified_site_nonspecific"),
+      modifiedSiteByCoordinatesAssembly = geneticMods
+        .map(_.tryRead[String]("modified_site_by_coordinates", "assembly"))
+        .flatten
+        .toSet
+        .toList,
+      modifiedSiteByCoordinatesChromosome = geneticMods
+        .map(_.tryRead[String]("modified_site_by_coordinates", "chromosome"))
+        .flatten
+        .toSet
+        .toList,
+      modifiedSiteByCoordinatesStart = geneticMods
+        .map(_.tryRead[Long]("modified_site_by_coordinates", "start"))
+        .flatten
+        .toSet
+        .toList,
+      modifiedSiteByCoordinatesEnd =
+        geneticMods.map(_.tryRead[Long]("modified_site_by_coordinates", "end")).flatten.toSet.toList,
+      introducedElements = getMergedGeneticModStringAttribute("introduced_elements"),
+      guideType = getMergedGeneticModStringAttribute("guild_type"),
+      introducedSequence = getMergedGeneticModStringAttribute("introduced_sequence"),
+      introducedGene = getMergedGeneticModStringAttribute("introduced_gene"),
+      introducedTagsName =
+        geneticMods.map(_.tryRead[String]("introduced_tags", "name")).flatten.toSet.toList,
+      introducedTagsLocation =
+        geneticMods.map(_.tryRead[String]("introduced_tags", "location")).flatten.toSet.toList,
+      introducedTagsPromoterUsed =
+        geneticMods.map(_.tryRead[String]("introduced_tags", "promoter_used")).flatten.toSet.toList,
+      introducedElementsDonor = getMergedGeneticModStringAttribute("introduced_elements_donor"),
+      introducedElementsOrganism =
+        getMergedGeneticModStringAttribute("introduced_elements_organism"),
+      guideRnaSequence = getMergedGeneticModStringAttribute("guide_rna_sequence"),
+      rnaiSequence = getMergedGeneticModStringAttribute("rnai_seqeunce"),
+      leftRvdSequence = geneticMods
+        .map(_.tryRead[String]("RVD_sequence_pairs", "left_RVD_sequence"))
+        .flatten
+        .toSet
+        .toList,
+      rightRvdSequence = geneticMods
+        .map(_.tryRead[String]("RVD_sequence_pairs", "right_RVD_sequence"))
+        .flatten
+        .toSet
+        .toList,
+      document = getMergedGeneticModStringAttribute("documents"),
+      treatment = getMergedGeneticModStringAttribute("treatments"),
+      zygosity = getMergedGeneticModStringAttribute("zygosity"),
+      moi = getMergedGeneticModStringAttribute("MOI"),
+      crisprSystem = getMergedGeneticModStringAttribute("CRISPR_system"),
+      casSpecies = getMergedGeneticModStringAttribute("cas_species"),
+      description = getMergedGeneticModStringAttribute("description")
     )
+
   }
+
 }

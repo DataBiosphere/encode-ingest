@@ -58,9 +58,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     // TODO? update for mixed_biosamples field?
     val librariesByBiosample = getLibrariesByBiosample(libraryInputs)
 
+    val geneticModsInputs = readRawEntities(EncodeEntity.GeneticModification, ctx, args.inputPrefix)
+    val geneticModsByBiosample = getGeneticModsByBiosample(geneticModsInputs)
+
     transformLibraryPreparationActivity(args.outputPrefix, libraryInputs)
 
-    transformBiosample(args.outputPrefix, biosamplesWithTypes, librariesByBiosample)
+    transformBiosample(
+      args.outputPrefix,
+      biosamplesWithTypes,
+      librariesByBiosample,
+      geneticModsByBiosample
+    )
 
     // Experiments merge two different raw streams
     // Experiments contribute to Assay Activities and Experiment Activities
@@ -113,10 +121,13 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ()
   }
 
+  // get set of genetic mod objects for each biosample
+
   private def transformBiosample(
     outputPrefix: String,
     biosamplesWithTypes: SCollection[(Msg, Option[Msg])],
-    librariesByBiosample: SCollection[(String, Iterable[Msg])]
+    librariesByBiosample: SCollection[(String, Iterable[Msg])],
+    geneticModsByBiosample: SCollection[(String, Iterable[Msg])]
   ) = {
     val biosampleOutput = biosamplesWithTypes
       .withName("Key biosamples by ID")
@@ -125,14 +136,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
           rawSample.read[String]("@id")
       }
       .leftOuterJoin(librariesByBiosample)
+      .withName("With libraries")
+      .leftOuterJoin(geneticModsByBiosample)
       .values
-      .withName("Transform biosamples")
+      .withName("and genetic mods")
       .map {
-        case ((biosample, joinedType), joinedLibraries) =>
+        case (((biosample, joinedType), joinedLibraries), joinedGeneticMods) =>
           BiosampleTransformations.transformBiosample(
             biosample,
             joinedType,
-            joinedLibraries.toIterable.flatten
+            joinedLibraries.toIterable.flatten,
+            joinedGeneticMods.toIterable.flatten
           )
       }
     StorageIO.writeJsonLists(
@@ -147,6 +161,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     libraryInputs
       .withName("Key libraries by biosample")
       .keyBy(_.read[String]("biosample"))
+      .groupByKey
+  }
+
+  private def getGeneticModsByBiosample(geneticMods: SCollection[Msg]) = {
+    geneticMods
+      .withName("Key genetic mods by biosample")
+      .flatMap { rawMod =>
+        rawMod.tryRead[Array[String]]("biosamples_modified").getOrElse(Array.empty).map { bioId =>
+          bioId -> rawMod
+        }
+      }
       .groupByKey
   }
 
