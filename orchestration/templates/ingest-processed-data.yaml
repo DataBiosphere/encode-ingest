@@ -47,11 +47,13 @@ spec:
               - antibody
               - assayactivity
               - biosample
+              - dataset
               - donor
               - experimentactivity
               - file
               - library
               - librarypreparationactivity
+              - sampletreatmentactivity
               - sequencingactivity
               - stepactivity
             template: process-table

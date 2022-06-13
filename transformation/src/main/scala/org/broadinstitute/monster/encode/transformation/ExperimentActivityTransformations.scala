@@ -1,7 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
 import java.time.{LocalDate, OffsetDateTime}
-
 import org.broadinstitute.monster.encode.jadeschema.table.Experimentactivity
 import upack.Msg
 
@@ -29,10 +28,8 @@ object ExperimentActivityTransformations {
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
-      dataModality = rawExperiment
-        .tryRead[String]("assay_term_name")
-        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term))
-        .toList,
+      dataModality =
+        AssayActivityTransformations.getDataModalityFromTerm(rawExperiment, "assay_term_name"),
       award = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("award")),
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
@@ -40,10 +37,14 @@ object ExperimentActivityTransformations {
       submittedBy =
         CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("submitted_by")),
       status = rawExperiment.read[String]("status"),
-      usedFileId = rawExperiment.tryRead[List[String]]("contributing_files")
-        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
-      generatedFileId = rawExperiment.tryRead[List[String]]("files")
-        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
+      usedFileId = rawExperiment
+        .tryRead[List[String]]("contributing_files")
+        .getOrElse(List.empty[String])
+        .map(CommonTransformations.transformId(_)),
+      generatedFileId = rawExperiment
+        .tryRead[List[String]]("files")
+        .getOrElse(List.empty[String])
+        .map(CommonTransformations.transformId(_)),
       usesSampleBiosampleId = libraryArray.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.sorted.distinct,

@@ -1,0 +1,61 @@
+{
+  "name": "sampletreatmentactivity",
+  "columns": [
+    {
+      "name": "sampletreatmentactivity_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "date_created",
+      "datatype": "timestamp"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "sample_treatment_method",
+      "datatype": "string"
+    },
+    {
+      "name": "treatment_term_id",
+      "datatype": "string"
+    },
+    {
+      "name": "treatment_term_name",
+      "datatype": "string"
+    },
+    {
+      "name": "amount",
+      "datatype": "float"
+    },
+    {
+      "name": "amount_units",
+      "datatype": "string"
+    },
+    {
+      "name": "duration",
+      "datatype": "float"
+    },
+    {
+      "name": "duration_units",
+      "datatype": "string"
+    },
+    {
+      "name": "sample_treatment_type",
+      "datatype": "string"
+    }
+  ]
+}

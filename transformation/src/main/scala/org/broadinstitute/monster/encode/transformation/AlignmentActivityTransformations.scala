@@ -34,13 +34,13 @@ object AlignmentActivityTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
-      dataModality = rawFile
-        .tryRead[List[String]]("assay_term_name")
-        .getOrElse(List.empty[String])
-        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
+      dataModality =
+        AssayActivityTransformations.getDataModalityFromTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),
-      usedFileId = rawFile.tryRead[List[String]]("derived_from")
-        .getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
+      usedFileId = rawFile
+        .tryRead[List[String]]("derived_from")
+        .getOrElse(List.empty[String])
+        .map(CommonTransformations.transformId(_)),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("lab"))
     )
   }
