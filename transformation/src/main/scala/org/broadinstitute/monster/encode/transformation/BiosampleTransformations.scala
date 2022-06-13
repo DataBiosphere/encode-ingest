@@ -39,6 +39,10 @@ object BiosampleTransformations {
       logger.warn(s"Biosample '$id' has no associated type!")
     }
 
+    val organism_type =
+      biosampleInput.tryRead[String]("organism").map(CommonTransformations.transformId).getOrElse("")
+    val life_stage_attribute = organism_type + "_life_stage"
+
     val rawAge = biosampleInput.tryRead[String]("age")
     val (ageLowerbound, ageUpperbound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
@@ -52,8 +56,7 @@ object BiosampleTransformations {
       donorAgeAtCollectionAgeLowerbound = ageLowerbound,
       donorAgeAtCollectionAgeUpperbound = ageUpperbound,
       donorAgeAtCollectionAgeUnit = biosampleInput.tryRead[String]("age_units"),
-      // applies to non-human organisms
-      donorAgeAtCollectionAgeStage = None,
+      donorAgeAtCollectionAgeStage = biosampleInput.tryRead[String](life_stage_attribute),
       donorAgeAtCollectionAgeCategory = None,
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
