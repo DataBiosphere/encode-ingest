@@ -53,6 +53,7 @@ spec:
               - file
               - library
               - librarypreparationactivity
+              - referencefileset
               - sampletreatmentactivity
               - sequencingactivity
               - stepactivity

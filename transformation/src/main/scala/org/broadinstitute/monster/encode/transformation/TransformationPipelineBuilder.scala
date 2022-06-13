@@ -28,8 +28,11 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     * is called on it.
     */
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
-
     val keyedOrganisms = getKeyedOrganisms(ctx, args.inputPrefix)
+
+    val referenceFileInputs = readRawEntities(EncodeEntity.Reference, ctx, args.inputPrefix)
+    transformReferenceFileSet(args.outputPrefix, keyedOrganisms, referenceFileInputs)
+
     val donorInputs = readRawEntities(EncodeEntity.Donor, ctx, args.inputPrefix)
     transformDonor(args.outputPrefix, keyedOrganisms, donorInputs)
 
@@ -236,6 +239,29 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       antibodyOutput,
       "Antibodies",
       s"${outputPrefix}/antibody"
+    )
+    ()
+  }
+
+  private def transformReferenceFileSet(
+    outputPrefix: String,
+    keyedOrganisms: SCollection[(String, Msg)],
+    referenceInputs: SCollection[Msg]
+  ) = {
+    val referenceFileOutputs = referenceInputs
+      .withName("Key by organism")
+      .keyBy(_.read[String]("organism"))
+      .leftOuterJoin(keyedOrganisms)
+      .values
+      .withName("Transform reference file set")
+      .map {
+        case (referenceFileSet, organism) =>
+          ReferenceFileSetTransformations.transformReferenceFileSet(referenceFileSet, organism)
+      }
+    StorageIO.writeJsonLists(
+      referenceFileOutputs,
+      "ReferenceFileSet",
+      s"${outputPrefix}/referencefileset"
     )
     ()
   }
