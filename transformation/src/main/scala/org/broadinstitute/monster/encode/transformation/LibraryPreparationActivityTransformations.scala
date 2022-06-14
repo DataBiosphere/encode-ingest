@@ -10,7 +10,10 @@ object LibraryPreparationActivityTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw ENCODE library preparation activity into our preferred schema. */
-  def transformLibraryPreparationActivity(libraryInput: Msg): Librarypreparationactivity = {
+  def transformLibraryPreparationActivity(
+    libraryInput: Msg,
+    experiment: Option[Msg]
+  ): Librarypreparationactivity = {
     val id = CommonTransformations.readId(libraryInput)
 
     Librarypreparationactivity(
@@ -20,7 +23,11 @@ object LibraryPreparationActivityTransformations {
       lab = CommonTransformations.convertToEncodeUrl(libraryInput.tryRead[String]("lab")),
       generatedLibraryId = Some(id),
       usesSampleBiosampleId =
-        CommonTransformations.transformId(libraryInput.read[String]("biosample")) :: List()
+        CommonTransformations.transformId(libraryInput.read[String]("biosample")) :: List(),
+      activityType = Some("librarypreparation"),
+      dataModality = experiment
+        .map(msg => AssayActivityTransformations.getDataModalityFromTerm(msg, "assay_term_name"))
+        .getOrElse(List())
     )
   }
 

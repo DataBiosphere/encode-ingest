@@ -31,11 +31,25 @@
       "type": "required"
     },
     {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
       "name": "data_modality",
       "datatype": "string",
       "type": "repeated"
     },
     {
+      "name": "antibody_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "antibody",
+          "column_name": "antibody_id"
+        }
+      ]
+    },    {
       "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",

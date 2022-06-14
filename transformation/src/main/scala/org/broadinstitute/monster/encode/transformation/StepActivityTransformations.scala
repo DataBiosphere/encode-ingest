@@ -39,7 +39,9 @@ object StepActivityTransformations {
       version = rawStepVersion.read[String]("name"),
       analysisactivityId = pipelineRunId,
       usedFileId = usedFileIds,
-      generatedFileId = generatedFileArray.map(CommonTransformations.readId(_))
+      generatedFileId = generatedFileArray.map(CommonTransformations.readId(_)),
+      activityType = Some("step"),
+      dataModality = List()
     )
   }
 }

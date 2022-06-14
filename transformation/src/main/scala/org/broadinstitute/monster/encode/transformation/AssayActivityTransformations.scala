@@ -25,6 +25,8 @@ object AssayActivityTransformations {
       assayCategory = rawExperiment.tryRead[List[String]]("assay_slims").map(_.head),
       assayType = rawExperiment.read[String]("assay_term_id"),
       dataModality = getDataModalityFromTerm(rawExperiment, "assay_term_name"),
+      antibodyId = List(),
+      activityType = Some("assay"),
       generatedFileId = rawFiles.map(CommonTransformations.readId).toList,
       usesSampleBiosampleId = rawLibraries.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))

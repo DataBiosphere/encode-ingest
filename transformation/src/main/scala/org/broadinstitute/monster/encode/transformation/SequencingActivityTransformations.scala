@@ -37,6 +37,7 @@ object SequencingActivityTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
+      activityType = Some("sequencing"),
       dataModality =
         AssayActivityTransformations.getDataModalityFromTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),

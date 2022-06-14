@@ -30,15 +30,15 @@
       "datatype": "string"
     },
     {
-      "name": "donor_age_at_collection_age_stage",
+      "name": "donor_age_at_collection_life_stage",
       "datatype": "string"
     },
     {
-      "name": "donor_age_at_collection_age_lowerbound",
+      "name": "donor_age_at_collection_lower_bound",
       "datatype": "float"
     },
     {
-      "name": "donor_age_at_collection_age_upperbound",
+      "name": "donor_age_at_collection_upper_bound",
       "datatype": "float"
     },
     {

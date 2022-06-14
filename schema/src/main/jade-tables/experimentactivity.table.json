@@ -30,6 +30,10 @@
       "datatype": "string"
     },
     {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
       "name": "data_modality",
       "datatype": "string",
       "type": "repeated"

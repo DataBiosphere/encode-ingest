@@ -44,7 +44,7 @@ object BiosampleTransformations {
     val life_stage_attribute = organism_type + "_life_stage"
 
     val rawAge = biosampleInput.tryRead[String]("age")
-    val (ageLowerbound, ageUpperbound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
+    val (ageLowerBound, ageUpperBound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
     Biosample(
       biosampleId = id,
@@ -53,10 +53,10 @@ object BiosampleTransformations {
         biosampleInput.read[String]("@id")
       ) :: biosampleInput.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
       dateCreated = biosampleInput.read[OffsetDateTime]("date_created"),
-      donorAgeAtCollectionAgeLowerbound = ageLowerbound,
-      donorAgeAtCollectionAgeUpperbound = ageUpperbound,
+      donorAgeAtCollectionLowerBound = ageLowerBound,
+      donorAgeAtCollectionUpperBound = ageUpperBound,
       donorAgeAtCollectionAgeUnit = biosampleInput.tryRead[String]("age_units"),
-      donorAgeAtCollectionAgeStage = biosampleInput.tryRead[String](life_stage_attribute),
+      donorAgeAtCollectionLifeStage = biosampleInput.tryRead[String](life_stage_attribute),
       donorAgeAtCollectionAgeCategory = None,
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),

@@ -11,8 +11,7 @@ object ExperimentActivityTransformations {
   def transformExperiment(
     experimentId: String,
     rawExperiment: Msg,
-    rawLibraries: Iterable[Msg] //,
-//    fileIdToTypeMap: Map[String, FileType]
+    rawLibraries: Iterable[Msg]
   ): Experimentactivity = {
     val id = CommonTransformations.transformId(experimentId)
     val libraryArray = rawLibraries.toList
@@ -28,6 +27,7 @@ object ExperimentActivityTransformations {
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
       dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
+      activityType = Some("experiment"),
       dataModality =
         AssayActivityTransformations.getDataModalityFromTerm(rawExperiment, "assay_term_name"),
       award = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("award")),

@@ -13,7 +13,7 @@ object DonorTransformations {
   def transformDonor(donorInput: Msg, organism: Option[Msg]): Donor = {
     val id = CommonTransformations.readId(donorInput)
     val rawAge = donorInput.tryRead[String]("age")
-    val (ageLowerbound, ageUpperbound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
+    val (ageLowerBound, ageUpperBound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
     Donor(
       donorId = id,
@@ -22,10 +22,10 @@ object DonorTransformations {
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = donorInput.read[OffsetDateTime]("date_created"),
-      ageAgeLowerbound = ageLowerbound,
-      ageAgeUpperbound = ageUpperbound,
+      ageLowerBound = ageLowerBound,
+      ageUpperBound = ageUpperBound,
       ageAgeUnit = donorInput.tryRead[String]("age_units"),
-      ageAgeStage = donorInput.tryRead[String]("life_stage"),
+      ageLifeStage = donorInput.tryRead[String]("life_stage"),
       ageAgeCategory = None,
       reportedEthnicity =
         donorInput.tryRead[List[String]]("ethnicity").getOrElse(List.empty[String]),

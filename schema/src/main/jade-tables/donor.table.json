@@ -34,15 +34,15 @@
       "datatype": "string"
     },
     {
-      "name": "age_age_stage",
+      "name": "age_life_stage",
       "datatype": "string"
     },
     {
-      "name": "age_age_lowerbound",
+      "name": "age_lower_bound",
       "datatype": "float"
     },
     {
-      "name": "age_age_upperbound",
+      "name": "age_upper_bound",
       "datatype": "float"
     },
     {

@@ -64,8 +64,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val geneticModsInputs = readRawEntities(EncodeEntity.GeneticModification, ctx, args.inputPrefix)
     val geneticModsByBiosample = getGeneticModsByBiosample(geneticModsInputs)
 
-    transformLibraryPreparationActivity(args.outputPrefix, libraryInputs)
-
     transformBiosample(
       args.outputPrefix,
       biosamplesWithTypes,
@@ -107,6 +105,10 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     // Experiments join against both replicates and libraries
     val replicateInputs = readRawEntities(EncodeEntity.Replicate, ctx, args.inputPrefix)
     val librariesByExperiment = getLibrariesByExperiment(libraryInputs, replicateInputs)
+    val experimentByLibrary =
+      getExperimentByLibrary(libraryInputs, replicateInputs, experimentInputs)
+
+    transformLibraryPreparationActivity(args.outputPrefix, libraryInputs, experimentByLibrary)
 
     // Get analysis step objects
     val stepRunInfo: SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])] =
@@ -180,11 +182,23 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
   private def transformLibraryPreparationActivity(
     outputPrefix: String,
-    libraryInputs: SCollection[Msg]
+    libraryInputs: SCollection[Msg],
+    experimentByLibrary: SCollection[(String, Msg)]
   ) = {
-    val libraryPrepOutput = libraryInputs
+    val keyedLibrary = libraryInputs
+      .withName("Keyed libraries")
+      .keyBy(_.read[String]("@id"))
+    val libraryPrepOutput = keyedLibrary
       .withName("Transform library preparation activity")
-      .map(LibraryPreparationActivityTransformations.transformLibraryPreparationActivity)
+      .leftOuterJoin(experimentByLibrary)
+      .values
+      .map {
+        case (library, maybeExperiment) =>
+          LibraryPreparationActivityTransformations.transformLibraryPreparationActivity(
+            library,
+            maybeExperiment
+          )
+      }
     StorageIO.writeJsonLists(
       libraryPrepOutput,
       "LibraryPreparationActivity",
@@ -350,10 +364,46 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ()
   }
 
+  private def getExperimentByLibrary(
+    libraryInputs: SCollection[Msg],
+    replicateInputs: SCollection[Msg],
+    experimentInputs: SCollection[Msg]
+  ): SCollection[(String, Msg)] = {
+    val replicatedByLibraryId = replicateInputs
+      .withName("Key replicates by library")
+      .keyBy(_.read[String]("library"))
+    val keyedLibraries = libraryInputs
+      .withName("Key libraries by ID")
+      .keyBy(_.read[String]("@id"))
+
+    val libraryByReplicatedId = replicatedByLibraryId
+      .withName("Join replicates and libraries")
+      .leftOuterJoin(keyedLibraries)
+      .values
+      .flatMap {
+        case (replicate, maybeLibrary) =>
+          maybeLibrary.map(library => (replicate.read[String]("@id") -> library))
+      }
+
+    val experimentByReplicateId = experimentInputs
+      .withName("key experiments by replicate")
+      .keyBy(_.read[List[String]]("replicates"))
+      .flatMap(entry => entry._1.map(item => item -> entry._2))
+
+    experimentByReplicateId
+      .withName("Joind experiments and libraries")
+      .leftOuterJoin(libraryByReplicatedId)
+      .values
+      .flatMap {
+        case (experiment, maybeLibrary) =>
+          maybeLibrary.map(library => (library.read[String]("@id") -> experiment))
+      }
+  }
+
   private def getLibrariesByExperiment(
     libraryInputs: SCollection[Msg],
     replicateInputs: SCollection[Msg]
-  ) = {
+  ): SCollection[(String, Iterable[Msg])] = {
 
     val keyedReplicates = replicateInputs
       .withName("Key replicates by library")

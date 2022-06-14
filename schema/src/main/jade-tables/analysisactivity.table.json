@@ -17,6 +17,15 @@
       "type": "repeated"
     },
     {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "analysis_type",
       "datatype": "string"
     },

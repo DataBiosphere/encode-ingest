@@ -34,9 +34,11 @@ object AlignmentActivityTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
+      activityType = Some("alignment"),
       dataModality =
         AssayActivityTransformations.getDataModalityFromTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),
+      referenceAssembly = rawFile.tryRead[String]("assembly"),
       usedFileId = rawFile
         .tryRead[List[String]]("derived_from")
         .getOrElse(List.empty[String])
