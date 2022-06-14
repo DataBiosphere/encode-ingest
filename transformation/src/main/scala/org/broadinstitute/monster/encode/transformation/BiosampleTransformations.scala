@@ -47,13 +47,6 @@ object BiosampleTransformations {
     val rawAge = biosampleInput.tryRead[String]("age")
     val (ageLowerBound, ageUpperBound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
-    val introducedTags = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags")).flatten
-    val tagMsgs = introducedTags.map(JsonParser.parseEncodedJson)
-
-    val RVDSequencePairs =
-      geneticMods.flatMap(_.tryRead[List[String]]("RVD_sequence_pairs")).flatten
-    val rvdMsgs = RVDSequencePairs.map(JsonParser.parseEncodedJson)
-
     Biosample(
       biosampleId = id,
       label = id,
@@ -144,17 +137,16 @@ object BiosampleTransformations {
       guideType = getMergedGeneticModStringAttribute("guild_type"),
       introducedSequence = getMergedGeneticModStringAttribute("introduced_sequence"),
       introducedGene = getMergedGeneticModStringAttribute("introduced_gene"),
-      introducedTagsName = tagMsgs.map(_.read[String]("name")).toList,
-      introducedTagsLocation = tagMsgs.map(_.read[String]("location")).toList,
-      introducedTagsPromoterUsed =
-        tagMsgs.map(_.tryRead[String]("promoter").getOrElse("None")).toList,
+      introducedTagsName = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "name")).flatten.toList,
+      introducedTagsLocation = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "location")).flatten.toList,
+      introducedTagsPromoterUsed = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "promoter")).flatten.toList,
       introducedElementsDonor = getMergedGeneticModStringAttribute("introduced_elements_donor"),
       introducedElementsOrganism =
         getMergedGeneticModStringAttribute("introduced_elements_organism"),
       guideRnaSequence = getMergedGeneticModStringAttribute("guide_rna_sequence"),
       rnaiSequence = getMergedGeneticModStringAttribute("rnai_seqeunce"),
-      leftRvdSequence = rvdMsgs.map(_.read[String]("left_RVD_sequence")).toList,
-      rightRvdSequence = rvdMsgs.map(_.read[String]("right_RVD_sequence")).toList,
+      leftRvdSequence = geneticMods.flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "left_RVD_sequence")).flatten.toList,
+      rightRvdSequence = geneticMods.flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "right_RVD_sequence")).flatten.toList,
       document = getMergedGeneticModStringAttribute("documents"),
       treatment = getMergedGeneticModStringAttribute("treatments"),
       zygosity = getMergedGeneticModStringAttribute("zygosity"),
