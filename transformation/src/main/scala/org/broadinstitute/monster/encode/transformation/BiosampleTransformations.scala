@@ -4,7 +4,6 @@ import java.time.{LocalDate, OffsetDateTime}
 import org.broadinstitute.monster.encode.jadeschema.table.Biosample
 import org.slf4j.LoggerFactory
 import upack.Msg
-import org.broadinstitute.monster.common.msg.JsonParser
 
 /** Transformation logic for ENCODE biosample objects. */
 object BiosampleTransformations {
@@ -137,16 +136,25 @@ object BiosampleTransformations {
       guideType = getMergedGeneticModStringAttribute("guild_type"),
       introducedSequence = getMergedGeneticModStringAttribute("introduced_sequence"),
       introducedGene = getMergedGeneticModStringAttribute("introduced_gene"),
-      introducedTagsName = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "name")).flatten.toList,
-      introducedTagsLocation = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "location")).flatten.toList,
-      introducedTagsPromoterUsed = geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "promoter")).flatten.toList,
+      introducedTagsName =
+        geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "name")).flatten.toList,
+      introducedTagsLocation =
+        geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "location")).flatten.toList,
+      introducedTagsPromoterUsed =
+        geneticMods.flatMap(_.tryRead[List[String]]("introduced_tags", "promoter")).flatten.toList,
       introducedElementsDonor = getMergedGeneticModStringAttribute("introduced_elements_donor"),
       introducedElementsOrganism =
         getMergedGeneticModStringAttribute("introduced_elements_organism"),
       guideRnaSequence = getMergedGeneticModStringAttribute("guide_rna_sequence"),
       rnaiSequence = getMergedGeneticModStringAttribute("rnai_seqeunce"),
-      leftRvdSequence = geneticMods.flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "left_RVD_sequence")).flatten.toList,
-      rightRvdSequence = geneticMods.flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "right_RVD_sequence")).flatten.toList,
+      leftRvdSequence = geneticMods
+        .flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "left_RVD_sequence"))
+        .flatten
+        .toList,
+      rightRvdSequence = geneticMods
+        .flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "right_RVD_sequence"))
+        .flatten
+        .toList,
       document = getMergedGeneticModStringAttribute("documents"),
       treatment = getMergedGeneticModStringAttribute("treatments"),
       zygosity = getMergedGeneticModStringAttribute("zygosity"),
