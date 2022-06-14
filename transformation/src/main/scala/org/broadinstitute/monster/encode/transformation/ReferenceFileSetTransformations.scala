@@ -28,12 +28,12 @@ object ReferenceFileSetTransformations {
         .map(msg => msg.read[String]("scientific_name")),
       elementsSelectionMethod =
         referencesInput.tryRead[List[String]]("elements_selection_method").getOrElse(List()),
-      examinedLoci = referencesInput.read[List[String]]("examined_loci"),
-      examinedRegion = referencesInput.read[List[String]]("examined_region"),
+      examinedLoci = referencesInput.tryRead[List[String]]("examined_loci").getOrElse(List()),
+      examinedRegion = referencesInput.tryRead[List[String]]("examined_region").getOrElse(List()),
       lab = CommonTransformations.convertToEncodeUrl(referencesInput.tryRead[String]("lab")),
       referenceType = referencesInput.tryRead[String]("reference_type"),
-      references = referencesInput.read[List[String]]("references"),
-      softwareUsed = referencesInput.read[List[String]]("software_used"),
+      references = referencesInput.tryRead[List[String]]("references").getOrElse(List()),
+      softwareUsed = referencesInput.tryRead[List[String]]("software_used").getOrElse(List()),
       donorId = referencesInput
         .tryRead[List[String]]("donor")
         .getOrElse(List.empty[String])
