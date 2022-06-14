@@ -120,7 +120,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     // biosamples are the first one and follow a different pattern, so we don't use the generic method
     val biosamples = extractEntities(
       EncodeEntity.Biosample,
-      ctx.withName("Inject initial query").parallelize(List()),
+      ctx.withName("Inject initial query").parallelize(args.initialQuery),
       Nil
     )
 

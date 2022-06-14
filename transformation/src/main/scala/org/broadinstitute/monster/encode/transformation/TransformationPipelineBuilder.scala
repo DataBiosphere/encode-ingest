@@ -264,7 +264,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   ) = {
     val referenceFileOutputs = referenceInputs
       .withName("Key by organism")
-      .keyBy(_.read[String]("organism"))
+      .keyBy(_.tryRead[String]("organism").getOrElse(""))
       .leftOuterJoin(keyedOrganisms)
       .values
       .withName("Transform reference file set")
