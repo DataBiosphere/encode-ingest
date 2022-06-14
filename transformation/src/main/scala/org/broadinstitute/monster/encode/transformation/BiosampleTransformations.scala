@@ -103,8 +103,11 @@ object BiosampleTransformations {
       geneticModType = getMergedGeneticModStringAttribute("purpose ")
         ::: getMergedGeneticModStringAttribute("category"),
       geneticModMethod = getMergedGeneticModStringAttribute("method"),
-      nucleicAcidDeliveryMethod =
-        getMergedGeneticModStringAttribute("nucleic_acid_delivery_method"),
+      nucleicAcidDeliveryMethod = geneticMods
+        .flatMap(_.tryRead[List[String]]("nucleic_acid_delivery_method"))
+        .flatten
+        .toSet
+        .toList,
       modifiedSiteByTarget = CommonTransformations.convertToEncodeUrl(
         getMergedGeneticModStringAttribute("modified_site_by_target_id")
       ),
