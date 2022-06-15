@@ -19,17 +19,17 @@ object ReferenceFileSetTransformations {
       ) :: referencesInput
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
-      referenceAssembly =
-        referencesInput.tryRead[List[String]]("reference_assembly").getOrElse(List()),
+      referenceAssembly = referencesInput.tryRead[List[String]]("assembly").getOrElse(List()),
       description = referencesInput.tryRead[String]("description"),
       document = referencesInput.tryRead[List[String]]("document").getOrElse(List()),
-      doid = referencesInput.tryRead[String]("diod"),
+      doid = referencesInput.tryRead[String]("doi"),
       organism = organism
         .map(msg => msg.read[String]("scientific_name")),
       elementsSelectionMethod =
         referencesInput.tryRead[List[String]]("elements_selection_method").getOrElse(List()),
       examinedLoci = referencesInput.tryRead[List[String]]("examined_loci").getOrElse(List()),
-      examinedRegion = referencesInput.tryRead[List[String]]("examined_region").getOrElse(List()),
+      examinedRegion =
+        List(), //referencesInput.tryRead[List[String]]("examined_regions").getOrElse(List()),
       lab = CommonTransformations.convertToEncodeUrl(referencesInput.tryRead[String]("lab")),
       referenceType = referencesInput.tryRead[String]("reference_type"),
       references = referencesInput.tryRead[List[String]]("references").getOrElse(List()),
