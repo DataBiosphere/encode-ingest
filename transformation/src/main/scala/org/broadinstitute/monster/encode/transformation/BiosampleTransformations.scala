@@ -23,6 +23,10 @@ object BiosampleTransformations {
       geneticMods.map(_.tryRead[String](attribute)).flatten.toSet.toList
     }
 
+    def getMergedGeneticModStringListAttribute(attribute: String) = {
+      geneticMods.flatMap(_.tryRead[List[String]](attribute)).flatten.toSet.toList
+    }
+
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(biosampleInput)
     val id = CommonTransformations.readId(biosampleInput)
     val partNumbers = joinedLibraries
@@ -103,11 +107,8 @@ object BiosampleTransformations {
       geneticModType = getMergedGeneticModStringAttribute("purpose ")
         ::: getMergedGeneticModStringAttribute("category"),
       geneticModMethod = getMergedGeneticModStringAttribute("method"),
-      nucleicAcidDeliveryMethod = geneticMods
-        .flatMap(_.tryRead[List[String]]("nucleic_acid_delivery_method"))
-        .flatten
-        .toSet
-        .toList,
+      nucleicAcidDeliveryMethod =
+        getMergedGeneticModStringAttribute("nucleic_acid_delivery_method"),
       modifiedSiteByTarget = CommonTransformations.convertToEncodeUrl(
         getMergedGeneticModStringAttribute("modified_site_by_target_id")
       ),
@@ -133,7 +134,7 @@ object BiosampleTransformations {
       modifiedSiteByCoordinatesEnd =
         geneticMods.map(_.tryRead[Long]("modified_site_by_coordinates", "end")).flatten.toSet.toList,
       introducedElements = getMergedGeneticModStringAttribute("introduced_elements"),
-      guideType = getMergedGeneticModStringAttribute("guild_type"),
+      guideType = getMergedGeneticModStringAttribute("guide_type"),
       introducedSequence = getMergedGeneticModStringAttribute("introduced_sequence"),
       introducedGene = getMergedGeneticModStringAttribute("introduced_gene"),
       introducedTagsName = List(),
@@ -145,8 +146,8 @@ object BiosampleTransformations {
       introducedElementsDonor = getMergedGeneticModStringAttribute("introduced_elements_donor"),
       introducedElementsOrganism =
         getMergedGeneticModStringAttribute("introduced_elements_organism"),
-      guideRnaSequence = getMergedGeneticModStringAttribute("guide_rna_sequence"),
-      rnaiSequence = getMergedGeneticModStringAttribute("rnai_seqeunce"),
+      guideRnaSequence = getMergedGeneticModStringListAttribute("guide_rna_sequences"),
+      rnaiSequence = getMergedGeneticModStringListAttribute("rnai_seqeunces"),
       leftRvdSequence = List(),
 //      geneticMods
 //        .flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "left_RVD_sequence"))
@@ -157,11 +158,13 @@ object BiosampleTransformations {
 //        .flatMap(_.tryRead[List[String]]("RVD_sequence_pairs", "right_RVD_sequence"))
 //        .flatten
 //        .toList,
-      document = getMergedGeneticModStringAttribute("documents"),
-      treatment = getMergedGeneticModStringAttribute("treatments"),
+      document = getMergedGeneticModStringListAttribute("documents")
+        .map(CommonTransformations.convertToEncodeUrl),
+      treatment = getMergedGeneticModStringListAttribute("treatments")
+        .map(CommonTransformations.convertToEncodeUrl),
       zygosity = getMergedGeneticModStringAttribute("zygosity"),
       moi = getMergedGeneticModStringAttribute("MOI"),
-      crisprSystem = getMergedGeneticModStringAttribute("CRISPR_system"),
+      crisprSystem = getMergedGeneticModStringListAttribute("CRISPR_system"),
       casSpecies = getMergedGeneticModStringAttribute("cas_species"),
       description = getMergedGeneticModStringAttribute("description")
     )
