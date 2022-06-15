@@ -39,6 +39,14 @@ object AssayActivityTransformations {
     input.tryRead[String](term).map(transformAssayTermToDataModality).toList
   }
 
+  def getDataModalityFromListTerm(input: Msg, term: String) = {
+    input
+      .tryRead[List[String]](term)
+      .map(list => list.map(transformAssayTermToDataModality))
+      .getOrElse(List())
+
+  }
+
   /**
     * This code will work for assay_term_name and assay_term_title
     */

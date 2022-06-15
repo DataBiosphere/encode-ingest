@@ -161,7 +161,7 @@ object BiosampleTransformations {
       document = getMergedGeneticModStringListAttribute("documents")
         .map(CommonTransformations.convertToEncodeUrl),
       treatment = getMergedGeneticModStringListAttribute("treatments")
-        .map(CommonTransformations.convertToEncodeUrl),
+        .map(CommonTransformations.transformId),
       zygosity = getMergedGeneticModStringAttribute("zygosity"),
       moi = getMergedGeneticModStringAttribute("MOI"),
       crisprSystem = getMergedGeneticModStringListAttribute("CRISPR_system"),

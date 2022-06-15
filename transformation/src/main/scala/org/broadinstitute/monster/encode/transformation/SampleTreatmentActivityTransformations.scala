@@ -10,7 +10,7 @@ object SampleTreatmentActivityTransformations {
   import org.broadinstitute.monster.common.msg.MsgOps
 
   /** Transform a raw ENCODE donor into our preferred schema. */
-  def transformDonor(treatmentInput: Msg): Sampletreatmentactivity = {
+  def transformSampleTreatment(treatmentInput: Msg): Sampletreatmentactivity = {
     val id = CommonTransformations.readId(treatmentInput)
 
     Sampletreatmentactivity(
@@ -23,8 +23,7 @@ object SampleTreatmentActivityTransformations {
         .getOrElse(List.empty[String]),
       dateCreated = Some(treatmentInput.read[OffsetDateTime]("date_created")),
       activityType = Some("sampletreatment"),
-      dataModality =
-        AssayActivityTransformations.getDataModalityFromTerm(treatmentInput, "assay_term_name"),
+      dataModality = List(),
       sampleTreatmentMethod = treatmentInput.tryRead[String]("treatment_type"),
       treatmentTermId = treatmentInput.tryRead[String]("treatment_term_id"),
       treatmentTermName = treatmentInput.tryRead[String]("treatment_term_name"),

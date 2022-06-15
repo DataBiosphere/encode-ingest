@@ -36,7 +36,7 @@ object AlignmentActivityTransformations {
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       activityType = Some("alignment"),
       dataModality =
-        AssayActivityTransformations.getDataModalityFromTerm(rawFile, "assay_term_name"),
+        AssayActivityTransformations.getDataModalityFromListTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       usedFileId = rawFile

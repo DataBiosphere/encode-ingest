@@ -39,7 +39,7 @@ object SequencingActivityTransformations {
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
       activityType = Some("sequencing"),
       dataModality =
-        AssayActivityTransformations.getDataModalityFromTerm(rawFile, "assay_term_name"),
+        AssayActivityTransformations.getDataModalityFromListTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),
       associatedWith = generatedFileIds.sorted,
       usesSampleBiosampleId = rawFile
