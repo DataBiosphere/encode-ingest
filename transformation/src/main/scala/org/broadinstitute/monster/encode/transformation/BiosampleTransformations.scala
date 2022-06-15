@@ -108,7 +108,7 @@ object BiosampleTransformations {
         ::: getMergedGeneticModStringAttribute("category"),
       geneticModMethod = getMergedGeneticModStringAttribute("method"),
       nucleicAcidDeliveryMethod =
-        getMergedGeneticModStringAttribute("nucleic_acid_delivery_method"),
+        getMergedGeneticModStringListAttribute("nucleic_acid_delivery_method"),
       modifiedSiteByTarget = CommonTransformations.convertToEncodeUrl(
         getMergedGeneticModStringAttribute("modified_site_by_target_id")
       ),
