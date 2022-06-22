@@ -133,13 +133,13 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
-    extractEntities(
-      EncodeEntity.File,
-      ctx
-        .withName("All released files")
-        .parallelize(List(List("status" -> "released"))),
-      Nil
-    )
+//    extractEntities(
+//      EncodeEntity.File,
+//      ctx
+//        .withName("All released files")
+//        .parallelize(List(List("status" -> "released"))),
+//      Nil
+//    )
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
@@ -257,8 +257,8 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 
     writeJsonListsGeneric(
       files,
-      "FilteredFiles",
-      s"${args.outputDir}/FileFiltered"
+      EncodeEntity.File.entryName,
+      s"${args.outputDir}/${EncodeEntity.File.entryName}"
     )
 
     val analysisStepRuns = extractLinkedEntities(
