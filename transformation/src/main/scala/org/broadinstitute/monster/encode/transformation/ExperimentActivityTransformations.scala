@@ -26,7 +26,9 @@ object ExperimentActivityTransformations {
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
-      dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted").map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
+      dateSubmitted = rawExperiment
+        .tryRead[LocalDate]("date_submitted")
+        .map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       description = rawExperiment.tryRead[String]("description"),
       activityType = Some("experiment"),
       dataModality =
