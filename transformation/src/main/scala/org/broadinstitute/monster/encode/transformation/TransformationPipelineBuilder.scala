@@ -71,9 +71,6 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       geneticModsByBiosample
     )
 
-    val treatmentInputs = readRawEntities(EncodeEntity.Treatment, ctx, args.inputPrefix)
-    transformTreatments(args.outputPrefix, treatmentInputs);
-
     // Experiments merge two different raw streams
     // Experiments contribute to Assay Activities and Experiment Activities
     val experimentInputs = readRawEntities(EncodeEntity.Experiment, ctx, args.inputPrefix)
@@ -107,25 +104,53 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Experiments join against both replicates and libraries
     val replicateInputs = readRawEntities(EncodeEntity.Replicate, ctx, args.inputPrefix)
+    val replicatesByExperiment = replicateInputs
+      .withName("Key replicates by experiment")
+      .keyBy(_.read[String]("experiment"))
+      .groupByKey
+
+    val replicatesByLibraryId = replicateInputs
+      .withName("Key replicates by library")
+      .keyBy(_.read[String]("library"))
+
     val librariesByExperiment = getLibrariesByExperiment(libraryInputs, replicateInputs)
     val experimentByLibrary =
-      getExperimentByLibrary(libraryInputs, replicateInputs, experimentInputs)
+      getExperimentByLibrary(libraryInputs, replicatesByLibraryId, experimentInputs)
+
+    val experimentByTreatment = getExperimentByTreatment(
+      experimentsById,
+      librariesByExperiment,
+      getBiosampleByLibraryId(biosampleInputs, librariesByBiosample)
+    )
+    val treatmentInputs = readRawEntities(EncodeEntity.Treatment, ctx, args.inputPrefix)
+    transformSampleTreatments(args.outputPrefix, treatmentInputs, experimentByTreatment);
 
     transformLibraryPreparationActivity(args.outputPrefix, libraryInputs, experimentByLibrary)
 
     // Get analysis step objects
-    val stepRunInfo: SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])] =
+    val stepRunInfoByExperimentId: SCollection[(String, (((Msg, Msg), Msg), Option[Iterable[Msg]]))] =
       getStepRunInfo(fileInputs, ctx, args.inputPrefix)
-    transformStepActivity(args.outputPrefix, stepRunInfo)
+    transformStepActivity(args.outputPrefix, stepRunInfoByExperimentId, experimentsById)
 
     // Transform pipeline runs
     val pipelinesById = readRawEntities(EncodeEntity.Pipeline, ctx, args.inputPrefix)
       .withName("Key pipelines by ID")
       .keyBy(_.read[String]("@id"))
 
-    transformAnalysisActivity(args.outputPrefix, stepRunInfo, pipelinesById)
-    transformAssayActivity(args.outputPrefix, fileInputs, experimentsById, librariesByExperiment)
-    transformExperiment(args.outputPrefix, experimentsById, librariesByExperiment)
+    transformAnalysisActivity(args.outputPrefix, stepRunInfoByExperimentId.values, pipelinesById)
+    transformAssayActivity(
+      args.outputPrefix,
+      fileInputs,
+      experimentsById,
+      replicatesByExperiment,
+      librariesByExperiment
+    )
+    transformExperiment(
+      args.outputPrefix,
+      experimentsById,
+      replicatesByExperiment,
+      librariesByExperiment
+    )
     ()
   }
 
@@ -165,12 +190,47 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ()
   }
 
-  private def transformTreatments(
-    outputPrefix: String,
-    treatments: SCollection[Msg]
+  private def getExperimentByTreatment(
+    experimentsById: SCollection[(String, Msg)],
+    librariesByExpId: SCollection[(String, Iterable[Msg])],
+    bioSampleByLibraryId: SCollection[(String, Msg)]
   ) = {
-    val treatmentOutputs =
-      treatments.map(SampleTreatmentActivityTransformations.transformSampleTreatment)
+    experimentsById
+      .withName("exp by libraryId")
+      .join(librariesByExpId)
+      .values
+      .flatMap {
+        case (experiment, libraries) =>
+          libraries.map(library => library -> experiment)
+      }
+      .withName("key by library id")
+      .keyBy(_._1.read[String]("@id"))
+      .join(bioSampleByLibraryId)
+      .values // ((library, experiment), biosample)
+      .flatMap {
+        case ((_, experiment), biosample) =>
+          biosample
+            .tryRead[List[String]]("treatments")
+            .getOrElse(List())
+            .map(_ -> experiment)
+      }
+  }
+
+  private def transformSampleTreatments(
+    outputPrefix: String,
+    treatments: SCollection[Msg],
+    experimentByTreatment: SCollection[(String, Msg)]
+  ) = {
+    val treatmentOutputs = treatments
+      .withName("treatments by id")
+      .keyBy(_.read[String]("@id"))
+      .join(experimentByTreatment)
+      .values
+      .map {
+        case (treatment, experiment) =>
+          SampleTreatmentActivityTransformations.transformSampleTreatment(treatment, experiment)
+      }
+
     StorageIO.writeJsonLists(
       treatmentOutputs,
       "SampleTreatmentActivities",
@@ -184,6 +244,22 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Key libraries by biosample")
       .keyBy(_.read[String]("biosample"))
       .groupByKey
+  }
+
+  private def getBiosampleByLibraryId(
+    biosampleInputs: SCollection[Msg],
+    librariesByBiosample: SCollection[(String, Iterable[Msg])]
+  ) = {
+    biosampleInputs
+      .withName("keyed by id")
+      .keyBy(_.read[String]("@id"))
+      .withName("join with libraries")
+      .leftOuterJoin(librariesByBiosample)
+      .values // (biosample, Option[Iterable[Library]])
+      .flatMap {
+        case (biosample, maybeLibraries) =>
+          maybeLibraries.getOrElse(List()).map(library => library.read[String]("@id") -> biosample)
+      }
   }
 
   private def getGeneticModsByBiosample(geneticMods: SCollection[Msg]) = {
@@ -383,17 +459,14 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
   private def getExperimentByLibrary(
     libraryInputs: SCollection[Msg],
-    replicateInputs: SCollection[Msg],
+    replicatesByLibraryId: SCollection[(String, Msg)],
     experimentInputs: SCollection[Msg]
   ): SCollection[(String, Msg)] = {
-    val replicatedByLibraryId = replicateInputs
-      .withName("Key replicates by library")
-      .keyBy(_.read[String]("library"))
     val keyedLibraries = libraryInputs
       .withName("Key libraries by ID")
       .keyBy(_.read[String]("@id"))
 
-    val libraryByReplicatedId = replicatedByLibraryId
+    val libraryByReplicateId = replicatesByLibraryId
       .withName("Join replicates and libraries")
       .leftOuterJoin(keyedLibraries)
       .values
@@ -409,7 +482,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     experimentByReplicateId
       .withName("Joind experiments and libraries")
-      .leftOuterJoin(libraryByReplicatedId)
+      .leftOuterJoin(libraryByReplicateId)
       .values
       .flatMap {
         case (experiment, maybeLibrary) =>
@@ -445,7 +518,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     fileInputs: SCollection[Msg],
     ctx: ScioContext,
     inputPrefix: String
-  ): SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])] = {
+  ): SCollection[(String, (((Msg, Msg), Msg), Option[Iterable[Msg]]))] = {
     val analysisStepRuns = readRawEntities(EncodeEntity.AnalysisStepRun, ctx, inputPrefix)
     val analysisStepVersionsById =
       readRawEntities(EncodeEntity.AnalysisStepVersion, ctx, inputPrefix)
@@ -462,6 +535,13 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       }
       .groupByKey
 
+    val experimentIdByStepRun = fileInputs
+      .withName("Key stepRunIds by ExperimentId")
+      .flatMap { file =>
+        for (stepRunId <- file.tryRead[String]("step_run"))
+          yield stepRunId -> file.read[String]("dataset")
+      }
+
     // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files.
     // They will be used in both the StepRun and PipelineRun transformations.
     analysisStepRuns
@@ -475,25 +555,33 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .values // tuple of the format ((stepRun, stepVersion), step)
       .withName("Key step runs by step run ID")
       .keyBy(_._1._1.read[String]("@id"))
-      .leftOuterJoin(filesByStepRun)
-      .values // tuple of the format ((stepRun, stepVersion), step), generatedFiles)
+      .leftOuterJoin(filesByStepRun) // (stepRunId, (((stepRun, stepVersion), step), generatedFiles)
+      .withName("key step run info by experimentid")
+      .join(experimentIdByStepRun)
+      .values // tuple of the format (((stepRun, stepVersion), step), generatedFiles), experimentId)
+      .map { info => info._2 -> info._1 }
 
   }
 
   private def transformStepActivity(
     outputPrefix: String,
-    stepRunInfo: SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])]
+//    stepRunInfo: SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])],
+    stepRunInfoByExperimentId: SCollection[(String, (((Msg, Msg), Msg), Option[Iterable[Msg]]))],
+    experimentById: SCollection[(String, Msg)]
   ) = {
 
     // Transform step runs
-    val stepRunOutput = stepRunInfo
-      .withName("Transform step runs")
+    val stepRunOutput = stepRunInfoByExperimentId
+      .withName("Step run with expermiment")
+      .leftOuterJoin(experimentById)
+      .values
       .map {
-        case (((stepRun, stepVersion), step), generatedFiles) =>
+        case ((((stepRun, stepVersion), step), generatedFiles), rawExperiment) =>
           StepActivityTransformations.transformStepActivity(
             stepRun,
             stepVersion,
             step,
+            rawExperiment,
             generatedFiles.toIterable.flatten
           )
       }
@@ -549,6 +637,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     outputPrefix: String,
     fileInputs: SCollection[Msg],
     experimentsById: SCollection[(String, Msg)],
+    replicatesByExperiment: SCollection[(String, Iterable[Msg])],
     librariesByExperiment: SCollection[(String, Iterable[Msg])]
   ) = {
     val filesByExperiment = fileInputs
@@ -557,21 +646,25 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .groupByKey
 
     val assayActivityOutput = experimentsById
-      .withName("Transform Assay Activities")
+      .withName("Join files by experiment")
       .leftOuterJoin(
         filesByExperiment
       ) // tuple of format (expId, (experiment, Option[Iterable[file]]))
+      .withName("With Replicates")
+      .leftOuterJoin(
+        replicatesByExperiment
+      ) // (expId, ((experiment, Option[I[file]]), Option[I[Replicate]]))
       .withName("With Libraries")
       .leftOuterJoin(
-        (librariesByExperiment)
-      ) // (expId, ((experiment, Option[I[file]]), Option[I[Library]]))
-      .values
-      .withName("With Libraries")
+        librariesByExperiment
+      )
+      .values //((experiment, Option[I[file]]), Option[I[Replicate]]), Option[I[Library]])
       .map {
-        case ((rawExperiment, rawFiles), rawLibraries) =>
+        case (((rawExperiment, rawFiles), rawReplicates), rawLibraries) =>
           AssayActivityTransformations.transformAssayActivity(
             rawExperiment,
             rawFiles.toIterable.flatten,
+            rawReplicates.toIterable.flatten,
             rawLibraries.toIterable.flatten
           )
       }
@@ -608,18 +701,21 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   private def transformExperiment(
     outputPrefix: String,
     experimentsById: SCollection[(String, Msg)],
+    replicatesByExperiment: SCollection[(String, Iterable[Msg])],
     librariesByExperiment: SCollection[(String, Iterable[Msg])]
   ) = {
     val experimentOutput = experimentsById
-      .withName("Join experiments and libraries")
+      .withName("Join experiments and replicates")
+      .leftOuterJoin(replicatesByExperiment)
+      .withName("Join libraries")
       .leftOuterJoin(librariesByExperiment)
-      //      .values
       .withName("Transform experiments")
       .map {
-        case (experimentId, (rawExperiment, rawLibraries)) =>
+        case (experimentId, ((rawExperiment, rawReplicates), rawLibraries)) =>
           ExperimentActivityTransformations.transformExperiment(
             experimentId,
             rawExperiment,
+            rawReplicates.toIterable.flatten,
             rawLibraries.toIterable.flatten
           )
       }

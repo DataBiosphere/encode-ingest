@@ -12,6 +12,7 @@ object StepActivityTransformations {
     rawStepRun: Msg,
     rawStepVersion: Msg,
     rawStep: Msg,
+    rawExperiment: Option[Msg],
     rawGeneratedFiles: Iterable[Msg]
   ): Stepactivity = {
 
@@ -41,7 +42,9 @@ object StepActivityTransformations {
       usedFileId = usedFileIds,
       generatedFileId = generatedFileArray.map(CommonTransformations.readId(_)),
       activityType = Some("step"),
-      dataModality = List()
+      dataModality = rawExperiment
+        .map(AssayActivityTransformations.getDataModalityFromTerm(_, "assay_term_name"))
+        .getOrElse(List())
     )
   }
 }

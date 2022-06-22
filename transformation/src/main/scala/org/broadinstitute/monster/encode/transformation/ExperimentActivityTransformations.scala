@@ -1,6 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
-import java.time.{LocalDate, OffsetDateTime}
+import java.time.OffsetDateTime
 import org.broadinstitute.monster.encode.jadeschema.table.Experimentactivity
 import upack.Msg
 
@@ -11,6 +11,7 @@ object ExperimentActivityTransformations {
   def transformExperiment(
     experimentId: String,
     rawExperiment: Msg,
+    rawReplicates: Iterable[Msg],
     rawLibraries: Iterable[Msg]
   ): Experimentactivity = {
     val id = CommonTransformations.transformId(experimentId)
@@ -25,7 +26,7 @@ object ExperimentActivityTransformations {
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
-      dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
+      dateSubmitted = rawExperiment.tryRead[OffsetDateTime]("date_submitted"),
       description = rawExperiment.tryRead[String]("description"),
       activityType = Some("experiment"),
       dataModality =
@@ -48,11 +49,14 @@ object ExperimentActivityTransformations {
       usesSampleBiosampleId = libraryArray.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.sorted.distinct,
-      antibodyId = libraryArray.flatMap {
-        _.tryRead[Array[String]]("antibodies")
-          .getOrElse(Array.empty)
-          .map(CommonTransformations.transformId)
-      }.sorted.distinct,
+      antibodyId = rawReplicates
+        .flatMap(
+          _.tryRead[String]("antibody")
+            .map(CommonTransformations.transformId)
+        )
+        .toList
+        .sorted
+        .distinct,
       libraryId = libraryArray.map(CommonTransformations.readId).sorted
     )
   }
