@@ -135,8 +135,10 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 
     extractEntities(
       EncodeEntity.File,
-      ctx.withName("All released files")
-        .parallelize(List(List("status" -> "released")))
+      ctx
+        .withName("All released files")
+        .parallelize(List(List("status" -> "released"))),
+      Nil
     )
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.

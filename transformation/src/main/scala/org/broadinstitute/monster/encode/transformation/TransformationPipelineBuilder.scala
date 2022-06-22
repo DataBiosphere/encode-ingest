@@ -169,7 +169,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     outputPrefix: String,
     treatments: SCollection[Msg]
   ) = {
-    val treatmentOutputs = treatments.map(SampleTreatmentActivityTransformations.transformSampleTreatment)
+    val treatmentOutputs =
+      treatments.map(SampleTreatmentActivityTransformations.transformSampleTreatment)
     StorageIO.writeJsonLists(
       treatmentOutputs,
       "SampleTreatmentActivities",
