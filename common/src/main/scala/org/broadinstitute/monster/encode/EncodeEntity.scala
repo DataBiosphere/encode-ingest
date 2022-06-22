@@ -47,5 +47,7 @@ object EncodeEntity extends Enum[EncodeEntity] {
 
   case object Reference extends EncodeEntity
 
+  case object Treatment extends EncodeEntity
+
   override def values: immutable.IndexedSeq[EncodeEntity] = findValues
 }

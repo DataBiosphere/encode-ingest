@@ -133,6 +133,12 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
+    extractEntities(
+      EncodeEntity.File,
+      ctx.withName("All released files")
+        .parallelize(List(List("status" -> "released")))
+    )
+
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
@@ -162,6 +168,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.GeneticModification,
       targetField = "biosamples_modified"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "treatment",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.Treatment,
+      targetField = "@id"
     )
 
     val libraries = extractLinkedEntities(
