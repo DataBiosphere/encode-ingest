@@ -1,6 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
-import java.time.{LocalDate, OffsetDateTime}
+import java.time.{LocalDate, OffsetDateTime, ZoneOffset}
 import org.broadinstitute.monster.encode.jadeschema.table.Biosample
 import org.slf4j.LoggerFactory
 import upack.Msg
@@ -63,7 +63,7 @@ object BiosampleTransformations {
       donorAgeAtCollectionLifeStage = biosampleInput.tryRead[String](life_stage_attribute),
       donorAgeAtCollectionAgeCategory = None,
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
-      dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained"),
+      dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained").map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       partOfDatasetId = Some("ENCODE"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),

@@ -1,6 +1,6 @@
 package org.broadinstitute.monster.encode.transformation
 
-import java.time.{LocalDate, OffsetDateTime}
+import java.time.{LocalDate, OffsetDateTime, ZoneOffset}
 import org.broadinstitute.monster.encode.jadeschema.table.Experimentactivity
 import upack.Msg
 
@@ -25,7 +25,7 @@ object ExperimentActivityTransformations {
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
-      dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted"),
+      dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted").map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       description = rawExperiment.tryRead[String]("description"),
       activityType = Some("experiment"),
       dataModality =
