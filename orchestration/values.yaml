@@ -5,10 +5,10 @@ cron:
   timezone: 'America/New_York'
 dataflow:
   region: us-west1
-  workerMachineType: m1-ultramem-40
+  workerMachineType: n1-standard-1
   autoscaling:
-    minWorkers: 4
-    maxWorkers: 8
+    minWorkers: 8
+    maxWorkers: 24
 volumes:
   storageClass: standard
 argoTemplates:
