@@ -257,8 +257,8 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 
     writeJsonListsGeneric(
       files,
-      EncodeEntity.File.entryName,
-      s"${args.outputDir}/${EncodeEntity.File.entryName}"
+      "FileMetadata",
+      s"${args.outputDir}/FileMetadata"
     )
 
     val analysisStepRuns = extractLinkedEntities(
