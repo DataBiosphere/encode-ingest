@@ -23,7 +23,7 @@
     },
     {
       "name": "date_submitted",
-      "datatype": "date"
+      "datatype": "timestamp"
     },
     {
       "name": "description",

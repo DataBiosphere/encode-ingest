@@ -47,7 +47,7 @@
     },
     {
       "name": "date_obtained",
-      "datatype": "date"
+      "datatype": "timestamp"
     },
     {
       "name": "part_of_dataset_id",
