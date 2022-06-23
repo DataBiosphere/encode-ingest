@@ -14,7 +14,14 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ctx: ScioContext,
     inputPrefix: String
   ): SCollection[Msg] = {
-    val name = entityType.entryName
+    readRawEntities(ctx, inputPrefix, entityType.entryName)
+  }
+
+  def readRawEntities(
+    ctx: ScioContext,
+    inputPrefix: String,
+    name: String
+  ): SCollection[Msg] = {
     StorageIO
       .readJsonLists(ctx, name, s"${inputPrefix}/$name/*.json")
       .withName(s"Strip unknown values from '$name' objects")
@@ -81,7 +88,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment, ctx, args.inputPrefix)
 
     // Files are more complicated.
-    val fileInputs = readRawEntities(EncodeEntity.File, ctx, args.inputPrefix)
+    val fileInputs = readRawEntities(ctx, args.inputPrefix, "FileMetadata")
 
     val experimentsById = experimentInputs
       .withName("Merge experiments")
