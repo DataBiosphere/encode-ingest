@@ -6,7 +6,7 @@ import com.spotify.scio.transforms.ScalaAsyncLookupDoFn
 import com.spotify.scio.values.SCollection
 import org.apache.beam.sdk.transforms.ParDo
 import org.broadinstitute.monster.common.PipelineBuilder
-import org.broadinstitute.monster.common.StorageIO.writeJsonListsGeneric
+import org.broadinstitute.monster.common.StorageIO.{writeJsonListsGeneric, writeListsCommon}
 import org.broadinstitute.monster.common.msg.{MsgOps, UpackMsgCoder}
 import org.broadinstitute.monster.encode.EncodeEntity
 import upack._
@@ -245,6 +245,8 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
           List.concat(inputFiles, outputFiles)
         }
         .distinct
+
+      writeListsCommon(allFileIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
 
       val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
         groupValues(batchSize, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
