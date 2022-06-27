@@ -29,7 +29,7 @@ object StepActivityTransformations {
     }
 
     // branch files
-    val generatedFileArray = rawGeneratedFiles.toList
+    val generatedFileArray = rawGeneratedFiles.toSet.toList
     val usedFileIds = generatedFileArray
       .flatMap(_.read[Array[String]]("derived_from").map(CommonTransformations.transformId(_)))
       .distinct

@@ -19,10 +19,9 @@ object AnalysisActivityTransformations {
     val pipelineId = CommonTransformations.readId(rawPipeline)
     val experimentIdAccession = CommonTransformations.transformId(experimentId)
     val pipelineRunId = s"${pipelineId}_${experimentIdAccession}"
-//    val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
 
     // branch files
-    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId).toList
+    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId).toSet.toList.sorted
     val usedFileIds = rawGeneratedFiles
       .flatMap(
         _.tryRead[List[String]]("derived_from")
@@ -32,6 +31,7 @@ object AnalysisActivityTransformations {
           .diff(generatedFileIds)
           .sorted
       )
+      .toSet
       .toList
 
     Analysisactivity(
@@ -46,7 +46,7 @@ object AnalysisActivityTransformations {
       analysisType = rawPipeline.tryRead[String]("title"),
       assayactivityId = experimentIdAccession,
       derivedFromFileId = usedFileIds,
-      generatedFileId = generatedFileIds.sorted
+      generatedFileId = generatedFileIds
     )
   }
 
