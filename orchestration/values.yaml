@@ -7,8 +7,8 @@ dataflow:
   region: us-west1
   workerMachineType: n1-standard-1
   autoscaling:
-    minWorkers: 6
-    maxWorkers: 12
+    minWorkers: 4
+    maxWorkers: 8
 volumes:
   storageClass: standard
 argoTemplates:

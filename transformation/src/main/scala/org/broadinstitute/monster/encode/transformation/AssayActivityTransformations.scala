@@ -12,7 +12,6 @@ object AssayActivityTransformations {
   def transformAssayActivity(
     rawExperiment: Msg,
     rawFiles: Iterable[Msg],
-    rawReplicates: Iterable[Msg],
     rawLibraries: Iterable[Msg]
   ): Assayactivity = {
     val id = CommonTransformations.readId(rawExperiment)
@@ -26,9 +25,7 @@ object AssayActivityTransformations {
       assayCategory = rawExperiment.tryRead[List[String]]("assay_slims").map(_.head),
       assayType = rawExperiment.read[String]("assay_term_id"),
       dataModality = getDataModalityFromTerm(rawExperiment, "assay_term_name"),
-      antibodyId = rawReplicates
-        .flatMap(_.tryRead[String]("antibody").map(CommonTransformations.transformId))
-        .toList,
+      antibodyId = List(),
       activityType = Some("assay"),
       generatedFileId = rawFiles.map(CommonTransformations.readId).toList,
       usesSampleBiosampleId = rawLibraries.map { lib =>
