@@ -296,6 +296,7 @@ object ExtractionPipelineBuilder {
     * out records we don't want to bother extracting.
     */
   val NegativeFileFilters: List[(String, String)] = List(
+    "output_category" -> "reference",
     "restricted" -> "true"
   )
 
