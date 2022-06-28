@@ -63,7 +63,9 @@ object BiosampleTransformations {
       donorAgeAtCollectionLifeStage = biosampleInput.tryRead[String](life_stage_attribute),
       donorAgeAtCollectionAgeCategory = None,
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
-      dateObtained = biosampleInput.tryRead[LocalDate]("date_obtained").map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
+      dateObtained = biosampleInput
+        .tryRead[LocalDate]("date_obtained")
+        .map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       partOfDatasetId = Some("ENCODE"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),

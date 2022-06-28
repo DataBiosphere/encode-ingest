@@ -25,7 +25,9 @@ object ExperimentActivityTransformations {
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = rawExperiment.read[OffsetDateTime]("date_created"),
-      dateSubmitted = rawExperiment.tryRead[LocalDate]("date_submitted").map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
+      dateSubmitted = rawExperiment
+        .tryRead[LocalDate]("date_submitted")
+        .map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       description = rawExperiment.tryRead[String]("description"),
       activityType = Some("experiment"),
       dataModality =
@@ -48,11 +50,7 @@ object ExperimentActivityTransformations {
       usesSampleBiosampleId = libraryArray.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.sorted.distinct,
-      antibodyId = libraryArray.flatMap {
-        _.tryRead[Array[String]]("antibodies")
-          .getOrElse(Array.empty)
-          .map(CommonTransformations.transformId)
-      }.sorted.distinct,
+      antibodyId = List(),
       libraryId = libraryArray.map(CommonTransformations.readId).sorted
     )
   }

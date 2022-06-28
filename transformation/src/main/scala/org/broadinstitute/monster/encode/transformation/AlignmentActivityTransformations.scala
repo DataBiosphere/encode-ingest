@@ -17,7 +17,7 @@ object AlignmentActivityTransformations {
     rawGeneratedFiles: Iterable[Msg]
   ): Alignmentactivity = {
     val fileId = CommonTransformations.readId(rawFile)
-    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toList
+    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toSet.toList
     val dataset = rawFile.tryRead[String]("dataset").map(CommonTransformations.transformId)
     val experimentId = dataset match {
       case None =>

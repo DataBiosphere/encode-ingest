@@ -32,6 +32,7 @@
     {
       "name": "generated_library_id",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "library",

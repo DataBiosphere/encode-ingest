@@ -27,10 +27,10 @@ object AssayActivityTransformations {
       dataModality = getDataModalityFromTerm(rawExperiment, "assay_term_name"),
       antibodyId = List(),
       activityType = Some("assay"),
-      generatedFileId = rawFiles.map(CommonTransformations.readId).toList,
+      generatedFileId = rawFiles.map(CommonTransformations.readId).toSet.toList,
       usesSampleBiosampleId = rawLibraries.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
-      }.toList,
+      }.toSet.toList,
       libraryId = rawLibraries.map(CommonTransformations.readId).toList
     )
   }

@@ -21,7 +21,7 @@ object LibraryPreparationActivityTransformations {
       label = id,
       dateCreated = libraryInput.read[OffsetDateTime]("date_created"),
       lab = CommonTransformations.convertToEncodeUrl(libraryInput.tryRead[String]("lab")),
-      generatedLibraryId = Some(id),
+      generatedLibraryId = id :: List(),
       usesSampleBiosampleId =
         CommonTransformations.transformId(libraryInput.read[String]("biosample")) :: List(),
       activityType = Some("librarypreparation"),
