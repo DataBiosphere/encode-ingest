@@ -133,14 +133,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
-    val fileQuery: List[(String, String)] = List("status" -> "released")
-    val files = extractEntities(
-      EncodeEntity.File,
-      ctx
-        .withName("Initial file querty")
-        .parallelize(List(fileQuery)),
-      List("restricted" -> "true")
-    )
+//    val files = extractEntities(
+//      EncodeEntity.File,
+//      ctx
+//        .withName("Initial file query")
+//        .parallelize(List()),
+//      List("restricted" -> "true")
+//    )
+
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
@@ -170,6 +170,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.GeneticModification,
       targetField = "biosamples_modified"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "treatment",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.Treatment,
+      targetField = "@id"
     )
 
     val libraries = extractLinkedEntities(
@@ -225,32 +233,33 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       targetField = "@id"
     )
 
-    // Extracting files is too complicated to fit into the usual pattern.
-    val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
-    val allFileIds = allExperiments
-      .withName("Extract file IDs")
-      .flatMap { msg =>
-        val inputFiles = msg.read[Array[String]]("contributing_files")
-        val outputFiles = msg.read[Array[String]]("files")
+    // Extracting files is too complicated to fit into the usual pattern
+    val files = {
+      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
+      val allFileIds = allExperiments
+        .withName("Extract file IDs")
+        .flatMap { msg =>
+          val inputFiles = msg.read[Array[String]]("contributing_files")
+          val outputFiles = msg.read[Array[String]]("files")
 
-        List.concat(inputFiles, outputFiles)
+          List.concat(inputFiles, outputFiles)
+        }
+        .distinct
+
+      writeListsCommon(allFileIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
+
+      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
+        groupValues(5000L, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
       }
-      .distinct
 
-    writeListsCommon(allFileIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
+      getEntities(EncodeEntity.File, queryBatches)
+    }
 
-//      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
-//        groupValues(batchSize, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
-//      }
-//
-//      getEntities(EncodeEntity.File, queryBatches)
-//    }
-//
-//    writeJsonListsGeneric(
-//      files,
-//      "File",
-//      s"${args.outputDir}/File"
-//    )
+    writeJsonListsGeneric(
+      files,
+      "File",
+      s"${args.outputDir}/File"
+    )
 
     val analysisStepRuns = extractLinkedEntities(
       sourceEntityType = EncodeEntity.File,

@@ -71,6 +71,9 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       geneticModsByBiosample
     )
 
+    val treatmentInputs = readRawEntities(EncodeEntity.Treatment, ctx, args.inputPrefix)
+    transformTreatments(args.outputPrefix, treatmentInputs);
+
     // Experiments merge two different raw streams
     // Experiments contribute to Assay Activities and Experiment Activities
     val experimentInputs = readRawEntities(EncodeEntity.Experiment, ctx, args.inputPrefix)
@@ -158,6 +161,20 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       biosampleOutput,
       "Biosamples",
       s"${outputPrefix}/biosample"
+    )
+    ()
+  }
+
+  private def transformTreatments(
+    outputPrefix: String,
+    treatments: SCollection[Msg]
+  ) = {
+    val treatmentOutputs =
+      treatments.map(SampleTreatmentActivityTransformations.transformSampleTreatment)
+    StorageIO.writeJsonLists(
+      treatmentOutputs,
+      "SampleTreatmentActivities",
+      s"${outputPrefix}/sampletreatmentactivity"
     )
     ()
   }
