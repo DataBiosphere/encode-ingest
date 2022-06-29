@@ -133,6 +133,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
+    val fileQuery: List[(String, String)] = List("status" -> "released")
+    val files = extractEntities(
+      EncodeEntity.File,
+      ctx
+        .withName("Initial file querty")
+        .parallelize(List(fileQuery)),
+      List("restricted" -> "true")
+    )
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
@@ -218,32 +226,31 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     // Extracting files is too complicated to fit into the usual pattern.
-    val files = {
-      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
-      val allFileIds = allExperiments
-        .withName("Extract file IDs")
-        .flatMap { msg =>
-          val inputFiles = msg.read[Array[String]]("contributing_files")
-          val outputFiles = msg.read[Array[String]]("files")
+    val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
+    val allFileIds = allExperiments
+      .withName("Extract file IDs")
+      .flatMap { msg =>
+        val inputFiles = msg.read[Array[String]]("contributing_files")
+        val outputFiles = msg.read[Array[String]]("files")
 
-          List.concat(inputFiles, outputFiles)
-        }
-        .distinct
-
-      writeListsCommon(allFileIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
-
-      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
-        groupValues(batchSize, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
+        List.concat(inputFiles, outputFiles)
       }
+      .distinct
 
-      getEntities(EncodeEntity.File, queryBatches)
-    }
+    writeListsCommon(allFileIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
 
-    writeJsonListsGeneric(
-      files,
-      "File",
-      s"${args.outputDir}/File"
-    )
+//      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
+//        groupValues(batchSize, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
+//      }
+//
+//      getEntities(EncodeEntity.File, queryBatches)
+//    }
+//
+//    writeJsonListsGeneric(
+//      files,
+//      "File",
+//      s"${args.outputDir}/File"
+//    )
 
     val analysisStepRuns = extractLinkedEntities(
       sourceEntityType = EncodeEntity.File,
