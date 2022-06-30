@@ -241,8 +241,9 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
         .flatMap { msg =>
           val inputFiles = msg.read[Array[String]]("contributing_files")
           val outputFiles = msg.read[Array[String]]("files")
+          val originalFiles = msg.read[Array[String]]("original_files")
 
-          List.concat(inputFiles, outputFiles)
+          List.concat(inputFiles, outputFiles, originalFiles)
         }
         .distinct
 
