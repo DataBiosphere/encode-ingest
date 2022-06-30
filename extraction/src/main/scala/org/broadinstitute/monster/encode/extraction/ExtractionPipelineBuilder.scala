@@ -137,7 +137,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       EncodeEntity.File,
       ctx
         .withName("Initial file query")
-        .parallelize(List()),
+        .parallelize(List(refrenceQuery)),
       List("restricted" -> "true")
     )
 
