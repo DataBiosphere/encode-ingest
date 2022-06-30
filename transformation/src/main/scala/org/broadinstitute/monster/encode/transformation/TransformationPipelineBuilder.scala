@@ -30,6 +30,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
     val keyedOrganisms = getKeyedOrganisms(ctx, args.inputPrefix)
 
+    DatasetTransformations.transformDataset()
+    
     val referenceFileInputs = readRawEntities(EncodeEntity.Reference, ctx, args.inputPrefix)
     transformReferenceFileSet(args.outputPrefix, keyedOrganisms, referenceFileInputs)
 
