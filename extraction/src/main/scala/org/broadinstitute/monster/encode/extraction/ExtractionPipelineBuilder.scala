@@ -174,7 +174,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
-      sourceField = "treatment",
+      sourceField = "treatments",
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.Treatment,
       targetField = "@id"
