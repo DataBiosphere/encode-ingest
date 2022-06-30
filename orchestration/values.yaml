@@ -5,7 +5,7 @@ cron:
   timezone: 'America/New_York'
 dataflow:
   region: us-west1
-  workerMachineType: n1-standard-2
+  workerMachineType: n1-standard-8
   autoscaling:
     minWorkers: 4
     maxWorkers: 8
