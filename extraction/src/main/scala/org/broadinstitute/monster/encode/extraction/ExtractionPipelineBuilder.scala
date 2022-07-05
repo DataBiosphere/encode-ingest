@@ -92,7 +92,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       writeJsonListsGeneric(
         out,
         outputName,
-        s"${args.outputDir}/outputName"
+        s"${args.outputDir}/${outputName}"
       )
       out
     }
