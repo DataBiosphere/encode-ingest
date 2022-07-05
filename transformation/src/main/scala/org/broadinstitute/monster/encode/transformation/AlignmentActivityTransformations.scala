@@ -13,21 +13,11 @@ object AlignmentActivityTransformations {
 
   /** Transform a raw ENCODE pipeline into our preferred schema. */
   def transformAlignmentActivity(
-    rawFile: Msg,
-    rawGeneratedFiles: Iterable[Msg]
+    rawFile: Msg
   ): Alignmentactivity = {
     val fileId = CommonTransformations.readId(rawFile)
-    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toSet.toList
     val dataset = rawFile.tryRead[String]("dataset").map(CommonTransformations.transformId)
-    val experimentId = dataset match {
-      case None =>
-        generatedFileIds match {
-          case Nil => "NONE"
-          case _   => generatedFileIds.head
-        }
-      case Some(x) => x
-    }
-    val id = s"${fileId}_${experimentId}"
+    val id = s"${fileId}_${dataset}"
 
     Alignmentactivity(
       alignmentactivityId = id,

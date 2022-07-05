@@ -15,21 +15,12 @@ object SequencingActivityTransformations {
   /** Transform a raw ENCODE pipeline into our preferred schema. */
   def transformSequencingActivity(
     rawFile: Msg,
-    rawGeneratedFiles: Iterable[Msg],
     rawLibraries: Seq[Msg]
   ): Sequencingactivity = {
     val fileId = CommonTransformations.readId(rawFile)
-    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId(_)).toList
-    val dataset = rawFile.tryRead[String]("dataset").map(CommonTransformations.transformId)
-    val experimentId = dataset match {
-      case None =>
-        generatedFileIds match {
-          case Nil => "NONE"
-          case _   => generatedFileIds.head
-        }
-      case Some(x) => x
-    }
-    val id = s"${fileId}_${experimentId}"
+    val dataset =
+      rawFile.tryRead[String]("dataset").map(CommonTransformations.transformId).getOrElse("")
+    val id = s"${fileId}_${dataset}"
     logger.info("starting sequencing activity transform")
 
     Sequencingactivity(
@@ -41,7 +32,7 @@ object SequencingActivityTransformations {
       dataModality =
         AssayActivityTransformations.getDataModalityFromListTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),
-      associatedWith = generatedFileIds.sorted,
+      associatedWith = dataset :: List(),
       usesSampleBiosampleId = rawFile
         .tryRead[List[String]]("origin_batches")
         .getOrElse(List.empty[String])

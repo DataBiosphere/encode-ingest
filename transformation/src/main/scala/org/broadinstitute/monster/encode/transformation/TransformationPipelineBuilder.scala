@@ -14,7 +14,14 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ctx: ScioContext,
     inputPrefix: String
   ): SCollection[Msg] = {
-    val name = entityType.entryName
+    readRawEntities(entityType.entryName, ctx, inputPrefix)
+  }
+
+  def readRawEntities(
+    name: String,
+    ctx: ScioContext,
+    inputPrefix: String
+  ): SCollection[Msg] = {
     StorageIO
       .readJsonLists(ctx, name, s"${inputPrefix}/$name/*.json")
       .withName(s"Strip unknown values from '$name' objects")
@@ -31,7 +38,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val keyedOrganisms = getKeyedOrganisms(ctx, args.inputPrefix)
 
     DatasetTransformations.transformDataset()
-    
+
     val referenceFileInputs = readRawEntities(EncodeEntity.Reference, ctx, args.inputPrefix)
     transformReferenceFileSet(args.outputPrefix, keyedOrganisms, referenceFileInputs)
 
@@ -83,7 +90,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       readRawEntities(EncodeEntity.FunctionalCharacterizationExperiment, ctx, args.inputPrefix)
 
     // Files are more complicated.
-    val fileInputs = readRawEntities(EncodeEntity.File, ctx, args.inputPrefix)
+//    val fileInputs = readRawEntities(EncodeEntity.File, ctx, args.inputPrefix)
 
     val experimentsById = experimentInputs
       .withName("Merge experiments")
@@ -91,21 +98,25 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Key experiments by ID")
       .keyBy(_.read[String]("@id"))
 
-    val fileWithExperiments = fileInputs
-      .withName("Key files by experiments")
-      .keyBy(_.read[String]("dataset"))
-      .leftOuterJoin(experimentsById)
-      .values
+//    val fileWithExperiments = fileInputs
+//      .withName("Key files by experiments")
+//      .keyBy(_.read[String]("dataset"))
+//      .leftOuterJoin(experimentsById)
+//      .values
 
     // Split the file stream by output category.
-    val fileBranches = FileTransformations.partitionRawFiles(fileWithExperiments)
+    val sequenceFiles = readRawEntities("SequenceFiles", ctx, args.inputPrefix)
+    val alignmentFiles = readRawEntities("AlignmentFiles", ctx, args.inputPrefix)
+    val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
 
-    transformAlignmentActivity(args.outputPrefix, fileBranches.alignment)
+    val allFiles = alignmentFiles.union(sequenceFiles).union(otherFiles)
+
+    transformAlignmentActivity(args.outputPrefix, alignmentFiles)
 
     val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
 
-    transformExperiments(args.outputPrefix, fileWithExperiments, libraryData)
-    transformSequenceActivity(args.outputPrefix, fileBranches, libraryData)
+    transformFiles(args.outputPrefix, allFiles, libraryData)
+    transformSequenceActivity(args.outputPrefix, sequenceFiles, libraryData)
 
     // Experiments join against both replicates and libraries
     val replicateInputs = readRawEntities(EncodeEntity.Replicate, ctx, args.inputPrefix)
@@ -117,7 +128,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Get analysis step objects
     val stepRunInfo: SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])] =
-      getStepRunInfo(fileInputs, ctx, args.inputPrefix)
+      getStepRunInfo(allFiles, ctx, args.inputPrefix)
     transformStepActivity(args.outputPrefix, stepRunInfo)
 
     // Transform pipeline runs
@@ -126,7 +137,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .keyBy(_.read[String]("@id"))
 
     transformAnalysisActivity(args.outputPrefix, stepRunInfo, pipelinesById)
-    transformAssayActivity(args.outputPrefix, fileInputs, experimentsById, librariesByExperiment)
+    transformAssayActivity(args.outputPrefix, allFiles, experimentsById, librariesByExperiment)
     transformExperiment(args.outputPrefix, experimentsById, librariesByExperiment)
     ()
   }
@@ -337,17 +348,17 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ()
   }
 
-  private def transformExperiments(
+  private def transformFiles(
     outputPrefix: String,
-    fileWithExperiments: SCollection[(Msg, Option[Msg])],
+    files: SCollection[Msg],
     libraryData: SideInput[Seq[Msg]]
   ) = {
-    val fileOutput = fileWithExperiments
+    val fileOutput = files
       .withSideInputs(libraryData)
       .withName("Transform all files")
       .map {
-        case ((rawFile, rawExperiment), sideCtx) =>
-          FileTransformations.transformFile(rawFile, rawExperiment, sideCtx(libraryData))
+        case (rawFile, sideCtx) =>
+          FileTransformations.transformFile(rawFile, sideCtx(libraryData))
       }
       .toSCollection
     StorageIO.writeJsonLists(
@@ -360,17 +371,16 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
   private def transformSequenceActivity(
     outputPrefix: String,
-    fileBranches: FileTransformations.FileBranches[SCollection, (Msg, Option[Msg])],
+    seqFiles: SCollection[Msg],
     libraryData: SideInput[Seq[Msg]]
   ) = {
-    val sequenceActivityOutput = fileBranches.sequence
+    val sequenceActivityOutput = seqFiles
       .withSideInputs(libraryData)
       .withName("Transform sequence files")
       .map {
-        case ((rawFile, rawExperiment), sideCtx) =>
+        case (rawFile, sideCtx) =>
           SequencingActivityTransformations.transformSequencingActivity(
             rawFile,
-            rawExperiment,
             sideCtx(libraryData)
           )
       }
@@ -588,17 +598,12 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
   private def transformAlignmentActivity(
     outputPrefix: String,
-    alignmentFiles: SCollection[(Msg, Option[Msg])]
+    alignmentFiles: SCollection[Msg]
   ) = {
     val alignmentActivityOutput = alignmentFiles
       .withName("Transform alignment files")
-      .map {
-        case (rawFile, rawExperiment) =>
-          AlignmentActivityTransformations.transformAlignmentActivity(
-            rawFile,
-            rawExperiment
-          )
-      }
+      .map(AlignmentActivityTransformations.transformAlignmentActivity)
+
     StorageIO.writeJsonLists(
       alignmentActivityOutput,
       "Alignment Activity",

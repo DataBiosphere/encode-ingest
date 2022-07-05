@@ -114,22 +114,22 @@ object FileTransformations {
   }
 
   /** Compute the data modality of a raw file. */
-  private def computeDataModality(rawFile: Msg, rawExperiment: Option[Msg]): List[String] = {
-    val dataModality =
+  private def computeDataModality(rawFile: Msg): List[String] = {
+    val dataModality: List[String] =
       if (rawFile.tryRead[String]("output_category").contains("reference")) {
-        Some("Genomic_Assembly")
+        List("Genomic_Assembly")
       } else {
-        rawExperiment.flatMap(e =>
-          e.tryRead[String]("assay_title")
-            .map(AssayActivityTransformations.transformAssayTermToDataModality(_))
-        )
+        rawFile
+          .tryRead[List[String]]("assay_term_name")
+          .getOrElse(List())
+          .map(AssayActivityTransformations.transformAssayTermToDataModality(_))
       }
     if (dataModality.isEmpty) {
       logger.warn(
-        s"No Data Modality found for assay_title in file $rawFile for experiment $rawExperiment"
+        s"No Data Modality found for assay_term_name in file $rawFile"
       )
     }
-    dataModality.toList
+    dataModality
   }
 
   /** 'run_type' value indicating a paired run in ENCODE. */
@@ -179,11 +179,10 @@ object FileTransformations {
 
   def transformFile(
     rawFile: Msg,
-    rawExperiment: Option[Msg],
     rawLibraries: Seq[Msg]
   ): File = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
-    val modality = computeDataModality(rawFile, rawExperiment)
+    val modality = computeDataModality(rawFile)
     val id = CommonTransformations.readId(rawFile)
 
     val biosample = getBiosamples(rawFile)

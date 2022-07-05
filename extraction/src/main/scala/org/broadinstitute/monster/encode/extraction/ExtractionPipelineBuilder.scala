@@ -6,7 +6,7 @@ import com.spotify.scio.transforms.ScalaAsyncLookupDoFn
 import com.spotify.scio.values.SCollection
 import org.apache.beam.sdk.transforms.ParDo
 import org.broadinstitute.monster.common.PipelineBuilder
-import org.broadinstitute.monster.common.StorageIO.{writeJsonListsGeneric, writeListsCommon}
+import org.broadinstitute.monster.common.StorageIO.writeJsonListsGeneric
 import org.broadinstitute.monster.common.msg.{MsgOps, UpackMsgCoder}
 import org.broadinstitute.monster.encode.EncodeEntity
 import upack._
@@ -78,12 +78,21 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       queryBatches: SCollection[List[(String, String)]],
       negativeFilters: List[(String, String)]
     ): SCollection[Msg] = {
+      extractEntitiesWithName(encodeEntity, encodeEntity.entryName, queryBatches, negativeFilters)
+    }
+
+    def extractEntitiesWithName(
+      encodeEntity: EncodeEntity,
+      outputName: String,
+      queryBatches: SCollection[List[(String, String)]],
+      negativeFilters: List[(String, String)]
+    ): SCollection[Msg] = {
       val out = getEntities(encodeEntity, queryBatches.map(_ -> negativeFilters))
         .distinctBy(_.read[String]("@id"))
       writeJsonListsGeneric(
         out,
-        encodeEntity.entryName,
-        s"${args.outputDir}/${encodeEntity.entryName}"
+        outputName,
+        s"${args.outputDir}/outputName"
       )
       out
     }
@@ -124,22 +133,70 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
-    val refrenceQuery: List[(String, String)] = List("status" -> "released")
+    val releasedStatusQuery: List[(String, String)] = List("status" -> "released")
+
     extractEntities(
       EncodeEntity.Reference,
       ctx
         .withName("Initial reference query")
-        .parallelize(List(refrenceQuery)),
+        .parallelize(List(releasedStatusQuery)),
       Nil
     )
 
-    val allFiles = extractEntities(
+    // extract files by activity type and then other
+    val sequenceFileQuery: List[(String, String)] =
+      List("status" -> "released", "output_category" -> "raw data")
+    val alignmentFileQuery: List[(String, String)] =
+      List("status" -> "released", "output_category" -> "alignment")
+    val otherFileNegativeQuery: List[(String, String)] =
+      List("output_category" -> "alignment", "output_category" -> "raw data")
+
+    val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
+      "SequenceFiles",
       ctx
-        .withName("Initial file query")
-        .parallelize(List(refrenceQuery)),
-      List("restricted" -> "true")
+        .withName("Get Sequence Files")
+        .parallelize(List(sequenceFileQuery)),
+      Nil
     )
+
+    val alignmentFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "AlignmentFiles",
+      ctx
+        .withName("Get Alignment Files")
+        .parallelize(List(alignmentFileQuery)),
+      Nil
+    )
+
+    val otherFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "OtherFiles",
+      ctx
+        .withName("Get Other Files")
+        .parallelize(List(releasedStatusQuery)),
+      otherFileNegativeQuery
+    )
+
+    val filesWithStepRun = sequenceFiles
+      .filterNot(_.tryRead[String]("step_run").isEmpty)
+      .union(alignmentFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+
+    //    val experimentFiles = allFiles
+//      .withName("key by id")
+//      .keyBy(_.read[String]("@id"))
+//      .withName("intersect with originalFileIds")
+//      .intersectByKey(originalFileIds)
+//      .values
+//
+    //    val allFiles = extractEntities(
+//      EncodeEntity.File,
+//      ctx
+//        .withName("Initial file query")
+//        .parallelize(List(refrenceQuery)),
+//      List("restricted" -> "true")
+//    )
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
@@ -218,14 +275,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .withName("Split by experiment type")
       .partition(isFunctionalCharacterizationReplicate)
 
-    val experiments = extractLinkedEntities(
+    extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = expReplicate,
       targetEntityType = EncodeEntity.Experiment,
       targetField = "@id"
     )
-    val fcExperiments = extractLinkedEntities(
+    extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = fcReplicate,
@@ -234,23 +291,23 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     // Extracting files is too complicated to fit into the usual pattern
-    val originalFileIds = {
-      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
-      val originalIds = allExperiments
-        .withName("Extract file IDs")
-        .flatMap { msg =>
-          msg.read[Array[String]]("original_files")
-        }
-        .distinct
-
-      writeListsCommon(originalIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
-      originalIds
+//    val originalFileIds = {
+//      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
+//      val originalIds = allExperiments
+//        .withName("Extract file IDs")
+//        .flatMap { msg =>
+//          msg.read[Array[String]]("original_files")
+//        }
+//        .distinct
+//
+//      writeListsCommon(originalIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
+//      originalIds
 //      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
 //        groupValues(100L, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
 //      }
 //
 //      getEntities(EncodeEntity.File, queryBatches)
-    }
+//    }
 
 //    writeJsonListsGeneric(
 //      files,
@@ -258,17 +315,17 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
 //      s"${args.outputDir}/File"
 //    )
 
-    val experimentFiles = allFiles
-      .withName("key by id")
-      .keyBy(_.read[String]("@id"))
-      .withName("intersect with originalFileIds")
-      .intersectByKey(originalFileIds)
-      .values
+//    val experimentFiles = allFiles
+//      .withName("key by id")
+//      .keyBy(_.read[String]("@id"))
+//      .withName("intersect with originalFileIds")
+//      .intersectByKey(originalFileIds)
+//      .values
 
     val analysisStepRuns = extractLinkedEntities(
       sourceEntityType = EncodeEntity.File,
       sourceField = "step_run",
-      sourceEntities = experimentFiles,
+      sourceEntities = filesWithStepRun,
       targetEntityType = EncodeEntity.AnalysisStepRun,
       targetField = "@id"
     )
