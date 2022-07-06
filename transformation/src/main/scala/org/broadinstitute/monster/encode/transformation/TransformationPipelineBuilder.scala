@@ -2,8 +2,8 @@ package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.values.{SCollection, SideInput}
-import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.transforms.Create
+import org.apache.beam.sdk.values.PCollection
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
@@ -41,8 +41,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val keyedOrganisms = getKeyedOrganisms(ctx, args.inputPrefix)
 
     val datasetOutput = DatasetTransformations.transformDataset()
-    val datasetPColl: PCollection[Dataset] = ctx.pipeline.apply(Create.of(datasetOutput))
-    val datasetSColl = ctx.wrap(datasetPColl)
+    val datasetPColl: PCollection[Dataset] = ctx.pipeline.apply(Create.of[Dataset](datasetOutput))
+    val datasetSColl: SCollection[Dataset] = ctx.wrap(datasetPColl)
     StorageIO.writeJsonLists(
       datasetSColl,
       "EncodeDataset",
@@ -108,24 +108,18 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .withName("Key experiments by ID")
       .keyBy(_.read[String]("@id"))
 
-//    val fileWithExperiments = fileInputs
-//      .withName("Key files by experiments")
-//      .keyBy(_.read[String]("dataset"))
-//      .leftOuterJoin(experimentsById)
-//      .values
-
     // Split the file stream by output category.
     val sequenceFiles = readRawEntities("SequenceFiles", ctx, args.inputPrefix)
     val alignmentFiles = readRawEntities("AlignmentFiles", ctx, args.inputPrefix)
     val signalFiles = readRawEntities("SignalFiles", ctx, args.inputPrefix)
     val annotationFiles = readRawEntities("AnnotationFiles", ctx, args.inputPrefix)
-//    val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
+    val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
 
     val allFiles = alignmentFiles
       .union(sequenceFiles)
       .union(signalFiles)
       .union(annotationFiles)
-    //.union(otherFiles)
+      .union(otherFiles)
 
     val filesForStepRun = allFiles
       .filterNot(_.tryRead[String]("step_run").isEmpty)

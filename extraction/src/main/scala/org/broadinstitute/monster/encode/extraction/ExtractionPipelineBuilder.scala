@@ -153,8 +153,8 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ("output_category" -> "signal") :: releasedStatusQuery
     val annotationFileQuery: List[(String, String)] =
       ("output_category" -> "annotation") :: releasedStatusQuery
-//    val otherFileNegativeQuery: List[(String, String)] =
-//      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedNegativeQuery
+    val otherFileNegativeQuery: List[(String, String)] =
+      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedNegativeQuery
 
     val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
@@ -192,14 +192,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       restrictedNegativeQuery
     )
 
-    //    val otherFiles = extractEntitiesWithName(
-//      EncodeEntity.File,
-//      "OtherFiles",
-//      ctx
-//        .withName("Get Other Files")
-//        .parallelize(List(releasedStatusQuery)),
-//      otherFileNegativeQuery
-//    )
+    val otherFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "OtherFiles",
+      ctx
+        .withName("Get Other Files")
+        .parallelize(List(releasedStatusQuery)),
+      otherFileNegativeQuery
+    )
 
     val filesWithStepRun = sequenceFiles
       .filterNot(_.tryRead[String]("step_run").isEmpty)
@@ -207,7 +207,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .union(sequenceFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
       .union(signalFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
       .union(annotationFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
-//      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
