@@ -107,9 +107,15 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     // Split the file stream by output category.
     val sequenceFiles = readRawEntities("SequenceFiles", ctx, args.inputPrefix)
     val alignmentFiles = readRawEntities("AlignmentFiles", ctx, args.inputPrefix)
+    val signalFiles = readRawEntities("SignalFiles", ctx, args.inputPrefix)
+    val annotationFiles = readRawEntities("AnnotationFiles", ctx, args.inputPrefix)
 //    val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
 
-    val allFiles = alignmentFiles.union(sequenceFiles) //.union(otherFiles)
+    val allFiles = alignmentFiles
+      .union(sequenceFiles)
+      .union(signalFiles)
+      .union(annotationFiles)
+    //.union(otherFiles)
 
     transformAlignmentActivity(args.outputPrefix, alignmentFiles)
 

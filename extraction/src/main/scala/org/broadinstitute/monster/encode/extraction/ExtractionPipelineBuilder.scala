@@ -134,7 +134,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     val releasedStatusQuery: List[(String, String)] = List("status" -> "released")
-    val restrictedNegativeQuery: List[(String, String)]  = List("restricted" -> "true")
+    val restrictedNegativeQuery: List[(String, String)] = List("restricted" -> "true")
 
     extractEntities(
       EncodeEntity.Reference,
@@ -149,8 +149,12 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ("output_category" -> "raw data") :: releasedStatusQuery
     val alignmentFileQuery: List[(String, String)] =
       ("output_category" -> "alignment") :: releasedStatusQuery
+    val signalFileQuery: List[(String, String)] =
+      ("output_category" -> "signal") :: releasedStatusQuery
+    val annotationFileQuery: List[(String, String)] =
+      ("output_category" -> "annotation") :: releasedStatusQuery
 //    val otherFileNegativeQuery: List[(String, String)] =
-//      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: restrictedNegativeQuery
+//      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedNegativeQuery
 
     val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
@@ -170,7 +174,25 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       restrictedNegativeQuery
     )
 
-//    val otherFiles = extractEntitiesWithName(
+    val signalFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "SignalFiles",
+      ctx
+        .withName("Get Signal Files")
+        .parallelize(List(signalFileQuery)),
+      restrictedNegativeQuery
+    )
+
+    val annotationFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "AnnotationFiles",
+      ctx
+        .withName("Get Annotation Files")
+        .parallelize(List(annotationFileQuery)),
+      restrictedNegativeQuery
+    )
+
+    //    val otherFiles = extractEntitiesWithName(
 //      EncodeEntity.File,
 //      "OtherFiles",
 //      ctx
@@ -182,6 +204,9 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     val filesWithStepRun = sequenceFiles
       .filterNot(_.tryRead[String]("step_run").isEmpty)
       .union(alignmentFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(sequenceFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(signalFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(annotationFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 //      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
