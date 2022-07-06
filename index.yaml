@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   encode-ingest:
   - apiVersion: v2
+    appVersion: 1.0.92
+    created: "2022-07-06T17:53:42.132884154Z"
+    dependencies:
+    - alias: argoTemplates
+      name: argo-templates
+      repository: https://broadinstitute.github.io/monster-helm
+      version: 1.0.2
+    description: Top-level orchestration workflow for Encode
+    digest: f6b577138bf036511a727e5781aaad2191ee09304c7220b3342b65b5b9bf6881
+    name: encode-ingest
+    type: application
+    urls:
+    - https://github.com/DataBiosphere/encode-ingest/releases/download/encode-ingest-1.0.92/encode-ingest-1.0.92.tgz
+    version: 1.0.92
+  - apiVersion: v2
     appVersion: 1.0.91
     created: "2022-07-06T16:21:14.630436704Z"
     dependencies:
