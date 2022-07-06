@@ -143,13 +143,15 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
+    val restrictedNegativeQuery = List("restricted" -> "true")
+
     // extract files by activity type and then other
     val sequenceFileQuery: List[(String, String)] =
       List("status" -> "released", "output_category" -> "raw data")
     val alignmentFileQuery: List[(String, String)] =
       List("status" -> "released", "output_category" -> "alignment")
     val otherFileNegativeQuery: List[(String, String)] =
-      List("output_category" -> "alignment", "output_category" -> "raw data")
+      List("output_category" -> "alignment", "output_category" -> "raw data") ::: restrictedNegativeQuery
 
     val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
@@ -157,7 +159,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ctx
         .withName("Get Sequence Files")
         .parallelize(List(sequenceFileQuery)),
-      Nil
+      restrictedNegativeQuery
     )
 
     val alignmentFiles = extractEntitiesWithName(
@@ -166,37 +168,23 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ctx
         .withName("Get Alignment Files")
         .parallelize(List(alignmentFileQuery)),
-      Nil
+      restrictedNegativeQuery
     )
 
-    val otherFiles = extractEntitiesWithName(
-      EncodeEntity.File,
-      "OtherFiles",
-      ctx
-        .withName("Get Other Files")
-        .parallelize(List(releasedStatusQuery)),
-      otherFileNegativeQuery
-    )
+//    val otherFiles = extractEntitiesWithName(
+//      EncodeEntity.File,
+//      "OtherFiles",
+//      ctx
+//        .withName("Get Other Files")
+//        .parallelize(List(releasedStatusQuery)),
+//      otherFileNegativeQuery
+//    )
 
     val filesWithStepRun = sequenceFiles
       .filterNot(_.tryRead[String]("step_run").isEmpty)
       .union(alignmentFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
-      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+//      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 
-    //    val experimentFiles = allFiles
-//      .withName("key by id")
-//      .keyBy(_.read[String]("@id"))
-//      .withName("intersect with originalFileIds")
-//      .intersectByKey(originalFileIds)
-//      .values
-//
-    //    val allFiles = extractEntities(
-//      EncodeEntity.File,
-//      ctx
-//        .withName("Initial file query")
-//        .parallelize(List(refrenceQuery)),
-//      List("restricted" -> "true")
-//    )
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
