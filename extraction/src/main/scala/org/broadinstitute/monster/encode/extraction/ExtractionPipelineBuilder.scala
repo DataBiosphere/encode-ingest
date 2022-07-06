@@ -134,6 +134,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     val releasedStatusQuery: List[(String, String)] = List("status" -> "released")
+    val restrictedNegativeQuery: List[(String, String)]  = List("restricted" -> "true")
 
     extractEntities(
       EncodeEntity.Reference,
@@ -143,18 +144,13 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
-    val restrictedNegativeQuery = List("restricted" -> "true")
-
     // extract files by activity type and then other
     val sequenceFileQuery: List[(String, String)] =
-      List("status" -> "released", "output_category" -> "raw data")
+      ("output_category" -> "raw data") :: releasedStatusQuery
     val alignmentFileQuery: List[(String, String)] =
-      List("status" -> "released", "output_category" -> "alignment")
+      ("output_category" -> "alignment") :: releasedStatusQuery
 //    val otherFileNegativeQuery: List[(String, String)] =
-//      List(
-//        "output_category" -> "alignment",
-//        "output_category" -> "raw data"
-//      ) ::: restrictedNegativeQuery
+//      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: restrictedNegativeQuery
 
     val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
