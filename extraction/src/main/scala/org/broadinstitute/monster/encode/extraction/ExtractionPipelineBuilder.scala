@@ -134,7 +134,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     val releasedStatusQuery: List[(String, String)] = List("status" -> "released")
-    val restrictedNegativeQuery: List[(String, String)]  = List("restricted" -> "true")
+    val restrictedNegativeQuery: List[(String, String)] = List("restricted" -> "true")
 
     extractEntities(
       EncodeEntity.Reference,

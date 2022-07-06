@@ -11,6 +11,7 @@ object ExperimentActivityTransformations {
   def transformExperiment(
     experimentId: String,
     rawExperiment: Msg,
+    rawReplicates: Iterable[Msg],
     rawLibraries: Iterable[Msg]
   ): Experimentactivity = {
     val id = CommonTransformations.transformId(experimentId)
@@ -50,7 +51,9 @@ object ExperimentActivityTransformations {
       usesSampleBiosampleId = libraryArray.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.sorted.distinct,
-      antibodyId = List(),
+      antibodyId = rawReplicates
+        .flatMap(_.tryRead[String]("antibody").map(CommonTransformations.transformId))
+        .toList,
       libraryId = libraryArray.map(CommonTransformations.readId).sorted
     )
   }
