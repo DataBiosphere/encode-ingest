@@ -5,6 +5,7 @@ import com.spotify.scio.values.{SCollection, SideInput}
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
+//import org.broadinstitute.monster.encode.jadeschema.table.Dataset
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -37,7 +38,16 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
     val keyedOrganisms = getKeyedOrganisms(ctx, args.inputPrefix)
 
-    DatasetTransformations.transformDataset()
+//    val datasetOutput = DatasetTransformations.transformDataset()
+//    val datasetPColl: PCollection[Dataset] = Create.of[Dataset](datasetOutput :: List())
+//    val datasetSColl: SCollection[Dataset] = ctx.customInput("Wrap dataset in SColl", datasetPColl)
+//      .write(TextIO(path))(
+//        TextIO.WriteParam(suffix, numShards, compression, header, footer, shardNameTemplate)
+//    StorageIO.writeJsonLists(
+//      datasetSColl,
+//      "EncodeDataset",
+//      s"${args.outputPrefix}/dataset"
+//    )
 
     val referenceFileInputs = readRawEntities(EncodeEntity.Reference, ctx, args.inputPrefix)
     transformReferenceFileSet(args.outputPrefix, keyedOrganisms, referenceFileInputs)
@@ -111,6 +121,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     val allFiles = alignmentFiles.union(sequenceFiles) //.union(otherFiles)
 
+    val filesForStepRun = allFiles
+      .filterNot(_.tryRead[String]("step_run").isEmpty)
     transformAlignmentActivity(args.outputPrefix, alignmentFiles)
 
     val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
@@ -133,7 +145,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     // Get analysis step objects
     val stepRunInfo: SCollection[(((Msg, Msg), Msg), Option[Iterable[Msg]])] =
-      getStepRunInfo(allFiles, ctx, args.inputPrefix)
+      getStepRunInfo(filesForStepRun, ctx, args.inputPrefix)
     transformStepActivity(args.outputPrefix, stepRunInfo)
 
     // Transform pipeline runs
@@ -484,10 +496,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .keyBy(_.read[String]("@id"))
     val filesByStepRun = fileInputs
       .withName("Key files by step run ID")
-      .flatMap { file =>
-        for (stepRunId <- file.tryRead[String]("step_run"))
-          yield stepRunId -> file
-      }
+      .keyBy(_.read[String]("step_run"))
       .groupByKey
 
     // Join AnalysisStepRuns, AnalysisStepVersions, AnalysisSteps, and Files.
