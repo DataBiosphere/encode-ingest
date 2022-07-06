@@ -2,10 +2,12 @@ package org.broadinstitute.monster.encode.transformation
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.values.{SCollection, SideInput}
+import org.apache.beam.sdk.values.PCollection
+import org.apache.beam.sdk.transforms.Create
 import org.broadinstitute.monster.common.{PipelineBuilder, StorageIO}
 import org.broadinstitute.monster.common.msg._
 import org.broadinstitute.monster.encode.EncodeEntity
-//import org.broadinstitute.monster.encode.jadeschema.table.Dataset
+import org.broadinstitute.monster.encode.jadeschema.table.Dataset
 import upack.Msg
 
 object TransformationPipelineBuilder extends PipelineBuilder[Args] {
@@ -38,16 +40,14 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   override def buildPipeline(ctx: ScioContext, args: Args): Unit = {
     val keyedOrganisms = getKeyedOrganisms(ctx, args.inputPrefix)
 
-//    val datasetOutput = DatasetTransformations.transformDataset()
-//    val datasetPColl: PCollection[Dataset] = Create.of[Dataset](datasetOutput :: List())
-//    val datasetSColl: SCollection[Dataset] = ctx.customInput("Wrap dataset in SColl", datasetPColl)
-//      .write(TextIO(path))(
-//        TextIO.WriteParam(suffix, numShards, compression, header, footer, shardNameTemplate)
-//    StorageIO.writeJsonLists(
-//      datasetSColl,
-//      "EncodeDataset",
-//      s"${args.outputPrefix}/dataset"
-//    )
+    val datasetOutput = DatasetTransformations.transformDataset()
+    val datasetPColl: PCollection[Dataset] = ctx.pipeline.apply(Create.of(datasetOutput))
+    val datasetSColl = ctx.wrap(datasetPColl)
+    StorageIO.writeJsonLists(
+      datasetSColl,
+      "EncodeDataset",
+      s"${args.outputPrefix}/dataset"
+    )
 
     val referenceFileInputs = readRawEntities(EncodeEntity.Reference, ctx, args.inputPrefix)
     transformReferenceFileSet(args.outputPrefix, keyedOrganisms, referenceFileInputs)
