@@ -150,8 +150,11 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       List("status" -> "released", "output_category" -> "raw data")
     val alignmentFileQuery: List[(String, String)] =
       List("status" -> "released", "output_category" -> "alignment")
-    val otherFileNegativeQuery: List[(String, String)] =
-      List("output_category" -> "alignment", "output_category" -> "raw data") ::: restrictedNegativeQuery
+//    val otherFileNegativeQuery: List[(String, String)] =
+//      List(
+//        "output_category" -> "alignment",
+//        "output_category" -> "raw data"
+//      ) ::: restrictedNegativeQuery
 
     val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
@@ -184,7 +187,6 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .filterNot(_.tryRead[String]("step_run").isEmpty)
       .union(alignmentFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 //      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
-
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
