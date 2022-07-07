@@ -91,7 +91,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     )
 
     val treatmentInputs = readRawEntities(EncodeEntity.Treatment, ctx, args.inputPrefix)
-    transformTreatments(args.outputPrefix, treatmentInputs);
+    transformSampleTreatmentActivity(args.outputPrefix, treatmentInputs);
 
     // Experiments merge two different raw streams
     // Experiments contribute to Assay Activities and Experiment Activities
@@ -206,7 +206,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     ()
   }
 
-  private def transformTreatments(
+  private def transformSampleTreatmentActivity(
     outputPrefix: String,
     treatments: SCollection[Msg]
   ) = {
