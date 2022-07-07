@@ -16,7 +16,7 @@ object AlignmentActivityTransformations {
     rawFile: Msg
   ): Alignmentactivity = {
     val fileId = CommonTransformations.readId(rawFile)
-    val dataset = rawFile.tryRead[String]("dataset").map(CommonTransformations.transformId)
+    val dataset = CommonTransformations.transformId(rawFile.read[String]("dataset"))
     val id = s"${fileId}_${dataset}"
 
     Alignmentactivity(

@@ -536,8 +536,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       }
     StorageIO.writeJsonLists(
       stepRunOutput,
-      "Step Runs",
-      s"${outputPrefix}/step_run"
+      "Step Activity",
+      s"${outputPrefix}/stepactivity"
     )
     ()
   }
