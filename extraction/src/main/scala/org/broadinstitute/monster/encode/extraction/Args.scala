@@ -22,7 +22,8 @@ case class Args(
   @HelpMessage(
     "Initial query to target a specific entry-point to the pipeline."
   )
-//  initialQuery: List[(String, String)] = List("organism.name" -> "human")
+
+  // can't limit by organism because of the way we retrieve files
   initialQuery: List[(String, String)] = List()
 )
 

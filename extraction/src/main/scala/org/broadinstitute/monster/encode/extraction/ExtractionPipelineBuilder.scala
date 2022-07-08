@@ -301,38 +301,6 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       targetField = "@id"
     )
 
-    // Extracting files is too complicated to fit into the usual pattern
-//    val originalFileIds = {
-//      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
-//      val originalIds = allExperiments
-//        .withName("Extract file IDs")
-//        .flatMap { msg =>
-//          msg.read[Array[String]]("original_files")
-//        }
-//        .distinct
-//
-//      writeListsCommon(originalIds, (x: String) => x, "fileids", s"${args.outputDir}/FileIds", "txt")
-//      originalIds
-//      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
-//        groupValues(100L, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
-//      }
-//
-//      getEntities(EncodeEntity.File, queryBatches)
-//    }
-
-//    writeJsonListsGeneric(
-//      files,
-//      "File",
-//      s"${args.outputDir}/File"
-//    )
-
-//    val experimentFiles = allFiles
-//      .withName("key by id")
-//      .keyBy(_.read[String]("@id"))
-//      .withName("intersect with originalFileIds")
-//      .intersectByKey(originalFileIds)
-//      .values
-
     val analysisStepRuns = extractLinkedEntities(
       sourceEntityType = EncodeEntity.File,
       sourceField = "step_run",
