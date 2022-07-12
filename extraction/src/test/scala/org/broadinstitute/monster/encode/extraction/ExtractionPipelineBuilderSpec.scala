@@ -133,7 +133,7 @@ object ExtractionPipelineBuilderSpec {
       List(analysisStepVersionOut),
     (EncodeEntity.AnalysisStep, analysisStepParams, Nil) -> List(analysisStepOut)
   ) ++ fileRequestResponse.map {
-    case (k, v) => (EncodeEntity.File, k, ExtractionPipelineBuilder.NegativeFileFilters) -> List(v)
+    case (k, v) => (EncodeEntity.File, k, Nil) -> List(v)
   }
 
   val mockClient = new MockEncodeClient(responseMap)
@@ -269,7 +269,7 @@ class ExtractionPipelineBuilderSpec extends PipelineBuilderSpec[Args] {
 
   it should "query and write File data as expected" in {
     mockClient.recordedRequests.toSet should contain allElementsOf fileRequestResponse.keySet
-      .map(p => (EncodeEntity.File, p, ExtractionPipelineBuilder.NegativeFileFilters))
+      .map(p => (EncodeEntity.File, p, Nil))
     readMsgs(outputDir, s"${EncodeEntity.File}/*.json") shouldBe fileRequestResponse.values.toSet
   }
 

@@ -29,8 +29,8 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
     output.award shouldBe "https://www.encodeproject.org/awards/xyz_award"
     output.submittedBy shouldBe "https://www.encodeproject.org/users/123-abc"
     output.lab shouldBe "https://www.encodeproject.org/labs/example-lab"
-    output.ageAgeUpperbound shouldBe Some(33)
-    output.ageAgeLowerbound shouldBe Some(30)
+    output.ageUpperBound shouldBe Some(33)
+    output.ageLowerBound shouldBe Some(30)
     output.reportedEthnicity shouldBe List.empty[String]
   }
 
@@ -54,8 +54,8 @@ class DonorTransformationsSpec extends AnyFlatSpec with Matchers {
 
     val output = DonorTransformations.transformDonor(inputMsg, None)
 
-    output.ageAgeLowerbound shouldBe Some(90)
-    output.ageAgeUpperbound shouldBe None
+    output.ageLowerBound shouldBe Some(90)
+    output.ageUpperBound shouldBe None
     output.reportedEthnicity shouldBe List("ethn1", "ethn2")
   }
 }
