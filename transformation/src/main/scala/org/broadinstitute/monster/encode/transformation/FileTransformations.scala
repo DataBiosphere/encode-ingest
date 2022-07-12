@@ -23,7 +23,7 @@ object FileTransformations {
     else if (category == AlignmentCategory) "Alignment"
     else "Other"
   }
-  
+
   /** Compute the data modality of a raw file. */
   private def computeDataModality(rawFile: Msg): List[String] = {
     val dataModality: List[String] =
@@ -90,7 +90,8 @@ object FileTransformations {
 
   def transformFile(
     rawFile: Msg,
-    rawLibraries: Seq[Msg]
+    rawLibraries: Seq[Msg],
+    missingFileType: Option[String]
   ): File = {
     val (auditLevel, auditLabels) = CommonTransformations.summarizeAudits(rawFile)
     val modality = computeDataModality(rawFile)
@@ -121,7 +122,7 @@ object FileTransformations {
       award = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("award")),
       fileFormat = rawFile.tryRead[String]("file_format"),
       fileFormatType = rawFile.tryRead[String]("file_format_type"),
-      fileType = Some(getFileType(rawFile)),
+      fileType = Some(missingFileType.getOrElse(getFileType(rawFile))),
       lab = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("lab")),
       platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform")),
       qualityMetrics =
