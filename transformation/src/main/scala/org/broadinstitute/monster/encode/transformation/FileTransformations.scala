@@ -23,7 +23,7 @@ object FileTransformations {
     else if (category == AlignmentCategory) "Alignment"
     else "Other"
   }
-  
+
   /** Compute the data modality of a raw file. */
   private def computeDataModality(rawFile: Msg): List[String] = {
     val dataModality: List[String] =
