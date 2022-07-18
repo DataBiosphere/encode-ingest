@@ -30,6 +30,8 @@ spec:
                 - name: dataset-name
                   value: {{ $datasetName }}
                 {{- with .Values.bigquery.stagingData }}
+                - name: bq-region
+                  value: 'us-central1'
                 - name: bq-project
                   value: '{{ .project }}'
                 - name: dataset-description
