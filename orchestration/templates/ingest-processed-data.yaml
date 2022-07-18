@@ -96,6 +96,8 @@ spec:
                   value: '{{ $tableName }}'
                 - name: gcs-bucket
                   value: '{{ .Values.gcs.bucketName }}'
+                - name: bq-region
+                  value: 'us-central1'
                 - name: input-prefix
                   value: '{{ printf "%s/processed/%s" $gcsPrefix $tableName }}'
                 - name: old-ids-output-prefix
