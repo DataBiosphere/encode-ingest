@@ -114,28 +114,20 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val signalFiles = readRawEntities("SignalFiles", ctx, args.inputPrefix)
     val annotationFiles = readRawEntities("AnnotationFiles", ctx, args.inputPrefix)
     val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
-    val restrictedFiles = readRawEntities("RestrictedFiles", ctx, args.inputPrefix)
-    val archivedFiles = readRawEntities("ArchivedFiles", ctx, args.inputPrefix)
 
-    val allAccessibleFiles = alignmentFiles
+    val allFiles = alignmentFiles
       .union(sequenceFiles)
       .union(signalFiles)
       .union(annotationFiles)
       .union(otherFiles)
 
-    val filesForStepRun = allAccessibleFiles
+    val filesForStepRun = allFiles
       .filterNot(_.tryRead[String]("step_run").isEmpty)
     transformAlignmentActivity(args.outputPrefix, alignmentFiles)
 
     val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
 
-    transformFiles(
-      args.outputPrefix,
-      allAccessibleFiles,
-      archivedFiles,
-      restrictedFiles,
-      libraryData
-    )
+    transformFiles(args.outputPrefix, allFiles, libraryData)
     transformSequenceActivity(args.outputPrefix, sequenceFiles, libraryData)
 
     // Experiments join against both replicates and libraries
@@ -164,7 +156,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     transformAnalysisActivity(args.outputPrefix, stepRunInfo, pipelinesById)
     transformAssayActivity(
       args.outputPrefix,
-      allAccessibleFiles,
+      allFiles,
       experimentsById,
       replicatesByExperiment,
       librariesByExperiment
@@ -386,37 +378,19 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
   private def transformFiles(
     outputPrefix: String,
-    accessibleFiles: SCollection[Msg],
-    archivedFiles: SCollection[Msg],
-    restrictedFiles: SCollection[Msg],
+    files: SCollection[Msg],
     libraryData: SideInput[Seq[Msg]]
   ) = {
-    val accessibleFileOutput = accessibleFiles
+    val fileOutput = files
       .withSideInputs(libraryData)
-      .withName("Transform all accessible files")
+      .withName("Transform all files")
       .map {
         case (rawFile, sideCtx) =>
-          FileTransformations.transformFile(rawFile, sideCtx(libraryData), None)
-      }
-      .toSCollection
-    val archivedFileOutput = archivedFiles
-      .withSideInputs(libraryData)
-      .withName("Transform archived files")
-      .map {
-        case (rawFile, sideCtx) =>
-          FileTransformations.transformFile(rawFile, sideCtx(libraryData), Some("Archived"))
-      }
-      .toSCollection
-    val restrictedFileOutput = restrictedFiles
-      .withSideInputs(libraryData)
-      .withName("Transform restricted files")
-      .map {
-        case (rawFile, sideCtx) =>
-          FileTransformations.transformFile(rawFile, sideCtx(libraryData), Some("Restricted"))
+          FileTransformations.transformFile(rawFile, sideCtx(libraryData))
       }
       .toSCollection
     StorageIO.writeJsonLists(
-      accessibleFileOutput ++ archivedFileOutput ++ restrictedFileOutput,
+      fileOutput,
       "Files",
       s"${outputPrefix}/file"
     )

@@ -134,8 +134,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     )
 
     val releasedStatusQuery: List[(String, String)] = List("status" -> "released")
-    val archivedStatusQuery: List[(String, String)] = List("status" -> "archived")
-    val restrictedQuery: List[(String, String)] = List("restricted" -> "true")
+    val restrictedNegativeQuery: List[(String, String)] = List("restricted" -> "true")
 
     extractEntities(
       EncodeEntity.Reference,
@@ -155,7 +154,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
     val annotationFileQuery: List[(String, String)] =
       ("output_category" -> "annotation") :: releasedStatusQuery
     val otherFileNegativeQuery: List[(String, String)] =
-      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedQuery
+      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedNegativeQuery
 
     val sequenceFiles = extractEntitiesWithName(
       EncodeEntity.File,
@@ -163,7 +162,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ctx
         .withName("Get Sequence Files")
         .parallelize(List(sequenceFileQuery)),
-      restrictedQuery
+      restrictedNegativeQuery
     )
 
     val alignmentFiles = extractEntitiesWithName(
@@ -172,7 +171,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ctx
         .withName("Get Alignment Files")
         .parallelize(List(alignmentFileQuery)),
-      restrictedQuery
+      restrictedNegativeQuery
     )
 
     val signalFiles = extractEntitiesWithName(
@@ -181,7 +180,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ctx
         .withName("Get Signal Files")
         .parallelize(List(signalFileQuery)),
-      restrictedQuery
+      restrictedNegativeQuery
     )
 
     val annotationFiles = extractEntitiesWithName(
@@ -190,7 +189,7 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ctx
         .withName("Get Annotation Files")
         .parallelize(List(annotationFileQuery)),
-      restrictedQuery
+      restrictedNegativeQuery
     )
 
     val otherFiles = extractEntitiesWithName(
@@ -200,24 +199,6 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
         .withName("Get Other Files")
         .parallelize(List(releasedStatusQuery)),
       otherFileNegativeQuery
-    )
-
-    extractEntitiesWithName(
-      EncodeEntity.File,
-      "RestrictedFiles",
-      ctx
-        .withName("Get Restricted Files")
-        .parallelize(restrictedQuery :: releasedStatusQuery :: List()),
-      Nil
-    )
-
-    extractEntitiesWithName(
-      EncodeEntity.File,
-      "ArchivedFiles",
-      ctx
-        .withName("Get Archived Files")
-        .parallelize(List(archivedStatusQuery)),
-      Nil
     )
 
     val filesWithStepRun = sequenceFiles
