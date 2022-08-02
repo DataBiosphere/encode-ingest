@@ -114,6 +114,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val signalFiles = readRawEntities("SignalFiles", ctx, args.inputPrefix)
     val annotationFiles = readRawEntities("AnnotationFiles", ctx, args.inputPrefix)
     val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
+    val archivedFiles = readRawEntities("ArchivedFiles", ctx, args.inputPrefix)
+    val restrictedFiles = readRawEntities("RestrictedFiles", ctx, args.inputPrefix)
 
     val allFiles = alignmentFiles
       .union(sequenceFiles)
@@ -127,7 +129,7 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
 
     val libraryData: SideInput[Seq[Msg]] = libraryInputs.asListSideInput
 
-    transformFiles(args.outputPrefix, allFiles, libraryData)
+    transformFiles(args.outputPrefix, allFiles, archivedFiles, restrictedFiles, libraryData)
     transformSequenceActivity(args.outputPrefix, sequenceFiles, libraryData)
 
     // Experiments join against both replicates and libraries
@@ -379,6 +381,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
   private def transformFiles(
     outputPrefix: String,
     files: SCollection[Msg],
+    archivedFiles: SCollection[Msg],
+    restrictedFiles: SCollection[Msg],
     libraryData: SideInput[Seq[Msg]]
   ) = {
     val fileOutput = files
@@ -389,8 +393,13 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
           FileTransformations.transformFile(rawFile, sideCtx(libraryData))
       }
       .toSCollection
+
+    val restrictedFileOutput =
+      restrictedFiles.map(MissingFileTransformations.transformMissingFile(_, "restricted"))
+    val archivedFileOutput =
+      archivedFiles.map(MissingFileTransformations.transformMissingFile(_, "archived"))
     StorageIO.writeJsonLists(
-      fileOutput,
+      fileOutput ++ archivedFileOutput ++ restrictedFileOutput,
       "Files",
       s"${outputPrefix}/file"
     )

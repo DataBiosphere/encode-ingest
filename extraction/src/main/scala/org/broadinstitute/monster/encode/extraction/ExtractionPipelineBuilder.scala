@@ -209,6 +209,28 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .union(annotationFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
       .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 
+    // extract archived and restricted files
+    val archivedStatusQuery: List[(String, String)] = List("status" -> "archived")
+    val restrictedQuery: List[(String, String)] = List("restricted" -> "true")
+
+    extractEntitiesWithName(
+      EncodeEntity.File,
+      "RestrictedFiles",
+      ctx
+        .withName("Get Restricted Files")
+        .parallelize(restrictedQuery :: releasedStatusQuery :: List()),
+      Nil
+    )
+
+    extractEntitiesWithName(
+      EncodeEntity.File,
+      "ArchivedFiles",
+      ctx
+        .withName("Get Archived Files")
+        .parallelize(List(archivedStatusQuery)),
+      Nil
+    )
+
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
