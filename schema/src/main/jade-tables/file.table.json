@@ -132,11 +132,7 @@
       "datatype": "string"
     },
     {
-      "name": "cloud_path",
-      "datatype": "fileref"
-    },
-    {
-      "name": "index_cloud_path",
+      "name": "file_ref",
       "datatype": "fileref"
     },
     {
