@@ -141,8 +141,7 @@ object FileTransformations {
         .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId(_)),
       referenceAssembly = rawFile.tryRead[String]("assembly"),
-      cloudPath = None,
-      indexCloudPath = None,
+      fileRef = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
       pairedEndId = pairedEndId,
       pairedWithFileId =
