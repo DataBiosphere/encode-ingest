@@ -50,6 +50,8 @@ object BiosampleTransformations {
     val rawAge = biosampleInput.tryRead[String]("age")
     val (ageLowerBound, ageUpperBound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
+    val classification = joinedType.map(_.read[String]("classification"))
+
     Biosample(
       biosampleId = id,
       label = id,
@@ -69,8 +71,24 @@ object BiosampleTransformations {
       partOfDatasetId = Some("ENCODE"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
-      anatomicalSite = joinedType.map(_.read[String]("term_id")),
-      biosampleType = joinedType.map(_.read[String]("classification")),
+      anatomicalSite = classification match {
+        case Some("tissue") | Some("organoid") => joinedType.map(_.read[String]("term_id"))
+        case Some("cell line") | Some("primary cell") | Some("in vitro differentiated cells") =>
+          joinedType.map(_.read[String]("organ_slims"))
+        case _ => None
+      },
+      biosampleType = classification,
+      aprioriCellType = classification match {
+        case Some("tissue") | Some("organoid") | Some("cell line") =>
+          joinedType.map(_.read[List[String]]("cell_slims")).getOrElse(List())
+        case Some("primary cell") | Some("in vitro differentiated cells") =>
+          joinedType.map(_.read[String]("term_id")).toList
+        case _ => List()
+      },
+      cellLine = classification match {
+        case Some("cell line") => joinedType.map(_.read[String]("term_id"))
+        case _                 => None
+      },
       preservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
       donorId = biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId),

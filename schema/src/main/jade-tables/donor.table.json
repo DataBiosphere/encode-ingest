@@ -23,7 +23,13 @@
     },
     {
       "name": "part_of_dataset_id",
-      "datatype": "string"
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "dataset",
+          "column_name": "dataset_id"
+        }
+      ]
     },
     {
       "name": "age_age_category",
