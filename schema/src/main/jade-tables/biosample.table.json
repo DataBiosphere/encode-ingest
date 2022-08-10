@@ -71,7 +71,8 @@
     },
     {
       "name": "anatomical_site",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "biosample_type",

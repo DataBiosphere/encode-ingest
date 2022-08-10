@@ -72,10 +72,10 @@ object BiosampleTransformations {
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
       anatomicalSite = classification match {
-        case Some("tissue") | Some("organoid") => joinedType.map(_.read[String]("term_id"))
+        case Some("tissue") | Some("organoid") => joinedType.map(_.read[String]("term_id")).toList
         case Some("cell line") | Some("primary cell") | Some("in vitro differentiated cells") =>
-          joinedType.map(_.read[String]("organ_slims"))
-        case _ => None
+          joinedType.map(_.read[List[String]]("organ_slims")).getOrElse(List())
+        case _ => List()
       },
       biosampleType = classification,
       aprioriCellType = classification match {
