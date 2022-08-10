@@ -95,7 +95,6 @@ object BiosampleTransformations {
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       diseaseId = biosampleInput.tryRead[List[String]]("disease_term_id").map(_.head),
-      diseaseName = biosampleInput.tryRead[List[String]]("disease_term_name").map(_.head),
       award = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("award")),
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
       geneticMod = CommonTransformations.convertToEncodeUrl(

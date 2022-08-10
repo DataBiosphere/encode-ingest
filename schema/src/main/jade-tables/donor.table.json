@@ -89,6 +89,7 @@
     {
       "name": "sibling_donor_id",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "donor",

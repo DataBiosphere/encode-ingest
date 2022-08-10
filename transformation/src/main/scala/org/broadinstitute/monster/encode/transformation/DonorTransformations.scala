@@ -40,8 +40,8 @@ object DonorTransformations {
         .tryRead[List[String]]("parents")
         .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId),
-      siblingDonorId = donorInput
-        .tryRead[String]("twin")
+      siblingDonorId = (donorInput.tryRead[String]("twin").getOrElse(null)
+        :: donorInput.tryRead[List[String]]("siblings").getOrElse(List()))
         .map(CommonTransformations.transformId),
       submittedBy = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("submitted_by"))
     )

@@ -33,13 +33,16 @@ object LibraryTransformations {
       rnaIntegrityNumber = libraryInput.tryRead[Double]("rna_integrity_number"),
       sizeRange = libraryInput.tryRead[String]("size_range"),
       libraryLayout = pairedEndId.isDefined,
-      pairedEndId = pairedEndId.filterNot(_ == specificityPlaceholder),
+      pairedEndType = pairedEndId.filterNot(_ == specificityPlaceholder),
       sampleTreatment = CommonTransformations.convertToEncodeUrl(
         libraryInput.tryRead[List[String]]("treatments").getOrElse(List.empty[String])
       ),
       submittedBy =
         CommonTransformations.convertToEncodeUrl(libraryInput.read[String]("submitted_by")),
-      usedBy = libraryInput.tryRead[List[String]]("spikeins_used").getOrElse(List.empty[String]),
+      usedBy = libraryInput
+        .tryRead[List[String]]("spikeins_used")
+        .getOrElse(List.empty[String])
+        .map(CommonTransformations.transformId(_)),
       usesSampleBiosampleId =
         CommonTransformations.transformId(libraryInput.read[String]("biosample")),
       prepMaterial = libraryInput.tryRead[String]("nucleic_acid_term_id"),

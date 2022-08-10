@@ -143,7 +143,7 @@ object FileTransformations {
       referenceAssembly = rawFile.tryRead[String]("assembly"),
       fileRef = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
-      pairedEndId = pairedEndId,
+      pairedEndType = pairedEndId,
       pairedWithFileId =
         rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
     )

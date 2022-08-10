@@ -49,7 +49,7 @@
       "type": "required"
     },
     {
-      "name": "paired_end_id",
+      "name": "paired_end_type",
       "datatype": "string"
     },
     {
@@ -65,7 +65,13 @@
     {
       "name": "used_by",
       "datatype": "string",
-      "type": "repeated"
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "referencefileset",
+          "column_name": "referencefileset_id"
+        }
+      ]
     },
     {
       "name": "uses_sample_biosample_id",
