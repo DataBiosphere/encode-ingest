@@ -15,6 +15,12 @@ object DonorTransformations {
     val rawAge = donorInput.tryRead[String]("age")
     val (ageLowerBound, ageUpperBound) = CommonTransformations.computeAgeLowerAndUpperbounds(rawAge)
 
+    val twin = donorInput.tryRead[String]("twin").map(CommonTransformations.transformId)
+    val siblings = donorInput
+      .tryRead[List[String]]("siblings")
+      .getOrElse(List())
+      .map(CommonTransformations.transformId)
+
     Donor(
       donorId = id,
       label = id,
@@ -40,9 +46,7 @@ object DonorTransformations {
         .tryRead[List[String]]("parents")
         .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId),
-      siblingDonorId = (donorInput.tryRead[String]("twin").getOrElse(null)
-        :: donorInput.tryRead[List[String]]("siblings").getOrElse(List()))
-        .map(CommonTransformations.transformId),
+      siblingDonorId = twin.toList ++ siblings,
       submittedBy = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("submitted_by"))
     )
   }
