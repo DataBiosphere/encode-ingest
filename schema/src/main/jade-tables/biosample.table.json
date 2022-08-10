@@ -161,6 +161,14 @@
       "datatype": "string"
     },
     {
+      "name": "disease_id",
+      "datatype": "string"
+    },
+    {
+      "name": "disease_name",
+      "datatype": "string"
+    },
+    {
       "name": "library_prep",
       "datatype": "string",
       "type": "repeated",
