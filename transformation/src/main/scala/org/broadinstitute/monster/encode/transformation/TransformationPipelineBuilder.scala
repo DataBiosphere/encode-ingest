@@ -454,7 +454,8 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
       .flatMap {
         case (experiment, maybeLibrary) =>
           maybeLibrary.map(library => (library.read[String]("@id") -> experiment))
-      }.distinctBy[String](_._1)
+      }
+      .distinctBy[String](_._1)
   }
 
   private def getLibrariesByExperiment(
