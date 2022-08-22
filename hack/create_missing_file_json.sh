@@ -44,7 +44,7 @@ function query_missing() {
 
 query_missing_unnest "alignmentactivity" "generated_file_id"
 query_missing_unnest "alignmentactivity" "used_file_id"
-query_missing_unnest "analysisactivity" "derived_from_file_id"
+query_missing_unnest "analysisactivity" "used_file_id"
 query_missing_unnest "analysisactivity" "generated_file_id"
 query_missing_unnest "assayactivity" "generated_file_id"
 query_missing_unnest "experimentactivity" "used_file_id"

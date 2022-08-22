@@ -46,7 +46,7 @@
       "datatype": "string"
     },
     {
-      "name": "date_obtained",
+      "name": "date_collected",
       "datatype": "timestamp"
     },
     {
@@ -98,6 +98,7 @@
     {
       "name": "donor_id",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "donor",

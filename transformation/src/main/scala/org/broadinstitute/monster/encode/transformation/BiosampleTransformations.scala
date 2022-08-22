@@ -65,7 +65,7 @@ object BiosampleTransformations {
       donorAgeAtCollectionLifeStage = biosampleInput.tryRead[String](life_stage_attribute),
       donorAgeAtCollectionAgeCategory = None,
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
-      dateObtained = biosampleInput
+      dateCollected = biosampleInput
         .tryRead[LocalDate]("date_obtained")
         .map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       partOfDatasetId = Some("ENCODE"),
@@ -91,7 +91,8 @@ object BiosampleTransformations {
       },
       preservationState = biosampleInput.tryRead[String]("preservation_method"),
       seeAlso = biosampleInput.tryRead[String]("url"),
-      donorId = biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId),
+      donorId =
+        biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId).toList,
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
       diseaseId = biosampleInput.tryRead[List[String]]("disease_term_id").map(_.head),

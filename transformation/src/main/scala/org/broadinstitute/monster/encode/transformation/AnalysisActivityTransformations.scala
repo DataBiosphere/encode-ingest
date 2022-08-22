@@ -45,7 +45,7 @@ object AnalysisActivityTransformations {
         .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
       analysisType = rawPipeline.tryRead[String]("title"),
       assayactivityId = experimentIdAccession,
-      derivedFromFileId = usedFileIds,
+      usedFileId = usedFileIds,
       generatedFileId = generatedFileIds.sorted
     )
   }

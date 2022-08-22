@@ -128,7 +128,7 @@
       ]
     },
     {
-      "name": "reference_assembly",
+      "name": "uses_reference_assembly",
       "datatype": "string"
     },
     {
