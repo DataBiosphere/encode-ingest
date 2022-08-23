@@ -25,7 +25,6 @@ function transform() {
       fi
   done <<< "$1"
   echo "Found ${NUM_MISSING} $2"
-
 }
 
 function query_missing_unnest() {
