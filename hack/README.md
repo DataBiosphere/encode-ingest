@@ -1,3 +1,28 @@
+# Process for ingesting encode
+## Create the dataset and set permissions
+
+Create a dataset in TDR. For the schema tables, from a clone of `https://github.com/DataBiosphere/encode-ingest.git`, run
+
+	sbt generateJadeSchema
+	
+and then copy the table section from `schema/target/schema.json` into the json below at `<table_data>`.
+
+Then use the swagger at `https://data.terra.bio/swagger-ui.html#/datasets/createDataset`
+
+	{
+		"name": "encode_in_anvil_v6",
+		"description": "some findability fixes, with file data",
+		"defaultProfileId": "0e6dd763-e8ef-4aad-bc99-f0fc7bbf2a76",
+		"schema": {
+		"tables": [<table_data>]
+		},
+		"cloudPlatform": "gcp",
+		"enableSecureMonitoring": false,
+		"experimentalSelfHosted": false,
+		"properties": {},
+		"dedicatedIngestServiceAccount": false
+	}
+
 
 ## Directions for ingesting missing file data
 

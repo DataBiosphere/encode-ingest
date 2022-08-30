@@ -140,7 +140,7 @@
       "datatype": "boolean"
     },
     {
-      "name": "paired_end_type",
+      "name": "paired_end_identifier",
       "datatype": "integer"
     },
     {

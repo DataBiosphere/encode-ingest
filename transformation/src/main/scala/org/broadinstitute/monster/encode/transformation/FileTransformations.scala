@@ -44,7 +44,7 @@ object FileTransformations {
   }
 
   /** 'run_type' value indicating a paired run in ENCODE. */
-  private val PairedEndType = "paired-ended"
+  private val PairedEndIdentifier = "paired-ended"
 
   // NOTE: This will not work if Library has biosamples in both the biosample field and mixed_biosamples field
   def getBiosamplesFromLibrary(rawLibrary: Msg): List[String] = {
@@ -142,8 +142,8 @@ object FileTransformations {
         .map(CommonTransformations.transformId(_)),
       usesReferenceAssembly = rawFile.tryRead[String]("assembly"),
       fileRef = None,
-      libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndType),
-      pairedEndType = pairedEndId,
+      libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndIdentifier),
+      pairedEndIdentifier = pairedEndId,
       pairedWithFileId =
         rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
     )
