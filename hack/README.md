@@ -32,7 +32,7 @@ Grant steward access to these users
 
 ## Run argo workflow
 
-See the build section in [README](https://github.com/DataBiosphere/encode-ingest/blob/master/README.md) to build updated version of the ingest code
+See the build section in [README](https://github.com/DataBiosphere/encode-ingest/blob/ah_preview_v2_ready/README.md#build-and-deploy-code-chages-from-branch) to build updated version of the ingest code
 
 ### Steps in monster-deploy repo
 
