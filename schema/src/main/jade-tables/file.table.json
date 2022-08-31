@@ -129,7 +129,8 @@
     },
     {
       "name": "reference_assembly",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "file_ref",
