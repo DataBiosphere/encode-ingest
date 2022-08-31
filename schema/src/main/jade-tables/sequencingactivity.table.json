@@ -31,6 +31,11 @@
       "type": "repeated"
     },
     {
+      "name": "assay_type",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "generated_file_id",
       "datatype": "string",
       "type": "repeated",
@@ -53,7 +58,7 @@
       ]
     },
     {
-      "name": "uses_sample_biosample_id",
+      "name": "used_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [

@@ -28,12 +28,12 @@ object SequencingActivityTransformations {
       label = id,
       xref = CommonTransformations.convertToEncodeUrl(rawFile.read[String]("@id")) :: List(),
       dateCreated = rawFile.read[OffsetDateTime]("date_created"),
-      activityType = Some("sequencing"),
+      activityType = Some("Sequencing"),
       dataModality =
         AssayActivityTransformations.getDataModalityFromListTerm(rawFile, "assay_term_name"),
       generatedFileId = fileId :: List(),
       associatedWith = dataset :: List(),
-      usesSampleBiosampleId = rawFile
+      usedBiosampleId = rawFile
         .tryRead[List[String]]("origin_batches")
         .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId(_)),
@@ -41,7 +41,8 @@ object SequencingActivityTransformations {
       libraryId = FileTransformations
         .computeLibrariesForFile(rawFile, rawLibraries)
         .getOrElse(List.empty[String]),
-      platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform"))
+      platform = CommonTransformations.convertToEncodeUrl(rawFile.tryRead[String]("platform")),
+      assayType = List()
     )
   }
 }

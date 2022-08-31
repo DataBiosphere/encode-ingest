@@ -52,6 +52,13 @@ object BiosampleTransformations {
 
     val classification = joinedType.map(_.read[String]("classification"))
 
+    val anatomicalSiteList: List[String] = classification match {
+      case Some("tissue") | Some("organoid") => joinedType.map(_.read[String]("term_id")).toList
+      case Some("cell line") | Some("primary cell") | Some("in vitro differentiated cells") =>
+        joinedType.map(_.read[List[String]]("organ_slims")).getOrElse(List())
+      case _ => List()
+    }
+
     Biosample(
       biosampleId = id,
       label = id,
@@ -61,22 +68,17 @@ object BiosampleTransformations {
       dateCreated = biosampleInput.read[OffsetDateTime]("date_created"),
       donorAgeAtCollectionLowerBound = ageLowerBound,
       donorAgeAtCollectionUpperBound = ageUpperBound,
-      donorAgeAtCollectionAgeUnit = biosampleInput.tryRead[String]("age_units"),
+      donorAgeAtCollectionUnit = biosampleInput.tryRead[String]("age_units"),
       donorAgeAtCollectionLifeStage = biosampleInput.tryRead[String](life_stage_attribute),
       donorAgeAtCollectionAgeCategory = None,
       source = CommonTransformations.convertToEncodeUrl(biosampleInput.tryRead[String]("source")),
       dateCollected = biosampleInput
         .tryRead[LocalDate]("date_obtained")
         .map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
-      partOfDatasetId = Some("ENCODE"),
+      partOfDatasetId = List("ENCODE"),
       derivedFromBiosampleId =
         biosampleInput.tryRead[String]("part_of").map(CommonTransformations.transformId),
-      anatomicalSite = classification match {
-        case Some("tissue") | Some("organoid") => joinedType.map(_.read[String]("term_id")).toList
-        case Some("cell line") | Some("primary cell") | Some("in vitro differentiated cells") =>
-          joinedType.map(_.read[List[String]]("organ_slims")).getOrElse(List())
-        case _ => List()
-      },
+      anatomicalSite = anatomicalSiteList.headOption,
       biosampleType = classification,
       aprioriCellType = classification match {
         case Some("tissue") | Some("organoid") | Some("cell line") =>
@@ -95,7 +97,8 @@ object BiosampleTransformations {
         biosampleInput.tryRead[String]("donor").map(CommonTransformations.transformId).toList,
       auditLabels = auditLabels,
       maxAuditFlag = auditLevel,
-      diseaseId = biosampleInput.tryRead[List[String]]("disease_term_id").map(_.head),
+      diagnosisId = List[String](),
+      disease = biosampleInput.tryRead[List[String]]("disease_term_id").map(_.head),
       award = CommonTransformations.convertToEncodeUrl(biosampleInput.read[String]("award")),
       cellIsolationMethod = biosampleInput.tryRead[String]("cell_isolation_method"),
       geneticMod = CommonTransformations.convertToEncodeUrl(
@@ -123,7 +126,7 @@ object BiosampleTransformations {
       } else {
         lotIds.headOption
       },
-      libraryPrep = libraryPrepIds,
+      libraryPrepId = libraryPrepIds,
       geneticModMerged = getMergedGeneticModStringAttribute("accession"),
       perturbation = getMergedGeneticModStringAttribute("pertubation"),
       geneticModType = getMergedGeneticModStringAttribute("purpose ")

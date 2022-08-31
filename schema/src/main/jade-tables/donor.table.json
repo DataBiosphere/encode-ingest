@@ -71,9 +71,25 @@
       "type": "required"
     },
     {
+      "name": "genetic_ancestry",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "lab",
       "datatype": "string",
       "type": "required"
+    },
+    {
+      "name": "diagnosis_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "diagnosis",
+          "column_name": "diagnosis_id"
+        }
+      ]
     },
     {
       "name": "parent_donor_id",

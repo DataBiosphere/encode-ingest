@@ -59,7 +59,8 @@
     },
     {
       "name": "owner",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "funded_by",
@@ -73,7 +74,13 @@
     },
     {
       "name": "data_use_permission",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "consent_group",
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "license",
@@ -82,6 +89,16 @@
     },
     {
       "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "principal_investigator",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "registered_identifier",
       "datatype": "string",
       "type": "repeated"
     },

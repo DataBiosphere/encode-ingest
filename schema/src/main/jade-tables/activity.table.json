@@ -1,0 +1,36 @@
+{
+  "name": "activity",
+  "columns": [
+    {
+      "name": "activity_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
+      "name": "used_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "generated_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    }
+  ]
+}

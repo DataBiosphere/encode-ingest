@@ -24,7 +24,7 @@ object LibraryPreparationActivityTransformations {
       generatedLibraryId = id :: List(),
       usesSampleBiosampleId =
         CommonTransformations.transformId(libraryInput.read[String]("biosample")) :: List(),
-      activityType = Some("librarypreparation"),
+      activityType = Some("LibraryPreparation"),
       dataModality = experiment
         .map(msg => AssayActivityTransformations.getDataModalityFromTerm(msg, "assay_term_name"))
         .getOrElse(List())

@@ -140,7 +140,7 @@ object FileTransformations {
         .tryRead[List[String]]("derived_from")
         .getOrElse(List.empty[String])
         .map(CommonTransformations.transformId(_)),
-      usesReferenceAssembly = rawFile.tryRead[String]("assembly"),
+      referenceAssembly = rawFile.tryRead[String]("assembly"),
       fileRef = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndIdentifier),
       pairedEndIdentifier = pairedEndId,

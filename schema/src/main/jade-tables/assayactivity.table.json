@@ -61,7 +61,7 @@
       ]
     },
     {
-      "name": "uses_sample_biosample_id",
+      "name": "used_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [

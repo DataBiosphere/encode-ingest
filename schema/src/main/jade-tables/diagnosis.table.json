@@ -1,0 +1,48 @@
+{
+  "name": "diagnosis",
+  "columns": [
+    {
+      "name": "diagnosis_id",
+      "datatype": "string"
+    },
+    {
+      "name": "disease",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "diagnosis_age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "diagnosis_age_lower_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "diagnosis_age_upper_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "onset_age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "onset_age_lower_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "onset_age_upper_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "phenotype",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "phenopacket",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ]
+}

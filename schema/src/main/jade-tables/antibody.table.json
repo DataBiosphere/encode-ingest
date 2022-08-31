@@ -37,8 +37,7 @@
     },
     {
       "name": "target",
-      "datatype": "string",
-      "type": "repeated"
+      "datatype": "string"
     },
     {
       "name": "award",

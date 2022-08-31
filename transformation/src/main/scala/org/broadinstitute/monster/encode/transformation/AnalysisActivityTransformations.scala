@@ -38,7 +38,7 @@ object AnalysisActivityTransformations {
       analysisactivityId = pipelineRunId,
       label = pipelineRunId,
       xref = CommonTransformations.convertToEncodeUrl(rawPipeline.read[String]("@id")) :: List(),
-      activityType = Some("analysis"),
+      activityType = Some("Analysis"),
       dataModality = rawPipeline
         .tryRead[List[String]]("assay_term_names")
         .getOrElse(List.empty[String])

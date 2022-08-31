@@ -26,7 +26,7 @@
       "datatype": "string"
     },
     {
-      "name": "donor_age_at_collection_age_unit",
+      "name": "donor_age_at_collection_unit",
       "datatype": "string"
     },
     {
@@ -52,6 +52,7 @@
     {
       "name": "part_of_dataset_id",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "dataset",
@@ -71,8 +72,7 @@
     },
     {
       "name": "anatomical_site",
-      "datatype": "string",
-      "type": "repeated"
+      "datatype": "string"
     },
     {
       "name": "biosample_type",
@@ -162,11 +162,22 @@
       "datatype": "string"
     },
     {
-      "name": "disease_id",
+      "name": "diagnosis_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "diagnosis",
+          "column_name": "diagnosis_id"
+        }
+      ]
+    },
+    {
+      "name": "disease",
       "datatype": "string"
     },
     {
-      "name": "library_prep",
+      "name": "library_prep_id",
       "datatype": "string",
       "type": "repeated",
       "links": [

@@ -29,9 +29,9 @@ object AssayActivityTransformations {
       antibodyId = rawReplicates
         .flatMap(_.tryRead[String]("antibody").map(CommonTransformations.transformId))
         .toList,
-      activityType = Some("assay"),
+      activityType = Some("Assay"),
       generatedFileId = rawFiles.map(CommonTransformations.readId).toSet.toList,
-      usesSampleBiosampleId = rawLibraries.map { lib =>
+      usedBiosampleId = rawLibraries.map { lib =>
         CommonTransformations.transformId(lib.read[String]("biosample"))
       }.toSet.toList,
       libraryId = rawLibraries.map(CommonTransformations.readId).toList

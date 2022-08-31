@@ -22,7 +22,7 @@ object SampleTreatmentActivityTransformations {
         .tryRead[List[String]]("dbxrefs")
         .getOrElse(List.empty[String]),
       dateCreated = Some(treatmentInput.read[OffsetDateTime]("date_created")),
-      activityType = Some("sampletreatment"),
+      activityType = Some("SampleTreatment"),
       dataModality = List(),
       sampleTreatmentMethod = treatmentInput.tryRead[String]("treatment_type"),
       treatmentTermId = treatmentInput.tryRead[String]("treatment_term_id"),

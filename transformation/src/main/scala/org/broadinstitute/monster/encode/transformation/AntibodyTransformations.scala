@@ -12,12 +12,10 @@ object AntibodyTransformations {
     import org.broadinstitute.monster.common.msg.MsgOps
 
     val id = CommonTransformations.readId(antibodyInput)
-    val targetNames = joinedTargets
+    val targetName = joinedTargets
       .filter(_.tryRead[String]("organism").contains("/organisms/human/"))
       .map(_.read[String]("label"))
-      .toList
-      .sorted
-      .distinct
+      .headOption
 
     Antibody(
       antibodyId = CommonTransformations.readId(antibodyInput),
@@ -30,7 +28,7 @@ object AntibodyTransformations {
       clonality = antibodyInput.tryRead[String]("clonality"),
       hostOrganism =
         CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("host_organism")),
-      target = targetNames,
+      target = targetName,
       award = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("award")),
       isotype = antibodyInput.tryRead[String]("isotype"),
       lab = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("lab")),

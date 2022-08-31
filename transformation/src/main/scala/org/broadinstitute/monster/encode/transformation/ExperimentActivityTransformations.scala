@@ -30,7 +30,7 @@ object ExperimentActivityTransformations {
         .tryRead[LocalDate]("date_submitted")
         .map(_.atStartOfDay().atOffset(ZoneOffset.UTC)),
       description = rawExperiment.tryRead[String]("description"),
-      activityType = Some("experiment"),
+      activityType = Some("Experiment"),
       dataModality =
         AssayActivityTransformations.getDataModalityFromTerm(rawExperiment, "assay_term_name"),
       award = CommonTransformations.convertToEncodeUrl(rawExperiment.read[String]("award")),

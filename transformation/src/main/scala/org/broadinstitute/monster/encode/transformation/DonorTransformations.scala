@@ -42,6 +42,8 @@ object DonorTransformations {
       partOfDatasetId = Some("ENCODE"),
       award = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("award")),
       lab = CommonTransformations.convertToEncodeUrl(donorInput.read[String]("lab")),
+      geneticAncestry = List(),
+      diagnosisId = List(),
       parentDonorId = donorInput
         .tryRead[List[String]]("parents")
         .getOrElse(List.empty[String])
