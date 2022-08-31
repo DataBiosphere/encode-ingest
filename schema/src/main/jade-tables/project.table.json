@@ -13,7 +13,13 @@
     {
       "name": "generated_dataset_id",
       "datatype": "string",
-      "type": "repeated"
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "dataset",
+          "column_name": "dataset_id"
+        }
+      ]
     },
     {
       "name": "principal_investigator",
