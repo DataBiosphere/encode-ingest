@@ -74,12 +74,13 @@ See the build section in [README](https://github.com/DataBiosphere/encode-ingest
 	1. Select the 4th task `run-extraction`
 	1. Click on the `YAML` button and about 10 lines down in the `Current Node` section you should see the expected version. If this starts too soon after the new version is deployed, it sometimes runs the old version. If this happens, terminate the workflow and click `resubmit`. Then verify the correct version is running.
 
+NOTE: If the Argo Workflow succeeds, it lands in the Archived Workflows section and does not appear in the main landing page.
 	 
 ## Directions for ingesting missing file data
 
 Once the workflow successfully completes, we patch the dataset file table with entries for some archived and restricted files. *Make sure your dataset_name starts with `datarepo_`*
 
-    ./create_missing_file_json.sh <project_id> <dataset_name> <output-file>
+    ./create_missing_file_json.sh <project_id> <dataset_name> <output-file>.json
 
 ***Note: currently the script does not handle bq errors. Look at the output file to see if the correct actions were performed.***
 
@@ -99,10 +100,12 @@ missing file metadata.
 	    "resolve_existing_files": false,
 	    "updateStrategy": "append"
     }
+    NOTE: Should update strategy here be to "merge" or to "replace"?
 
 You can check to see if there are any missing files by running 
 
-    ./check_for_missing_files.sh <project> <dataset> 
+    ./check_for_missing_files.sh <project> <dataset>
+    NOTE: Don't forget to prepend the word "datarepo_" in front of the name of the dataset.
 
 
 ## Directions for loading the files into TDR
