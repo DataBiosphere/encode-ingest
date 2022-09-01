@@ -74,6 +74,7 @@ See the build section in [README](https://github.com/DataBiosphere/encode-ingest
 	1. Select the 4th task `run-extraction`
 	1. Click on the `YAML` button and about 10 lines down in the `Current Node` section you should see the expected version. If this starts too soon after the new version is deployed, it sometimes runs the old version. If this happens, terminate the workflow and click `resubmit`. Then verify the correct version is running.
 
+NOTE: If the Argo Workflow succeeds, it lands in the Archived Workflows section and does not appear in the main landing page.
 	 
 ## Directions for ingesting missing file data
 
