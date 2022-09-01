@@ -104,7 +104,8 @@ missing file metadata.
 
 You can check to see if there are any missing files by running 
 
-    ./check_for_missing_files.sh <project> <dataset> 
+    ./check_for_missing_files.sh <project> <dataset>
+    NOTE: Don't forget to prepend the word "datarepo_" in front of the name of the dataset.
 
 
 ## Directions for loading the files into TDR
