@@ -300,7 +300,7 @@ Copy the output file to a google bucket, replace the variables below and use the
 		"generated_dataset_id",
 		"principal_investigator",
 		"title",
-		"registered_identifer"
+		"registered_identifier"
 	      ]
 	    },
 	    {
