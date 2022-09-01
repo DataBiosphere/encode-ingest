@@ -80,7 +80,7 @@ NOTE: If the Argo Workflow succeeds, it lands in the Archived Workflows section 
 
 Once the workflow successfully completes, we patch the dataset file table with entries for some archived and restricted files. *Make sure your dataset_name starts with `datarepo_`*
 
-    ./create_missing_file_json.sh <project_id> <dataset_name> <output-file>
+    ./create_missing_file_json.sh <project_id> <dataset_name> <output-file>.json
 
 ***Note: currently the script does not handle bq errors. Look at the output file to see if the correct actions were performed.***
 
@@ -100,6 +100,7 @@ missing file metadata.
 	    "resolve_existing_files": false,
 	    "updateStrategy": "append"
     }
+    NOTE: Should update strategy here be to "merge" or to "replace"?
 
 You can check to see if there are any missing files by running 
 
