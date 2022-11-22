@@ -1,24 +1,30 @@
 {
-  "name": "alignment_file",
+  "name": "file",
   "columns": [
     {
-      "name": "id",
+      "name": "file_id",
       "datatype": "string",
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
     {
       "name": "data_modality",
-      "datatype": "string"
+      "datatype": "string",
+      "type": "repeated"
     },
     {
       "name": "audit_labels",
@@ -35,9 +41,16 @@
       "type": "required"
     },
     {
+      "name": "file_type",
+      "datatype": "string"
+    },
+    {
       "name": "file_format",
-      "datatype": "string",
-      "type": "required"
+      "datatype": "string"
+    },
+    {
+      "name": "file_format_type",
+      "datatype": "string"
     },
     {
       "name": "lab",
@@ -59,54 +72,87 @@
       "type": "required"
     },
     {
+      "name": "read_count",
+      "datatype": "integer"
+    },
+    {
+      "name": "read_length",
+      "datatype": "integer"
+    },
+    {
       "name": "genome_annotation",
       "datatype": "string"
     },
     {
-      "name": "derived_from_alignment_file_ids",
+      "name": "library_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "alignment_file",
-          "column_name": "id"
+          "table_name": "library",
+          "column_name": "library_id"
         }
       ]
     },
     {
-      "name": "derived_from_sequence_file_ids",
+      "name": "uses_sample_biosample_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "sequence_file",
-          "column_name": "id"
+          "table_name": "biosample",
+          "column_name": "biosample_id"
         }
       ]
     },
     {
-      "name": "derived_from_other_file_ids",
+      "name": "donor_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
-          "table_name": "other_file",
-          "column_name": "id"
+          "table_name": "donor",
+          "column_name": "donor_id"
+        }
+      ]
+    },
+    {
+      "name": "derived_from_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
         }
       ]
     },
     {
       "name": "reference_assembly",
       "datatype": "string",
-      "type": "required"
+      "type": "repeated"
     },
     {
-      "name": "cloud_path",
+      "name": "file_ref",
       "datatype": "fileref"
     },
     {
-      "name": "index_cloud_path",
-      "datatype": "fileref"
+      "name": "library_layout",
+      "datatype": "boolean"
+    },
+    {
+      "name": "paired_end_identifier",
+      "datatype": "integer"
+    },
+    {
+      "name": "paired_with_file_id",
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
     }
   ]
 }

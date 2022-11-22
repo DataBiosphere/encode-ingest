@@ -44,6 +44,34 @@ object CommonTransformations {
   def readId(rawObj: Msg): String = transformId(rawObj.read[String]("@id"))
 
   /**
+    * Prepend the encode base url to any string that represent an encode url path
+    */
+  val urlPrefix = "https://www.encodeproject.org"
+  def convertToEncodeUrl(value: String): String = urlPrefix + value
+
+  def convertToEncodeUrl(optValue: Option[String]): Option[String] =
+    optValue.map(value => urlPrefix + value)
+
+  def convertToEncodeUrl(values: List[String]): List[String] =
+    values.map(value => convertToEncodeUrl(value))
+
+  def computeAgeLowerAndUpperbounds(rawAge: Option[String]): (Option[Double], Option[Double]) =
+    rawAge.fold((Option.empty[Double], Option.empty[Double])) { raw =>
+      if (raw.equals("90 or above")) {
+        (Some(90.0), None)
+      } else {
+        val splitIdx = raw.indexOf('-')
+        if (splitIdx == -1) {
+          val parsed = raw.toDouble
+          (Some(parsed), Some(parsed))
+        } else {
+          val (min, max) = (raw.take(splitIdx), raw.drop(splitIdx + 1))
+          (Some(min.toDouble), Some(max.toDouble))
+        }
+      }
+    }
+
+  /**
     * Summarize any audit records found in a raw ENCODE object, returning:
     *   1. A color label for the max audit level present
     *   2. The set of unique audit categories present

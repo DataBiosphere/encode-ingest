@@ -1,0 +1,39 @@
+{
+  "name": "project",
+  "columns": [
+    {
+      "name": "project_id",
+      "datatype": "string"
+    },
+    {
+      "name": "funded_by",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "generated_dataset_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "dataset",
+          "column_name": "dataset_id"
+        }
+      ]
+    },
+    {
+      "name": "principal_investigator",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "title",
+      "datatype": "string"
+    },
+    {
+      "name": "registered_identifier",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ]
+}

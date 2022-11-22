@@ -30,6 +30,8 @@ spec:
                 - name: dataset-name
                   value: {{ $datasetName }}
                 {{- with .Values.bigquery.stagingData }}
+                - name: bq-region
+                  value: 'us-central1'
                 - name: bq-project
                   value: '{{ .project }}'
                 - name: dataset-description
@@ -42,16 +44,21 @@ spec:
           - name: process-tables
             dependencies: [create-dataset]
             withItems:
-              - alignment_file
+              - alignmentactivity
+              - analysisactivity
               - antibody
-              - assay
+              - assayactivity
               - biosample
+              - dataset
               - donor
+              - experimentactivity
+              - file
               - library
-              - other_file
-              - pipeline_run
-              - sequence_file
-              - step_run
+              - librarypreparationactivity
+              - referencefileset
+              - sampletreatmentactivity
+              - sequencingactivity
+              - stepactivity
             template: process-table
             arguments:
               parameters:
@@ -89,6 +96,8 @@ spec:
                   value: '{{ $tableName }}'
                 - name: gcs-bucket
                   value: '{{ .Values.gcs.bucketName }}'
+                - name: bq-region
+                  value: 'us-central1'
                 - name: input-prefix
                   value: '{{ printf "%s/processed/%s" $gcsPrefix $tableName }}'
                 - name: old-ids-output-prefix

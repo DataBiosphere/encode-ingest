@@ -1,0 +1,91 @@
+{
+  "name": "sequencingactivity",
+  "columns": [
+    {
+      "name": "sequencingactivity_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "date_created",
+      "datatype": "timestamp",
+      "type": "required"
+    },
+    {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "assay_type",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "generated_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "associated_with",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "experimentactivity",
+          "column_name": "experimentactivity_id"
+        }
+      ]
+    },
+    {
+      "name": "used_biosample_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "biosample",
+          "column_name": "biosample_id"
+        }
+      ]
+    },
+    {
+      "name": "lab",
+      "datatype": "string"
+    },
+    {
+      "name": "library_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "library",
+          "column_name": "library_id"
+        }
+      ]
+    },
+    {
+      "name": "platform",
+      "datatype": "string"
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "name": "referencefileset",
+  "columns": [
+    {
+      "name": "referencefileset_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "reference_assembly",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "description",
+      "datatype": "string"
+    },
+    {
+      "name": "document",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "doid",
+      "datatype": "string"
+    },
+    {
+      "name": "elements_selection_method",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "examined_loci",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "examined_region",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "lab",
+      "datatype": "string"
+    },
+    {
+      "name": "organism",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "donor",
+          "column_name": "donor_id"
+        }
+      ]
+    },
+    {
+      "name": "derived_from_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "generated_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "original_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "related_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "related_pipeline_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "analysisactivity",
+          "column_name": "analysisactivity_id"
+        }
+      ]
+    },
+    {
+      "name": "reference_type",
+      "datatype": "string"
+    },
+    {
+      "name": "references",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "software_used",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ]
+}

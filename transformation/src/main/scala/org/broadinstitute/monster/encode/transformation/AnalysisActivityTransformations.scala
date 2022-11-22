@@ -1,47 +1,52 @@
 package org.broadinstitute.monster.encode.transformation
 
-import org.broadinstitute.monster.encode.jadeschema.table.PipelineRun
+import org.broadinstitute.monster.encode.jadeschema.table.Analysisactivity
 import org.slf4j.LoggerFactory
 import upack.Msg
 import org.broadinstitute.monster.common.msg.MsgOps
 
 /** Transformation logic for ENCODE pipeline objects. */
-object PipelineRunTransformations {
+object AnalysisActivityTransformations {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   /** Transform a raw ENCODE pipeline into our preferred schema. */
-  def transformPipelineRun(
+  def transformAnalysisActivity(
     rawPipeline: Msg,
     experimentId: String,
-    rawGeneratedFiles: Iterable[Msg],
-    fileIdToTypeMap: Map[String, FileType]
-  ): PipelineRun = {
-    val pipelineId = rawPipeline.read[String]("@id")
-    val pipelineRunId = getPipelineRunId(pipelineId, experimentId)
+    rawGeneratedFiles: Iterable[Msg]
+  ): Analysisactivity = {
+    val pipelineId = CommonTransformations.readId(rawPipeline)
+    val experimentIdAccession = CommonTransformations.transformId(experimentId)
+    val pipelineRunId = s"${pipelineId}_${experimentIdAccession}"
 
     // branch files
-    val generatedFileIds = rawGeneratedFiles.map(_.read[String]("@id")).toList
-    val generatedFileBranches =
-      FileTransformations.splitFileReferences(generatedFileIds, fileIdToTypeMap)
+    val generatedFileIds = rawGeneratedFiles.map(CommonTransformations.readId).toSet.toList
     val usedFileIds = rawGeneratedFiles
-      .flatMap(_.read[Array[String]]("derived_from"))
+      .flatMap(
+        _.tryRead[List[String]]("derived_from")
+          .getOrElse(List.empty[String])
+          .distinct
+          .map(CommonTransformations.transformId)
+          .diff(generatedFileIds)
+          .sorted
+      )
+      .toSet
       .toList
-      .distinct
-      .diff(generatedFileIds)
-    val usedFileBranches = FileTransformations.splitFileReferences(usedFileIds, fileIdToTypeMap)
 
-    PipelineRun(
-      id = pipelineRunId,
-      pipeline = pipelineId,
-      pipelineName = rawPipeline.read[String]("title"),
-      assayId = CommonTransformations.transformId(experimentId),
-      usedAlignmentFileIds = usedFileBranches.alignment.sorted,
-      usedSequenceFileIds = usedFileBranches.sequence.sorted,
-      usedOtherFileIds = usedFileBranches.other.sorted,
-      generatedAlignmentFileIds = generatedFileBranches.alignment.sorted,
-      generatedSequenceFileIds = generatedFileBranches.sequence.sorted,
-      generatedOtherFileIds = generatedFileBranches.other.sorted
+    Analysisactivity(
+      analysisactivityId = pipelineRunId,
+      label = pipelineRunId,
+      xref = CommonTransformations.convertToEncodeUrl(rawPipeline.read[String]("@id")) :: List(),
+      activityType = Some("Analysis"),
+      dataModality = rawPipeline
+        .tryRead[List[String]]("assay_term_names")
+        .getOrElse(List.empty[String])
+        .map(term => AssayActivityTransformations.transformAssayTermToDataModality(term)),
+      analysisType = rawPipeline.tryRead[String]("title"),
+      assayactivityId = experimentIdAccession,
+      usedFileId = usedFileIds,
+      generatedFileId = generatedFileIds.sorted
     )
   }
 
@@ -96,5 +101,5 @@ object PipelineRunTransformations {
 
   /** Combine a pipeline ID and experiment ID to generate an ID for a pipeline run. */
   def getPipelineRunId(pipelineId: String, experimentId: String): String =
-    s"${CommonTransformations.transformId(pipelineId)}-${CommonTransformations.transformId(experimentId)}"
+    s"${CommonTransformations.transformId(pipelineId)}_${CommonTransformations.transformId(experimentId)}"
 }

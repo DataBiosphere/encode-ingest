@@ -1,0 +1,45 @@
+{
+  "name": "variantcallingactivity",
+  "columns": [
+    {
+      "name": "variantcallingactivity_id",
+      "datatype": "string"
+    },
+    {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
+      "name": "used_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "generated_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "reference_assembly",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ]
+}

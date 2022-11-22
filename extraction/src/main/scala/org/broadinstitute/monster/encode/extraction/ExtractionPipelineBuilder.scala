@@ -78,12 +78,21 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       queryBatches: SCollection[List[(String, String)]],
       negativeFilters: List[(String, String)]
     ): SCollection[Msg] = {
+      extractEntitiesWithName(encodeEntity, encodeEntity.entryName, queryBatches, negativeFilters)
+    }
+
+    def extractEntitiesWithName(
+      encodeEntity: EncodeEntity,
+      outputName: String,
+      queryBatches: SCollection[List[(String, String)]],
+      negativeFilters: List[(String, String)]
+    ): SCollection[Msg] = {
       val out = getEntities(encodeEntity, queryBatches.map(_ -> negativeFilters))
         .distinctBy(_.read[String]("@id"))
       writeJsonListsGeneric(
         out,
-        encodeEntity.entryName,
-        s"${args.outputDir}/${encodeEntity.entryName}"
+        outputName,
+        s"${args.outputDir}/${outputName}"
       )
       out
     }
@@ -124,6 +133,82 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       Nil
     )
 
+    val releasedStatusQuery: List[(String, String)] = List("status" -> "released")
+    val restrictedNegativeQuery: List[(String, String)] = List("restricted" -> "true")
+
+    extractEntities(
+      EncodeEntity.Reference,
+      ctx
+        .withName("Initial reference query")
+        .parallelize(List(releasedStatusQuery)),
+      Nil
+    )
+
+    // extract files by activity type and then other
+    val sequenceFileQuery: List[(String, String)] =
+      ("output_category" -> "raw data") :: releasedStatusQuery
+    val alignmentFileQuery: List[(String, String)] =
+      ("output_category" -> "alignment") :: releasedStatusQuery
+    val signalFileQuery: List[(String, String)] =
+      ("output_category" -> "signal") :: releasedStatusQuery
+    val annotationFileQuery: List[(String, String)] =
+      ("output_category" -> "annotation") :: releasedStatusQuery
+    val otherFileNegativeQuery: List[(String, String)] =
+      ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedNegativeQuery
+
+    val sequenceFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "SequenceFiles",
+      ctx
+        .withName("Get Sequence Files")
+        .parallelize(List(sequenceFileQuery)),
+      restrictedNegativeQuery
+    )
+
+    val alignmentFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "AlignmentFiles",
+      ctx
+        .withName("Get Alignment Files")
+        .parallelize(List(alignmentFileQuery)),
+      restrictedNegativeQuery
+    )
+
+    val signalFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "SignalFiles",
+      ctx
+        .withName("Get Signal Files")
+        .parallelize(List(signalFileQuery)),
+      restrictedNegativeQuery
+    )
+
+    val annotationFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "AnnotationFiles",
+      ctx
+        .withName("Get Annotation Files")
+        .parallelize(List(annotationFileQuery)),
+      restrictedNegativeQuery
+    )
+
+    val otherFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "OtherFiles",
+      ctx
+        .withName("Get Other Files")
+        .parallelize(List(releasedStatusQuery)),
+      otherFileNegativeQuery
+    )
+
+    val filesWithStepRun = sequenceFiles
+      .filterNot(_.tryRead[String]("step_run").isEmpty)
+      .union(alignmentFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(sequenceFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(signalFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(annotationFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.
     extractLinkedEntities(
       sourceEntityType = EncodeEntity.Biosample,
@@ -137,6 +222,29 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       sourceField = "biosample_ontology",
       sourceEntities = biosamples,
       targetEntityType = EncodeEntity.BiosampleType,
+      targetField = "@id"
+    )
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "organism",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.Organism,
+      targetField = "@id"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "@id",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.GeneticModification,
+      targetField = "biosamples_modified"
+    )
+
+    extractLinkedEntities(
+      sourceEntityType = EncodeEntity.Biosample,
+      sourceField = "treatments",
+      sourceEntities = biosamples,
+      targetEntityType = EncodeEntity.Treatment,
       targetField = "@id"
     )
 
@@ -178,14 +286,14 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .withName("Split by experiment type")
       .partition(isFunctionalCharacterizationReplicate)
 
-    val experiments = extractLinkedEntities(
+    extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = expReplicate,
       targetEntityType = EncodeEntity.Experiment,
       targetField = "@id"
     )
-    val fcExperiments = extractLinkedEntities(
+    extractLinkedEntities(
       sourceEntityType = EncodeEntity.Replicate,
       sourceField = "experiment",
       sourceEntities = fcReplicate,
@@ -193,36 +301,10 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       targetField = "@id"
     )
 
-    // Extracting files is too complicated to fit into the usual pattern.
-    val files = {
-      val allExperiments = experiments.withName("Merge experiments").union(fcExperiments)
-      val allFileIds = allExperiments
-        .withName("Extract file IDs")
-        .flatMap { msg =>
-          val inputFiles = msg.read[Array[String]]("contributing_files")
-          val outputFiles = msg.read[Array[String]]("files")
-
-          List.concat(inputFiles, outputFiles)
-        }
-        .distinct
-
-      val queryBatches = allFileIds.transform(s"Build queries in File.@id") { ids =>
-        groupValues(batchSize, ids.map("@id" -> _)).map(_ -> NegativeFileFilters)
-      }
-
-      getEntities(EncodeEntity.File, queryBatches)
-    }
-
-    writeJsonListsGeneric(
-      files,
-      EncodeEntity.File.entryName,
-      s"${args.outputDir}/${EncodeEntity.File.entryName}"
-    )
-
     val analysisStepRuns = extractLinkedEntities(
       sourceEntityType = EncodeEntity.File,
       sourceField = "step_run",
-      sourceEntities = files,
+      sourceEntities = filesWithStepRun,
       targetEntityType = EncodeEntity.AnalysisStepRun,
       targetField = "@id"
     )
@@ -269,10 +351,10 @@ object ExtractionPipelineBuilder {
     * "Negative" filters to include in all file searches, to filter
     * out records we don't want to bother extracting.
     */
-  val NegativeFileFilters: List[(String, String)] = List(
-    "output_category" -> "reference",
-    "restricted" -> "true"
-  )
+//  val NegativeFileFilters: List[(String, String)] = List(
+//    "output_category" -> "reference",
+//    "restricted" -> "true"
+//  )
 
   /**
     * Determines whether a replicate is linked to a FunctionalCharacterizationExperiment

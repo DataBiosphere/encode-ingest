@@ -2,44 +2,67 @@
   "name": "donor",
   "columns": [
     {
-      "name": "id",
+      "name": "donor_id",
       "datatype": "string",
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
     },
     {
-      "name": "age_min",
-      "datatype": "integer"
+      "name": "part_of_dataset_id",
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "dataset",
+          "column_name": "dataset_id"
+        }
+      ]
     },
     {
-      "name": "age_max",
-      "datatype": "integer"
-    },
-    {
-      "name": "age_unit",
+      "name": "age_age_category",
       "datatype": "string"
     },
     {
-      "name": "ethnicity",
+      "name": "age_age_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "age_life_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "age_lower_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "age_upper_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "reported_ethnicity",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "organism",
+      "name": "organism_type",
       "datatype": "string",
       "type": "required"
     },
     {
-      "name": "sex",
+      "name": "phenotypic_sex",
       "datatype": "string"
     },
     {
@@ -48,32 +71,45 @@
       "type": "required"
     },
     {
+      "name": "genetic_ancestry",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
       "name": "lab",
       "datatype": "string",
       "type": "required"
     },
     {
-      "name": "life_stage",
-      "datatype": "string"
+      "name": "diagnosis_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "diagnosis",
+          "column_name": "diagnosis_id"
+        }
+      ]
     },
     {
-      "name": "parent_donor_ids",
+      "name": "parent_donor_id",
       "datatype": "string",
       "type": "repeated",
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },
     {
-      "name": "twin_donor_id",
+      "name": "sibling_donor_id",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },

@@ -2,27 +2,63 @@
   "name": "biosample",
   "columns": [
     {
-      "name": "id",
+      "name": "biosample_id",
       "datatype": "string",
       "type": "primary_key"
     },
     {
-      "name": "cross_references",
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
       "datatype": "string",
       "type": "repeated"
     },
     {
-      "name": "time_created",
+      "name": "date_created",
       "datatype": "timestamp",
       "type": "required"
+    },
+    {
+      "name": "donor_age_at_collection_age_category",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_age_at_collection_unit",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_age_at_collection_life_stage",
+      "datatype": "string"
+    },
+    {
+      "name": "donor_age_at_collection_lower_bound",
+      "datatype": "float"
+    },
+    {
+      "name": "donor_age_at_collection_upper_bound",
+      "datatype": "float"
     },
     {
       "name": "source",
       "datatype": "string"
     },
     {
-      "name": "date_obtained",
-      "datatype": "date"
+      "name": "date_collected",
+      "datatype": "timestamp"
+    },
+    {
+      "name": "part_of_dataset_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "dataset",
+          "column_name": "dataset_id"
+        }
+      ]
     },
     {
       "name": "derived_from_biosample_id",
@@ -30,7 +66,7 @@
       "links": [
         {
           "table_name": "biosample",
-          "column_name": "id"
+          "column_name": "biosample_id"
         }
       ]
     },
@@ -43,7 +79,16 @@
       "datatype": "string"
     },
     {
-      "name": "sample_preservation_state",
+      "name": "apriori_cell_type",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "cell_line",
+      "datatype": "string"
+    },
+    {
+      "name": "preservation_state",
       "datatype": "string"
     },
     {
@@ -53,10 +98,11 @@
     {
       "name": "donor_id",
       "datatype": "string",
+      "type": "repeated",
       "links": [
         {
           "table_name": "donor",
-          "column_name": "id"
+          "column_name": "donor_id"
         }
       ]
     },
@@ -79,7 +125,7 @@
       "datatype": "string"
     },
     {
-      "name": "genetic_modifications",
+      "name": "genetic_mod",
       "datatype": "string",
       "type": "repeated"
     },
@@ -93,7 +139,7 @@
       "type": "required"
     },
     {
-      "name": "treatments",
+      "name": "sample_treatment",
       "datatype": "string",
       "type": "repeated"
     },
@@ -108,12 +154,198 @@
       "type": "required"
     },
     {
-      "name": "product_id",
+      "name": "part_number",
       "datatype": "string"
     },
     {
-      "name": "lot_id",
+      "name": "lot",
       "datatype": "string"
+    },
+    {
+      "name": "diagnosis_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "diagnosis",
+          "column_name": "diagnosis_id"
+        }
+      ]
+    },
+    {
+      "name": "disease",
+      "datatype": "string"
+    },
+    {
+      "name": "library_prep_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "librarypreparationactivity",
+          "column_name": "librarypreparationactivity_id"
+        }
+      ]
+    },
+    {
+      "name": "genetic_mod_merged",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "genetic_mod_type",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "genetic_mod_method",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "perturbation",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "nucleic_acid_delivery_method",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_by_target",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_by_gene",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_nonspecific",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_by_coordinates_assembly",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_by_coordinates_chromosome",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_by_coordinates_start",
+      "datatype": "integer",
+      "type": "repeated"
+    },
+    {
+      "name": "modified_site_by_coordinates_end",
+      "datatype": "integer",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_elements",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "guide_type",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_sequence",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_gene",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_tags_name",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_tags_location",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_tags_promoter_used",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_elements_donor",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "introduced_elements_organism",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "guide_rna_sequence",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "rnai_sequence",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "left_rvd_sequence",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "right_rvd_sequence",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "document",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "treatment",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "zygosity",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "moi",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "crispr_system",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "cas_species",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "description",
+      "datatype": "string",
+      "type": "repeated"
     }
   ]
 }

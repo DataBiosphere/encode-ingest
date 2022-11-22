@@ -1,0 +1,61 @@
+{
+  "name": "stepactivity",
+  "columns": [
+    {
+      "name": "stepactivity_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "version",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "analysisactivity_id",
+      "datatype": "string",
+      "links": [
+        {
+          "table_name": "analysisactivity",
+          "column_name": "analysisactivity_id"
+        }
+      ]
+    },
+    {
+      "name": "used_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "generated_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    }
+  ]
+}

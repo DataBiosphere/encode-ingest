@@ -1,0 +1,111 @@
+{
+  "name": "dataset",
+  "columns": [
+    {
+      "name": "dataset_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string"
+    },
+    {
+      "name": "xref",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "title",
+      "datatype": "string"
+    },
+    {
+      "name": "description",
+      "datatype": "string"
+    },
+    {
+      "name": "landing_page",
+      "datatype": "string"
+    },
+    {
+      "name": "version",
+      "datatype": "string"
+    },
+    {
+      "name": "see_also",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "conforms_to",
+      "datatype": "string"
+    },
+    {
+      "name": "date_issued",
+      "datatype": "timestamp"
+    },
+    {
+      "name": "last_modified_date",
+      "datatype": "timestamp"
+    },
+    {
+      "name": "custodian",
+      "datatype": "string"
+    },
+    {
+      "name": "contact_point",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "owner",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "funded_by",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "generated_by",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "data_use_permission",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "consent_group",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "license",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "principal_investigator",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "registered_identifier",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "part_of_datacollection_id",
+      "datatype": "string",
+      "type": "repeated"
+    }
+  ]
+}

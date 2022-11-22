@@ -11,27 +11,31 @@ object AntibodyTransformations {
   def transformAntibody(antibodyInput: Msg, joinedTargets: Iterable[Msg]): Antibody = {
     import org.broadinstitute.monster.common.msg.MsgOps
 
-    val targetNames = joinedTargets
+    val id = CommonTransformations.readId(antibodyInput)
+    val targetName = joinedTargets
       .filter(_.tryRead[String]("organism").contains("/organisms/human/"))
       .map(_.read[String]("label"))
-      .toList
-      .sorted
-      .distinct
+      .headOption
 
     Antibody(
-      id = CommonTransformations.readId(antibodyInput),
-      crossReferences = antibodyInput.read[List[String]]("dbxrefs"),
-      timeCreated = antibodyInput.read[OffsetDateTime]("date_created"),
-      source = antibodyInput.read[String]("source"),
+      antibodyId = CommonTransformations.readId(antibodyInput),
+      label = id,
+      xref = CommonTransformations.convertToEncodeUrl(
+        antibodyInput.read[String]("@id")
+      ) :: antibodyInput.tryRead[List[String]]("dbxrefs").getOrElse(List.empty[String]),
+      dateCreated = antibodyInput.read[OffsetDateTime]("date_created"),
+      source = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("source")),
       clonality = antibodyInput.tryRead[String]("clonality"),
-      hostOrganism = antibodyInput.read[String]("host_organism"),
-      targets = targetNames,
-      award = antibodyInput.read[String]("award"),
+      hostOrganism =
+        CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("host_organism")),
+      target = targetName,
+      award = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("award")),
       isotype = antibodyInput.tryRead[String]("isotype"),
-      lab = antibodyInput.read[String]("lab"),
-      lotId = antibodyInput.tryRead[String]("lot_id"),
-      productId = antibodyInput.read[String]("product_id"),
-      purificationMethods = antibodyInput.read[List[String]]("purifications")
+      lab = CommonTransformations.convertToEncodeUrl(antibodyInput.read[String]("lab")),
+      lot = antibodyInput.tryRead[String]("lot_id"),
+      partNumber = antibodyInput.read[String]("product_id"),
+      purificationMethods =
+        antibodyInput.tryRead[List[String]]("purifications").getOrElse(List.empty[String])
     )
   }
 }

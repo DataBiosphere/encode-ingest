@@ -41,5 +41,13 @@ object EncodeEntity extends Enum[EncodeEntity] {
 
   case object Pipeline extends EncodeEntity
 
+  case object Organism extends EncodeEntity
+
+  case object GeneticModification extends EncodeEntity
+
+  case object Reference extends EncodeEntity
+
+  case object Treatment extends EncodeEntity
+
   override def values: immutable.IndexedSeq[EncodeEntity] = findValues
 }

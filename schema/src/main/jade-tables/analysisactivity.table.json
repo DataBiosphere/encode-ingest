@@ -1,0 +1,66 @@
+{
+  "name": "analysisactivity",
+  "columns": [
+    {
+      "name": "analysisactivity_id",
+      "datatype": "string",
+      "type": "primary_key"
+    },
+    {
+      "name": "label",
+      "datatype": "string",
+      "type": "required"
+    },
+    {
+      "name": "xref",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "activity_type",
+      "datatype": "string"
+    },
+    {
+      "name": "data_modality",
+      "datatype": "string",
+      "type": "repeated"
+    },
+    {
+      "name": "analysis_type",
+      "datatype": "string"
+    },
+    {
+      "name": "assayactivity_id",
+      "datatype": "string",
+      "type": "required",
+      "links": [
+        {
+          "table_name": "assayactivity",
+          "column_name": "assayactivity_id"
+        }
+      ]
+    },
+    {
+      "name": "used_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    },
+    {
+      "name": "generated_file_id",
+      "datatype": "string",
+      "type": "repeated",
+      "links": [
+        {
+          "table_name": "file",
+          "column_name": "file_id"
+        }
+      ]
+    }
+  ]
+}
