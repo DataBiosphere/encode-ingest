@@ -16,6 +16,7 @@ bigquery:
     datasetPrefix: monster_staging_data
     description: The coolest dataset
     expiration: '1' # Gotta go fast
+    bqRegion: us-central1
   jadeData:
     project: jade-data
 aws:
