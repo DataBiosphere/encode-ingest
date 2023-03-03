@@ -112,13 +112,16 @@ object TransformationPipelineBuilder extends PipelineBuilder[Args] {
     val sequenceFiles = readRawEntities("SequenceFiles", ctx, args.inputPrefix)
     val alignmentFiles = readRawEntities("AlignmentFiles", ctx, args.inputPrefix)
     val signalFiles = readRawEntities("SignalFiles", ctx, args.inputPrefix)
-    val annotationFiles = readRawEntities("AnnotationFiles", ctx, args.inputPrefix)
+    val annotationFootprintFiles = readRawEntities("AnnotationFootprintFiles", ctx, args.inputPrefix)
+    val annotationNonFootprintFiles =
+      readRawEntities("AnnotationNonFootprintFiles", ctx, args.inputPrefix)
     val otherFiles = readRawEntities("OtherFiles", ctx, args.inputPrefix)
 
     val allFiles = alignmentFiles
       .union(sequenceFiles)
       .union(signalFiles)
-      .union(annotationFiles)
+      .union(annotationFootprintFiles)
+      .union(annotationNonFootprintFiles)
       .union(otherFiles)
 
     val filesForStepRun = allFiles
