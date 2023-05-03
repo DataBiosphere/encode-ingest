@@ -16,9 +16,9 @@ Then use the swagger at `https://data.terra.bio/swagger-ui.html#/datasets/create
 		"schema": <table_data>,
 		"cloudPlatform": "gcp",
 		"enableSecureMonitoring": false,
-		"experimentalSelfHosted": false,
+		"experimentalSelfHosted": true,
 		"properties": {},
-		"dedicatedIngestServiceAccount": false
+		"dedicatedIngestServiceAccount": true
 	}
 
 Grant steward access to these users
