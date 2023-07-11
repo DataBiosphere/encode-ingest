@@ -21,8 +21,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-      - uses: google-github-actions/setup-gcloud@v0
+          python-version: '3.11'
+      - uses: google-github-actions/setup-gcloud@v1
         with:
           version: '318.0.0'
           project_id: broad-dsp-monster-dev
