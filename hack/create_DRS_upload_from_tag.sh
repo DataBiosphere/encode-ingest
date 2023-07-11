@@ -16,7 +16,16 @@ function transform() {
   # $1 should be the variable with the missing ids, $2 is the text to echo after the number of found files
   while IFS= read -r line; do
     REF=`echo "$line" | awk '{print $1}'`
-    FILE_ID=`echo "$line" | awk '{print $NF}' | awk -F'/' '{print $NF}' | awk -F'.' '{print $1}' | sed 's/\(.*\)bed/\1/'`
+
+    # get the target path, remove any directories, remove the <uuid>_ (have seen uuid with 34-36 chars)
+    FILENAME=`echo "$line" | awk '{print $NF}' | awk -F'/' '{print $NF}'  | sed 's/.\{34\}??_//' | sed 's/bed$//`
+
+    if [[ $FILENAME == ENCFF* ]]; then
+        FILE_ID=`echo $FILENAME | awk -F. '{print $1}'`
+    else
+        # encode has several files where the name of the file is slightly modified from the path of the file. this is brittle and risky
+        FILE_ID=`echo $FILENAME | sed "s/\.gz//g" | sed "s/\.tsv//g" | sed "s/\.tar//g" | sed "s/\.g[t|f]f$//g" | sed "s/\.fasta//g" | sed "s/^737K-arc-v1_\(.*\).txt$/737K-arc-v1(\1)/"`
+    fi
     echo "$JSON_LINE" | sed "s/__FILE__/${FILE_ID}/g" | sed "s/__REF__/${REF}/g"
   done <<< "$1"
 }

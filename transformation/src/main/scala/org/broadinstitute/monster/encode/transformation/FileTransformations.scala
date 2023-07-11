@@ -33,7 +33,7 @@ object FileTransformations {
         rawFile
           .tryRead[List[String]]("assay_term_name")
           .getOrElse(List())
-          .map(AssayActivityTransformations.transformAssayTermToDataModality(_))
+          .map(AssayActivityTransformations.transformAssayTermToDataModality)
       }
     if (dataModality.isEmpty) {
       logger.warn(
@@ -60,7 +60,7 @@ object FileTransformations {
   }
 
   def getDonorIds(rawFile: Msg): Option[List[String]] = {
-    return rawFile.tryRead[List[String]]("donors")
+    rawFile.tryRead[List[String]]("donors")
   }
 
   def computeLibrariesForFile(
@@ -133,19 +133,21 @@ object FileTransformations {
       libraryId = computeLibrariesForBiosamples(biosample, rawLibraries)
         .getOrElse(List.empty[String]),
       usesSampleBiosampleId =
-        biosample.getOrElse(List[String]()).map(CommonTransformations.transformId(_)),
+        biosample.getOrElse(List[String]()).map(CommonTransformations.transformId),
       donorId =
-        getDonorIds(rawFile).getOrElse(List.empty[String]).map(CommonTransformations.transformId(_)),
+        getDonorIds(rawFile).getOrElse(List.empty[String]).map(CommonTransformations.transformId),
       derivedFromFileId = rawFile
         .tryRead[List[String]]("derived_from")
         .getOrElse(List.empty[String])
-        .map(CommonTransformations.transformId(_)),
+        .map(CommonTransformations.transformId),
       referenceAssembly = rawFile.tryRead[List[String]]("assembly").getOrElse(List.empty[String]),
       fileRef = None,
       libraryLayout = rawFile.tryRead[String]("run_type").map(_ == PairedEndIdentifier),
       pairedEndIdentifier = pairedEndId,
       pairedWithFileId =
-        rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId)
+        rawFile.tryRead[String]("paired_with").map(CommonTransformations.transformId),
+      fileSize = rawFile.tryRead[Long]("file_size"),
+      fileMd5sum = rawFile.tryRead[String]("md5checksum")
     )
   }
 }

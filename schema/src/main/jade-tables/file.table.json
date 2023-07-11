@@ -84,6 +84,14 @@
       "datatype": "string"
     },
     {
+      "name": "file_size",
+      "datatype": "integer"
+    },
+    {
+      "name": "file_md5sum",
+      "datatype": "string"
+    },
+    {
       "name": "library_id",
       "datatype": "string",
       "type": "repeated",

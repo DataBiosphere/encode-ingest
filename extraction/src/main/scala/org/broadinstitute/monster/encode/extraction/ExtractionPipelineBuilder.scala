@@ -151,8 +151,17 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       ("output_category" -> "alignment") :: releasedStatusQuery
     val signalFileQuery: List[(String, String)] =
       ("output_category" -> "signal") :: releasedStatusQuery
-    val annotationFileQuery: List[(String, String)] =
+
+    // we now have too many annotation files for the system to pull at once. break this down into 2 requests
+    // use the output_type field and separate by "footprints" and the rest
+    val annotationFootprintsFileQuery: List[(String, String)] =
+      ("output_category" -> "annotation") :: ("output_type" -> "footprints") :: releasedStatusQuery
+    val annotationFileQuery: List[(String, String)] = {
       ("output_category" -> "annotation") :: releasedStatusQuery
+    }
+    val annotationFootprintsNegativeQuery: List[(String, String)] = {
+      ("output_type" -> "footprints") :: restrictedNegativeQuery
+    }
     val otherFileNegativeQuery: List[(String, String)] =
       ("output_category" -> "alignment") :: ("output_category" -> "raw data") :: ("output_category" -> "signal") :: ("output_category" -> "annotation") :: restrictedNegativeQuery
 
@@ -183,13 +192,22 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       restrictedNegativeQuery
     )
 
-    val annotationFiles = extractEntitiesWithName(
+    val annotationFootprintFiles = extractEntitiesWithName(
       EncodeEntity.File,
-      "AnnotationFiles",
+      "AnnotationFootprintFiles",
       ctx
-        .withName("Get Annotation Files")
-        .parallelize(List(annotationFileQuery)),
+        .withName("Get Annotation Footprints Files")
+        .parallelize(List(annotationFootprintsFileQuery)),
       restrictedNegativeQuery
+    )
+
+    val annotationNonFootprintFiles = extractEntitiesWithName(
+      EncodeEntity.File,
+      "AnnotationNonFootprintFiles",
+      ctx
+        .withName("Get Annotation Non Footprint Files")
+        .parallelize(List(annotationFileQuery)),
+      annotationFootprintsNegativeQuery
     )
 
     val otherFiles = extractEntitiesWithName(
@@ -206,7 +224,8 @@ class ExtractionPipelineBuilder(getClient: () => EncodeClient)
       .union(alignmentFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
       .union(sequenceFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
       .union(signalFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
-      .union(annotationFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(annotationFootprintFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
+      .union(annotationNonFootprintFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
       .union(otherFiles.filterNot(_.tryRead[String]("step_run").isEmpty))
 
     // Don't need to use donors or biosample-types apart from storing them, so we don't assign them outputs here.

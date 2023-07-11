@@ -32,7 +32,7 @@ Grant steward access to these users
 
 ## Run argo workflow
 
-See the build section in [README](https://github.com/DataBiosphere/encode-ingest/blob/ah_preview_v2_ready/README.md#build-and-deploy-code-chages-from-branch) to build updated version of the ingest code
+See the build section in [README](https://github.com/DataBiosphere/encode-ingest/#build-and-deploy-code-chages-from-branch) to build updated version of the ingest code
 
 ### Steps in monster-deploy repo
 
@@ -112,55 +112,45 @@ You can check to see if there are any missing files by running
 
 
 ### Create the json to load all the ENCODE FILES
-This takes a long time and **has already been done.** Resulting file is here **`gs://encode-public/encode-bulk-fileload.json`**
+This takes a long time and could be refactored not to use so many separate sed an awk commands. Also I believe the format needs to change based on us loading the files using the ingest endpoint. Also, the files on s3 change frequently so we should really re-sync from s3 which then requires a new load json. Finally, when we were using the bulk load endpoint, the system could not handle more than ~40k files at a time. So we used the split unix command to break up the large file into files with at most 40k lines.
 
-***Skip to the next section***
+**TODO** Merge create_file_submission_from_manifest.sh and create_file_submission_from_manifest_use_accession.sh
 
-Only run these steps if you need to recreate the json from the manifest. This takes a **very** long time. If changes need to be made, I suggest manipulating the existing json file with `sed`, `awk`, etc
+
+
+1. Re-sync from the s3 bucket. (This will takes days!)
 
 1. Download the manifest from encode `encode_file_manifest.tsv`
 
 1. Run
 
-	`./create_file_submission <manifest_file> <source_bucket> > encode-bulk-fileload.json`
+	`./create_file_submission_from_manifest_use_accession.sh <manifest_file> > encode-fileload.json` 
 	
 	*This reads the manifest and creates a json entry for each file that needs to be ingested. It skips archived files.*
 
-1. Copy the `encode-bulk-fileload.json` file to a google bucket.
+1. Copy the `encode-fileload.json` file to a google bucket.
 
 
 ### Bulk load the files
-1. Replace the variables in the json below, and then use the swagger endpoint to load the files into the dataset: `https://data.terra.bio/swagger-ui.html#/datasets/bulkFileLoad` 
+*** DO NOT USE THIS ENDPOINT ***
+Use ingestDataset instead!!!
+
+1. Replace the variables in the json below, and then use the swagger endpoint to create the DRS references and update the files table for the self-hosted files: `https://data.terra.bio/swagger-ui.html#/datasets/{id}/ingest` 
 
 
 		{
-			"profileId": "__PROFILE_ID__",
-			"loadTag": "TAG_NAME",
-			"maxFailedFileLoads": 10,
-			"loadControlFile": "gs://encode-public/encode-bulk-fileload.json"
+    		"table": "file",
+    		"path": "__UPLOAD_FILE_PATH__",
+    		"format": "json",
+    		"load_tag": "__TAG_NAME__",
+    		"profile_id": "__PROFILE_ID__",
+    		"max_bad_records": 0,
+    		"max_failed_file_loads": 0,
+    		"ignore_unknown_values": true,
+    		"resolve_existing_files": false,
+    		"updateStrategy": "merge"
 		}
 	
-### Update the file entries with the DRS IDs assigned by the data repo
-
-One way to get the DRS Ids that have been assigned to the files that were uploaded is to use the swagger enpoint: `https://data.terra.bio/swagger-ui.html#/datasets/getLoadHistoryForLoadTag`. Another way is to query the `datarepo_load_history` table directly which is what the script below does. Run this script to build the json that will update the file entries that now have DRS IDs. 
-
-	./create_DRS_upload.sh <project-id> <dataset-name> <tag-name> <num-files> > drs_upload.json
-	
-Copy the output file to a google bucket, replace the variables below and use the swagger endpoint to load the DRS ref IDs. (Note: it's important to use the updateStrategy `merge`).
-	
-	 {
-	    "table": "file",
-	    "path": "__DRS_UPLOAD_FILE__",
-	    "format": "json",
-	    "load_tag": "__TAG__",
-	    "profile_id": "__PROFILE_ID__",
-	    "max_bad_records": 0,
-	    "max_failed_file_loads": 0,
-	    "ignore_unknown_values": true,
-	    "resolve_existing_files": false,
-	    "updateStrategy": "merge"
-    }
-   
 ## Define full view snapshot
 
 	{
@@ -348,3 +338,28 @@ Copy the output file to a google bucket, replace the variables below and use the
 	      "from_variantcallingactivity.generated_file_id_to_file.file_id"
 	  ]
 	}
+
+--------------------------------
+
+## OUTDATED INSTRUCTIONS
+### Update the file entries with the DRS IDs assigned by the data repo
+
+One way to get the DRS Ids that have been assigned to the files that were uploaded is to use the swagger enpoint: `https://data.terra.bio/swagger-ui.html#/datasets/getLoadHistoryForLoadTag`. Another way is to query the `datarepo_load_history` table directly which is what the script below does. Run this script to build the json that will update the file entries that now have DRS IDs. 
+
+	./create_DRS_upload_from_tag.sh <project-id> <dataset-name> <tag-name> <num-files> > drs_upload.json
+	
+Copy the output file to a google bucket, replace the variables below and use the swagger endpoint to load the DRS ref IDs. (Note: it's important to use the updateStrategy `merge`).
+	
+	 {
+	    "table": "file",
+	    "path": "__DRS_UPLOAD_FILE__",
+	    "format": "json",
+	    "load_tag": "__TAG__",
+	    "profile_id": "__PROFILE_ID__",
+	    "max_bad_records": 0,
+	    "max_failed_file_loads": 0,
+	    "ignore_unknown_values": true,
+	    "resolve_existing_files": false,
+	    "updateStrategy": "merge"
+    }
+   
