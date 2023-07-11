@@ -21,8 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9.11'
-	  export CLOUDSDK_PYTHON="$HOME/.asdf/installs/python/3.9.11/bin/python"
+          python-version: '3.11'
       - uses: google-github-actions/setup-gcloud@v0
         with:
           version: '318.0.0'
