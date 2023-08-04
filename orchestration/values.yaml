@@ -1,7 +1,7 @@
 cron:
-  enable: true
+  enable: false
   # Every Sunday at 3:30am
-  schedule: '30 3 * * Sun'
+  schedule: '45 11 30 6 *'
   timezone: 'America/New_York'
 dataflow:
   region: us-west1
