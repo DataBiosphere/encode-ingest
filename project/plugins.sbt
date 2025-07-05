@@ -6,9 +6,6 @@ val publishPatterns = Patterns()
   .withIvyPatterns(Vector(s"$patternBase/ivy-[revision].xml"))
   .withArtifactPatterns(Vector(s"$patternBase/[module]-[revision](-[classifier]).[ext]"))
 
-resolvers += Resolver.url(
-  "Broad Artifactory",
-  new URL("https://broadinstitute.jfrog.io/broadinstitute/libs-release/")
-)(publishPatterns)
+resolvers += "Google Artifact Repository" at "https://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-release/"
 
 addSbtPlugin("org.broadinstitute.monster" % "ingest-sbt-plugins" % "2.1.9")
